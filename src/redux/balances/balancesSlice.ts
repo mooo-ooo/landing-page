@@ -92,7 +92,7 @@ export const SummaryBalanceSlice = createSlice({
   name: 'SummaryBalance',
   initialState,
   reducers: {
-    setSummaryBalance: (state, action: PayloadAction<SummaryBalanceState>) => {
+    setSummaryBalance: (_state, action: PayloadAction<SummaryBalanceState>) => {
       return action.payload
     },
     setTotalHuobi: (state, action: PayloadAction<number>) => {

@@ -9,6 +9,8 @@ import {
 // Pages
 import Layout from './Layout'
 import Home from './pages/Home'
+import Login from './pages/Login'
+import Register from './pages/Register'
 
 // Store
 import { Provider } from 'react-redux'
@@ -17,6 +19,9 @@ import { store } from './redux/store'
 const darkTheme = createTheme({
   palette: {
     mode: 'dark',
+    primary: {
+      main: 'rgb(14, 173, 152)',
+    },
   },
   typography: {
     fontFamily: '"Kraken Plex Mono", monospace',
@@ -33,6 +38,8 @@ function App() {
           <BrowserRouter>
             <Suspense fallback={<>loading...</>}>
               <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Home />} />
                   <Route path="*" element={<Home />} />

@@ -1,33 +1,49 @@
-import { useState } from 'react'
-import { Outlet, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Container,
   Box,
   AppBar,
   Toolbar,
-  Typography,
-  IconButton,
-  Drawer,
-  ListItem,
-  List,
-  ListItemButton,
-  Divider,
+  // Typography,
   Snackbar,
   Alert,
+  IconButton,
+  Menu,
+  MenuItem,
+  Typography,
+  // IconButton
 } from '@mui/material'
-import MenuIcon from '@mui/icons-material/Menu'
+import { AccountCircle } from '@mui/icons-material'
 import { styled } from '@mui/system'
+import api from './lib/axios'
 
 function Layout() {
-  const [error, setError] = useState<string>()
-  const [open, setOpen] = useState(false)
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [error, setError] = useState<string>();
+  const [userEmail, setUserEmail] = useState<string>();
+  const isMenuOpen = Boolean(anchorEl);
 
-  const toggleDrawer = (newOpen: boolean) => () => {
-    setOpen(newOpen)
-  }
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Fetch user info
+      api.get('/api/v1/auth/me')
+        .then(response => {
+          setUserEmail(response.data.email);
+        })
+        .catch(() => {
+          // If token is invalid, clear it and redirect to login
+          localStorage.removeItem('token');
+          navigate('/login');
+        });
+    }
+  }, [navigate]);
 
   const handleClose = (
-    event?: React.SyntheticEvent | Event,
+    _event?: React.SyntheticEvent | Event,
     reason?: string
   ) => {
     if (reason === 'clickaway') {
@@ -37,104 +53,100 @@ function Layout() {
     setError(undefined)
   }
 
-  const [, setOpenLoginDialog] = useState(false)
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
-  const DrawerList = (
-    <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
-      <List>
-        <ListItem disablePadding>
-          <LinkStyled to="/">
-            <ListItemButton>
-              <Typography variant="button">Dashboard</Typography>
-            </ListItemButton>
-          </LinkStyled>
-        </ListItem>
-        <Divider />
-        <ListItem disablePadding>
-          <LinkStyled to="/orderbooks">
-            <ListItemButton>
-              <Typography variant="button">Orderbooks</Typography>
-            </ListItemButton>
-          </LinkStyled>
-        </ListItem>
-        <Divider />
-        <ListItem disablePadding>
-          <LinkStyled to="/wallet-addresses">
-            <ListItemButton>
-              <Typography variant="button">Wallet Addresses</Typography>
-            </ListItemButton>
-          </LinkStyled>
-        </ListItem>
-        <Divider />
-        <ListItem disablePadding>
-          <LinkStyled to="/funding-arbitrage">
-            <ListItemButton>
-              <Typography variant="button">Funding Arbitrage</Typography>
-            </ListItemButton>
-          </LinkStyled>
-        </ListItem>
-        <Divider />
-        <ListItem disablePadding>
-          <LinkStyled to="/positions">
-            <ListItemButton>
-              <Typography variant="button">Positions</Typography>
-            </ListItemButton>
-          </LinkStyled>
-        </ListItem>
-        <Divider />
-        <ListItem disablePadding>
-          <LinkStyled to="/authenticator">
-            <ListItemButton>
-              <Typography variant="button">Authenticator</Typography>
-            </ListItemButton>
-          </LinkStyled>
-        </ListItem>
-        <Divider />
-        <ListItem disablePadding>
-          <LinkStyled to="/logs">
-            <ListItemButton>
-              <Typography variant="button">Logs</Typography>
-            </ListItemButton>
-          </LinkStyled>
-        </ListItem>
-        <Divider />
-        <ListItem disablePadding>
-          <ListItemButton onClick={() => setOpenLoginDialog(true)}>
-            <Typography variant="button">Login</Typography>
-          </ListItemButton>
-          {/* <Button color="inherit" onClick={() => setOpenLoginDialog(true)}>Login</Button> */}
-        </ListItem>
-      </List>
-    </Box>
+  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+    handleMenuClose();
+  };
+
+  const menuId = 'primary-search-account-menu';
+
+  const renderMenu = (
+    <Menu
+      anchorEl={anchorEl}
+      anchorOrigin={{
+        vertical: 'top',
+        horizontal: 'right',
+      }}
+      id={menuId}
+      keepMounted
+      transformOrigin={{
+        vertical: 'top',
+        horizontal: 'right',
+      }}
+      open={isMenuOpen}
+      onClose={handleMenuClose}
+    >
+      <MenuItem onClick={handleMenuClose}>
+        <Typography variant="body2" color="text.secondary">
+          {userEmail}
+        </Typography>
+      </MenuItem>
+      <MenuItem onClick={handleLogout}>Logout</MenuItem>
+    </Menu>
   )
+  
 
   return (
     <Box mt="60px">
       <Box sx={{ flexGrow: 1 }}>
-        <AppBar position="fixed">
+        <AppBar position="fixed" sx={{background: "#181a20"}}>
           <Toolbar>
-            <IconButton
-              size="large"
-              edge="start"
-              color="inherit"
-              aria-label="open drawer"
-              onClick={toggleDrawer(true)}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Box sx={{ flexGrow: 1 }} display="flex" justifyContent="center">
-              <img style={{ height: 16 }} src="/logo.png" alt="logo" />
+            <Box display="flex" justifyContent="space-between" gap="36px">
+              <img style={{ height: 18, marginRight: '12px' }} src="/logo.png" alt="logo" />
+              <LinkStyled
+                to="/dashboard"
+                isActive={location.pathname === '/dashboard'}
+              >
+                Dashboard
+              </LinkStyled>
+              <LinkStyled
+                to="/funding-arbitrage"
+                isActive={location.pathname === '/funding-arbitrage'}
+              >
+                Funding Arbitrage
+              </LinkStyled>
+              <LinkStyled
+                to="/tools"
+                isActive={location.pathname === '/tools'}
+              >
+                Tools
+              </LinkStyled>
+            </Box>
+            <Box sx={{ flexGrow: 1 }} />
+            <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+              {userEmail ? (
+                <IconButton
+                  size="large"
+                  edge="end"
+                  aria-label="account of current user"
+                  aria-controls={menuId}
+                  aria-haspopup="true"
+                  onClick={handleProfileMenuOpen}
+                  color="inherit"
+                >
+                  <AccountCircle />
+                </IconButton>
+              ) : (
+                <LinkStyled to="/login">Login</LinkStyled>
+              )}
             </Box>
           </Toolbar>
         </AppBar>
+        {renderMenu}
       </Box>
-      <Drawer open={open} onClose={toggleDrawer(false)}>
-        {DrawerList}
-      </Drawer>
       {/* An <Outlet> renders whatever child route is currently active,
           so you can think about this <Outlet> as a placeholder for
           the child routes we defined above. */}
-      <Container maxWidth="xl">
+      <Container id="content-layout" maxWidth="xl">
         <Outlet />
       </Container>
       <Snackbar
@@ -157,8 +169,12 @@ function Layout() {
 
 export default Layout
 
-const LinkStyled = styled(Link)({
+const LinkStyled = styled(Link)<{ isActive?: boolean }>(({ theme, isActive }) => ({
   textDecoration: 'auto',
-  color: 'unset',
-  width: '100%',
-})
+  color: isActive ? theme.palette.primary.main : 'unset',
+  fontSize: '16px',
+  whiteSpace: 'nowrap',
+  '&:hover': {
+    color: theme.palette.primary.main
+  }
+}))
