@@ -110,11 +110,9 @@ function Login() {
         password: formData.password,
       });
 
-      if (response.data) {
+      if (response?.data?.access_token) {
         // Store the token if it's in the response
-        if (response.data.token) {
-          localStorage.setItem('token', response.data.token);
-        }
+        localStorage.setItem('token', response.data.access_token);
         // Navigate to dashboard on successful login
         navigate('/dashboard');
       }

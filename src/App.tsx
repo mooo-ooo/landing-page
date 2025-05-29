@@ -20,7 +20,7 @@ const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: 'rgb(14, 173, 152)',
+      main: 'rgb(240, 185, 11)',
     },
   },
   typography: {

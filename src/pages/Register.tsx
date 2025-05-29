@@ -11,9 +11,12 @@ import {
   InputAdornment,
   IconButton,
   Alert,
+  Checkbox,
+  FormControlLabel,
+  Box,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { Box, styled } from '@mui/system';
+import { styled } from '@mui/system';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   marginTop: theme.spacing(8),
@@ -75,10 +78,12 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string>();
+  const [isGroupManager, setIsGroupManager] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
+    groupCode: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,10 +103,17 @@ function Register() {
       return;
     }
 
+    if (!isGroupManager && !formData.groupCode) {
+      setError('Group Code is required for non-group managers');
+      return;
+    }
+
     try {
       const response = await api.post('/api/v1/auth/register', {
         email: formData.email,
         password: formData.password,
+        groupCode: isGroupManager ? undefined : formData.groupCode,
+        isGroupManager,
       });
 
       if (response.data) {
@@ -212,6 +224,37 @@ function Register() {
                 ),
               }}
             />
+            <Box sx={{ mt: 2 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={isGroupManager}
+                    onChange={(e) => setIsGroupManager(e.target.checked)}
+                    sx={{
+                      color: '#848e9c',
+                      '&.Mui-checked': {
+                        color: 'primary.main',
+                      },
+                    }}
+                  />
+                }
+                label="I am a group manager"
+                sx={{ color: '#848e9c' }}
+              />
+            </Box>
+            {!isGroupManager && (
+              <StyledTextField
+                variant="standard"
+                margin="normal"
+                required
+                fullWidth
+                name="groupCode"
+                label="Group Code"
+                id="groupCode"
+                value={formData.groupCode}
+                onChange={handleChange}
+              />
+            )}
             <StyledButton
               type="submit"
               fullWidth
