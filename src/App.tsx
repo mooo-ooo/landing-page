@@ -11,6 +11,9 @@ import Layout from './Layout'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import Dashboard from './pages/Dashboard'
+import TwoFactorAuth from './pages/TwoFactorAuth'
+import TwoFactorVerify from './pages/TwoFactorVerify'
 
 // Store
 import { Provider } from 'react-redux'
@@ -40,8 +43,12 @@ function App() {
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/2fa-verify" element={<TwoFactorVerify />} />
+                
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Home />} />
+                  <Route path="/2fa" element={<TwoFactorAuth />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="*" element={<Home />} />
                 </Route>
               </Routes>

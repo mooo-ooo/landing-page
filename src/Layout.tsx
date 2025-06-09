@@ -176,7 +176,7 @@ function Layout() {
       <MenuItem 
         onClick={() => {
           handleMenuClose();
-          navigate('/2fa-setup');
+          navigate('/2fa');
         }}
         sx={{ 
           py: 1.5,

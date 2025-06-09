@@ -109,12 +109,18 @@ function Login() {
         email: formData.email,
         password: formData.password,
       });
-
+      console.log(response);
       if (response?.data?.access_token) {
-        // Store the token if it's in the response
+        // If 2FA is not required, proceed with normal login
         localStorage.setItem('token', response.data.access_token);
-        // Navigate to dashboard on successful login
         navigate('/dashboard');
+        return;
+      }
+      if (response?.data?.verification_id) {
+        // If 2FA is required, store the temporary token and redirect to 2FA verify page
+        localStorage.setItem('verification_id', response.data.verification_id);
+        navigate('/2fa-verify');
+        return;
       }
     } catch (err) {
       if (err instanceof AxiosError) {

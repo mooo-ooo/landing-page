@@ -19,6 +19,7 @@
     "ccxt": "^4.4.82",
     "notistack": "^3.0.2",
     "numeral": "^2.0.6",
+    "qrcode.react": "^4.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-redux": "^9.2.0",
