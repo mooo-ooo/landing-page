@@ -11,6 +11,19 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Get groupId from localStorage
+    const groupId = localStorage.getItem('groupId');
+    if (groupId) {
+      config.headers['x-group-id'] = groupId;
+    }
+
+    // Get 2FA token from localStorage
+    const twoFactorToken = localStorage.getItem('2fa_token');
+    if (twoFactorToken) {
+      config.headers['token'] = twoFactorToken;
+    }
+
     return config;
   },
   (error) => {
@@ -28,6 +41,10 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );

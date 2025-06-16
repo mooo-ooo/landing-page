@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import type { AppDispatch, RootState } from './redux/store'
 import {
   Container,
   Box,
@@ -28,12 +30,15 @@ import {
 } from '@mui/icons-material'
 import { styled } from '@mui/system'
 import api from './lib/axios'
+import { setUser, setError } from './redux/slices/userSlice'
 
 function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const user = useSelector((state: RootState) => state.user.data);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [error, setError] = useState<string>();
+  const [localError, setLocalError] = useState<string>();
   const [userEmail, setUserEmail] = useState<string>();
   const [userCredit, setUserCredit] = useState<number>();
   const [userGroupCode, setUserGroupCode] = useState<string>();
@@ -47,18 +52,39 @@ function Layout() {
       // Fetch user info
       api.get('/api/v1/auth/me')
         .then(response => {
-          setUserEmail(response.data.email);
-          setUserCredit(response.data.credit);
-          setUserGroupCode(response.data.groupCode);
-          setTwoFactorEnabled(response.data.two_factor_enabled);
+          const userData = response.data;
+          console.log('userData', userData);
+          dispatch(setUser({
+            id: userData.id,
+            email: userData.email,
+            is2faEnabled: userData.two_factor_enabled,
+            groupId: userData.groupId,
+            groupCode: userData.groupCode,
+          }));
+          // Store groupId in localStorage for axios interceptor
+          if (userData.groupId) {
+            localStorage.setItem('groupId', userData.groupId.toString());
+          }
+          setUserEmail(userData.email);
+          setUserCredit(userData.credit);
+          setUserGroupCode(userData.groupCode);
+          setTwoFactorEnabled(userData.two_factor_enabled);
         })
-        .catch(() => {
+        .catch((err) => {
           // If token is invalid, clear it and redirect to login
           localStorage.removeItem('token');
+          dispatch(setError(err.message || 'Failed to fetch user data'));
           navigate('/login');
         });
     }
-  }, [navigate]);
+  }, [dispatch, navigate]);
+
+  // Set x-group-id header when user data is available
+  useEffect(() => {
+    if (user?.groupId) {
+      api.defaults.headers.common['x-group-id'] = user.groupId.toString();
+    }
+  }, [user?.groupId]);
 
   const handleClose = (
     _event?: React.SyntheticEvent | Event,
@@ -68,7 +94,7 @@ function Layout() {
       return
     }
 
-    setError(undefined)
+    setLocalError(undefined)
   }
 
   const handleMenuClose = () => {
@@ -274,7 +300,7 @@ function Layout() {
         <Outlet />
       </Container>
       <Snackbar
-        open={Boolean(error?.length)}
+        open={Boolean(localError?.length)}
         autoHideDuration={10000}
         onClose={handleClose}
       >
@@ -284,7 +310,7 @@ function Layout() {
           variant="filled"
           sx={{ width: '100%' }}
         >
-          {error}
+          {localError}
         </Alert>
       </Snackbar>
     </Box>

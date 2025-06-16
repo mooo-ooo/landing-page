@@ -14,6 +14,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import TwoFactorAuth from './pages/TwoFactorAuth'
 import TwoFactorVerify from './pages/TwoFactorVerify'
+import ApiKeys from './pages/ApiKeys'
 
 // Store
 import { Provider } from 'react-redux'
@@ -49,6 +50,7 @@ function App() {
                   <Route index element={<Home />} />
                   <Route path="/2fa" element={<TwoFactorAuth />} />
                   <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/api-keys" element={<ApiKeys />} />
                   <Route path="*" element={<Home />} />
                 </Route>
               </Routes>

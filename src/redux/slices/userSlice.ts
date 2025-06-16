@@ -7,6 +7,7 @@ interface UserState {
     email: string;
     name: string;
     is2faEnabled: boolean;
+    groupId: number;
   } | null;
   loading: boolean;
   error: string | null;
@@ -27,6 +28,7 @@ export const fetchUserData = createAsyncThunk(
       email: response.data.email,
       name: response.data.name,
       is2faEnabled: response.data.is_2fa_enabled,
+      groupId: response.data.group_id,
     };
   }
 );
@@ -35,6 +37,15 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
+    setUser: (state, action) => {
+      state.data = action.payload;
+      state.loading = false;
+      state.error = null;
+    },
+    setError: (state, action) => {
+      state.error = action.payload;
+      state.loading = false;
+    },
     clearUser: (state) => {
       state.data = null;
       state.error = null;
@@ -57,5 +68,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { clearUser } = userSlice.actions;
+export const { setUser, setError, clearUser } = userSlice.actions;
 export default userSlice.reducer; 
