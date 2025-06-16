@@ -113,7 +113,7 @@ function ApiKeys() {
       };
 
       if (editingKey) {
-        await api.put(`/api/v1/exchange/keys/${editingKey.id}`, payload, { headers });
+        await api.put(`/api/v1/exchange/keys/${editingKey.id}`, payload);
         setSuccess('API keys updated successfully');
       } else {
         await api.post('/api/v1/exchange/keys', payload);
