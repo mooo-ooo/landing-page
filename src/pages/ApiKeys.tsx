@@ -43,6 +43,7 @@ const ALL_EXCHANGES = [
   { value: 'coinex', label: 'Coinex' },
   { value: 'huobi', label: 'Huobi' },
   { value: 'gate', label: 'Gate.io' },
+  { value: 'bitget', label: 'Bitget' },
 ];
 
 function ApiKeys() {
