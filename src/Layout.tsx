@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AppDispatch, RootState } from './redux/store'
@@ -15,6 +15,7 @@ import {
   MenuItem,
   Typography,
   Tooltip,
+  LinearProgress,
   // IconButton
 } from '@mui/material'
 import { 
@@ -30,9 +31,15 @@ import {
 } from '@mui/icons-material'
 import { styled } from '@mui/system'
 import api from './lib/axios'
+
 import { setUser, setError } from './redux/slices/userSlice'
+// import { setSummaryBalance } from './redux/balances/balancesSlice'
+import { setPositions } from './redux/positions/positionsSlice'
+// import { setStrategies } from './redux/strategy/strategySlice'
 
 function Layout() {
+  const didRun = useRef(false);
+  const [loading, setLoading] = useState(false)
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
@@ -46,9 +53,46 @@ function Layout() {
   const [copySuccess, setCopySuccess] = useState(false);
   const isMenuOpen = Boolean(anchorEl);
 
+  const fetchBalance = () => {
+    setLoading(true)
+    Promise.all([
+      // api
+      //   .get('/wallet')
+      //   .then(function ({ data }) {
+      //     // handle success
+      //     dispatch(setSummaryBalance(data))
+      //   })
+      //   .catch(function (error) {
+      //     setError(error.response.data?.data?.error)
+      //   }),
+      api
+        .get('/api/v1/positions?withFunding=true')
+        .then(function ({ data }) {
+          // handle success
+          dispatch(setPositions(data))
+        })
+        .catch(function (error) {
+          setError(error.response.data?.error)
+        }),
+      // api
+      //   .get('/positions/strategies')
+      //   .then(function ({ data }) {
+      //     // handle success
+      //     dispatch(setStrategies(data))
+      //   })
+      //   .catch(function (error) {
+      //     setError(error.response.data?.data?.error)
+      //   }),
+    ]).then(() => setLoading(false))
+  }
+
   useEffect(() => {
+    if (didRun.current) return;
+    didRun.current = true;
     const token = localStorage.getItem('token');
+    console.log('token')
     if (token) {
+      fetchBalance()
       // Fetch user info
       api.get('/api/v1/auth/me')
         .then(response => {
@@ -77,7 +121,7 @@ function Layout() {
           navigate('/login');
         });
     }
-  }, [dispatch, navigate]);
+  }, []);
 
   // Set x-group-id header when user data is available
   useEffect(() => {
@@ -290,6 +334,11 @@ function Layout() {
               )}
             </Box>
           </Toolbar>
+          {loading ? (
+            <Box sx={{ width: '100%' }}>
+              <LinearProgress />
+            </Box>
+          ) : null}
         </AppBar>
         {renderMenu}
       </Box>

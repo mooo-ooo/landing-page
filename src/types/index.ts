@@ -1,0 +1,1 @@
+export type SIDE = 'buy' | 'sell' | 'spot'

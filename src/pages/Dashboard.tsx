@@ -1,12 +1,11 @@
 import type { FC } from 'react';
-import { Container, Typography } from '@mui/material';
+import { Container } from '@mui/material';
+import PositionsTable from '../components/PositionsTable';
 
 const Dashboard: FC = () => {
   return (
     <Container>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Dashboard
-      </Typography>
+      <PositionsTable />
     </Container>
   );
 };
