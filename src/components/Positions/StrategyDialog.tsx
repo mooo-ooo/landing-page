@@ -302,7 +302,7 @@ function StrategyDialog(props: StrategyDialogProps) {
             <Checkbox
                 checked={isIncrease}
                 name='pauseIn'
-                onChange={(event, checked) => {
+                onChange={(_, checked) => {
                   setStrategy({
                     ...strategy,
                     isIncrease: checked,
@@ -322,7 +322,7 @@ function StrategyDialog(props: StrategyDialogProps) {
             <Checkbox
                 checked={isReduce}
                 name='pauseOut'
-                onChange={(event, checked) => {
+                onChange={(_, checked) => {
                   setStrategy({
                     ...strategy,
                     isReduce: checked,
@@ -359,6 +359,3 @@ function StrategyDialog(props: StrategyDialogProps) {
 }
 
 export default StrategyDialog
-
-export const capitalize = (s: string) =>
-  (s && s[0].toUpperCase() + s.slice(1)) || ''

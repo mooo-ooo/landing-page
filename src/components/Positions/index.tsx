@@ -152,7 +152,7 @@ function Positions() {
 
   const positionsSorted = useMemo(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [prop, direction] = sortBy.split('|')
+    const [direction] = sortBy.split('|')
     return positions.sort((a, b) => {
       if (direction === 'asc') {
         return getMinLiq(a) - getMinLiq(b)

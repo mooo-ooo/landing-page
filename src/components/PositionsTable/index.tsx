@@ -13,7 +13,7 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import FilterListIcon from "@mui/icons-material/FilterList";
+// import FilterListIcon from "@mui/icons-material/FilterList";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import { percentageChange } from "../../helpers";
 
@@ -25,7 +25,7 @@ import BalanceConfirmationDialog from "./BalanceConfirmationDialog";
 
 // Serives
 import numeral from "numeral";
-import { strip } from "../../helpers";
+// import { strip } from "../../helpers";
 
 // Store
 import { useSelector } from "react-redux";
@@ -43,7 +43,7 @@ const changeFromMarkToLiq = ({ markPrice, liqPrice }: IPosition) =>
 function Positions() {
   const [openTransferDialog, setOpenTransferDialog] = useState<boolean>(false);
   // const [openedFilter, setOpenedFilter] = useState<boolean>(false)
-  const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
+  const [selectedExchanges] = useState<string[]>([]);
   const positionsStore = useSelector((state: RootState) => state.positions);
 
   // const strategies = useSelector((state: RootState) => state.strategies)
@@ -165,7 +165,7 @@ function Positions() {
 
   const positionsSorted = useMemo(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [prop, direction] = sortBy.split("|");
+    const [direction] = sortBy.split("|");
     return positions.sort((a, b) => {
       if (direction === "asc") {
         return getMinLiq(a) - getMinLiq(b);
