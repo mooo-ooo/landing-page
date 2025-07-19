@@ -6,6 +6,13 @@ import {
   SpeedDialIcon,
   SpeedDialAction,
   Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from '@mui/material'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
@@ -194,6 +201,57 @@ function Positions() {
           USDT
         </Typography>
       </Box>
+      
+      {/* Positions Table */}
+      <TableContainer component={Paper} sx={{ mb: 2 }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Base Token</TableCell>
+              <TableCell>Buy Size</TableCell>
+              <TableCell>Sell Size</TableCell>
+              <TableCell>Buy Exchanges</TableCell>
+              <TableCell>Sell Exchanges</TableCell>
+              <TableCell>Min Liquidation %</TableCell>
+              <TableCell>Max Liquidation %</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {positionsSorted.map((pos) => (
+              <TableRow key={pos.baseToken}>
+                <TableCell>{pos.baseToken}</TableCell>
+                <TableCell>
+                  {pos.buys.length > 0 
+                    ? pos.buys.map(b => `${b.size} (${b.exchange})`).join(', ')
+                    : '-'
+                  }
+                </TableCell>
+                <TableCell>
+                  {pos.sells.length > 0 
+                    ? pos.sells.map(s => `${s.size} (${s.exchange})`).join(', ')
+                    : '-'
+                  }
+                </TableCell>
+                <TableCell>
+                  {pos.buys.length > 0 
+                    ? [...new Set(pos.buys.map(b => b.exchange))].join(', ')
+                    : '-'
+                  }
+                </TableCell>
+                <TableCell>
+                  {pos.sells.length > 0 
+                    ? [...new Set(pos.sells.map(s => s.exchange))].join(', ')
+                    : '-'
+                  }
+                </TableCell>
+                <TableCell>{getMinLiq(pos).toFixed(2)}%</TableCell>
+                <TableCell>{getMaxLiq(pos).toFixed(2)}%</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      
       <Grid container spacing={2}>
         <Grid>
           <Box display="flex" flexDirection="column" gap={2}>

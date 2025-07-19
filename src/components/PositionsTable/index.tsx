@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -12,16 +12,14 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TableSortLabel,
 } from "@mui/material";
-// import FilterListIcon from "@mui/icons-material/FilterList";
+import { visuallyHidden } from "@mui/utils";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-import { percentageChange } from "../../helpers";
+// import { percentageChange } from "../../helpers";
 
 // Internal components
 import BalanceConfirmationDialog from "./BalanceConfirmationDialog";
-// import FilterDialog from './FilterDialog'
-// import Position from './Position'
-// import StrategyDialog from './StrategyDialog'
 
 // Serives
 import numeral from "numeral";
@@ -37,32 +35,19 @@ import type {
 
 export const DEFAULT_PERCENT_CHANGE_TO_SL = 35;
 
-const changeFromMarkToLiq = ({ markPrice, liqPrice }: IPosition) =>
-  Math.abs(percentageChange(markPrice, liqPrice));
-
 function Positions() {
   const [openTransferDialog, setOpenTransferDialog] = useState<boolean>(false);
-  // const [openedFilter, setOpenedFilter] = useState<boolean>(false)
+  const [order, setOrder] = useState<Order>("desc");
+  const [orderBy, setOrderBy] = useState<keyof Data>("volume");
   const [selectedExchanges] = useState<string[]>([]);
   const positionsStore = useSelector((state: RootState) => state.positions);
-
-  // const strategies = useSelector((state: RootState) => state.strategies)
   const balances = useSelector((state: RootState) => state.balances);
-  // const [selectedTokenStrategy, setSelectedTokenStrategy] = useState<string>()
-  const [sortBy] = useState<string>("liquidation|asc");
 
-  // const exchanges: string[] = Object.keys(positionsStore).reduce(
-  //   (acu: string[], exName) => {
-  //     const exchange =
-  //       positionsStore[exName as unknown as keyof PostitionsState]
-  //     if (exchange.length) {
-  //       const result = [...acu, exName]
-  //       return result
-  //     }
-  //     return acu
-  //   },
-  //   []
-  // )
+  const createSortHandler = (property: keyof Data) => () => {
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(property as keyof IPosition);
+  };
 
   const spotPositions: IPosition[] = useMemo(() => {
     return balances.gate.spot.map(({ coin, amount }) => ({
@@ -147,36 +132,18 @@ function Positions() {
           const isSpotNotHedge = buys[0]?.side === "spot" && sells.length === 0;
           return !isSpotNotHedge;
         })
+        .map((pos) => {
+          return {
+            ...pos,
+            ...posMap[pos.baseToken],
+          };
+        })
     );
   };
 
   const positions = normalizePositions();
-  const getMaxLiq = useCallback((pos: (typeof positions)[0]) => {
-    const maxShortFr = Math.max(...pos.sells.map(changeFromMarkToLiq));
-    const maxLongFr = Math.max(...pos.buys.map(changeFromMarkToLiq));
-    return Math.max(maxShortFr, maxLongFr);
-  }, []);
 
-  const getMinLiq = useCallback((pos: (typeof positions)[0]) => {
-    const minShortFr = Math.min(...pos.sells.map(changeFromMarkToLiq));
-    const minLongFr = Math.min(...pos.buys.map(changeFromMarkToLiq));
-    return Math.min(minLongFr, minShortFr);
-  }, []);
-
-  const positionsSorted = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [direction] = sortBy.split("|");
-    return positions.sort((a, b) => {
-      if (direction === "asc") {
-        return getMinLiq(a) - getMinLiq(b);
-      } else {
-        return getMaxLiq(b) - getMaxLiq(a);
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [positions, sortBy]);
-
-  const estimatedFundingFee = positionsSorted
+  const estimatedFundingFee = positions
     .map(({ buys, sells }) => {
       return [...buys, ...sells];
     })
@@ -190,6 +157,11 @@ function Positions() {
           (cur.side === "sell" ? 1 : -1)
       );
     }, 0);
+
+  const visibleRows = useMemo(
+    () => [...positions].sort(getComparator(order, orderBy)),
+    [order, orderBy, positions]
+  );
 
   return (
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
@@ -227,18 +199,36 @@ function Positions() {
               <Table size="small">
                 <TableHead>
                   <TableRow sx={{ height: "64px" }}>
-                    <TableCell>Base Token</TableCell>
-                    <TableCell>Size</TableCell>
-                    <TableCell>Mark Price</TableCell>
-                    <TableCell>Unrealized.Pnl</TableCell>
-                    <TableCell>Liq Price</TableCell>
-                    <TableCell>Exchanges</TableCell>
-                    <TableCell>Funding Rate</TableCell>
-                    <TableCell>Est.Funding Fee</TableCell>
+                    {headCells.map((headCell) => (
+                      <TableCell
+                        key={headCell.id}
+                        align={headCell.numeric ? "right" : "left"}
+                        // padding={headCell.disablePadding ? 'none' : 'normal'}
+                        sortDirection={orderBy === headCell.id ? order : false}
+                      >
+                        <TableSortLabel
+                          active={headCell.sortable && orderBy === headCell.id}
+                          hideSortIcon={!headCell.sortable}
+                          direction={orderBy === headCell.id ? order : "asc"}
+                          onClick={createSortHandler(headCell.id)}
+                        >
+                          <Typography variant="caption">
+                            {headCell.label}
+                          </Typography>
+                          {headCell.sortable && orderBy === headCell.id ? (
+                            <Box component="span" sx={visuallyHidden}>
+                              {order === "desc"
+                                ? "sorted descending"
+                                : "sorted ascending"}
+                            </Box>
+                          ) : null}
+                        </TableSortLabel>
+                      </TableCell>
+                    ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {positionsSorted.map(({ sells, buys, baseToken }) => {
+                  {visibleRows.map(({ sells, buys, baseToken }) => {
                     const estimatedFee = [...sells, ...buys].reduce(
                       (tot, cur) => {
                         return (
@@ -255,10 +245,15 @@ function Positions() {
                       (tot, { size }) => size + tot,
                       0
                     );
-                    // const totalSizeBuy = buys.reduce(
-                    //   (tot, { size }) => size + tot,
-                    //   0
-                    // );
+                    const biggestPnLExchange = [...sells, ...buys].reduce(
+                      (maxExchange, position) => {
+                        const maxPnL = position.unrealizedPnl || 0;
+                        return maxPnL > maxExchange.maxPnL
+                          ? { maxPnL, exchange: position.exchange }
+                          : maxExchange;
+                      },
+                      { maxPnL: 0, exchange: "" }
+                    ).exchange;
 
                     // const spreadSize = Math.abs(strip(String(totalSizeSell)) - strip(String(totalSizeBuy)))
                     return (
@@ -278,7 +273,9 @@ function Positions() {
                         </TableCell>
                         <TableCell>
                           <Typography variant="caption">
-                            {formatQuantity(totalSizeSell)}
+                            {numeral(
+                              sells[0].markPrice * totalSizeSell * 2
+                            ).format("0,0]")}
                           </Typography>
                         </TableCell>
                         <TableCell>
@@ -293,28 +290,27 @@ function Positions() {
                             my="12px"
                             display="flex"
                             width="100%"
-                            justifyContent="space-between"
+                            gap={1}
                           >
+                            <img
+                              style={{
+                                borderRadius: "50%",
+                              }}
+                              src={`/${biggestPnLExchange}.png`}
+                              alt="USDT"
+                              width={20}
+                              height={20}
+                            />
                             <Typography
-                              textTransform="capitalize"
-                              variant="caption"
-                            >
-                              [{(sells[0]?.unrealizedPnl || 0) <
-                              (buys[0]?.unrealizedPnl || 0)
-                                ? buys[0]?.exchange
-                                : sells[0]?.exchange}]
-                            </Typography>
-                            <Typography
-                              textTransform="capitalize"
                               variant="caption"
                             >
                               {numeral(
                                 Math.max(
-                                  sells[0]?.unrealizedPnl || 0,
-                                  buys[0]?.unrealizedPnl || 0
+                                  ...[...sells, ...buys].map(
+                                    (pos) => pos.unrealizedPnl || 0
+                                  )
                                 )
-                              ).format("0,0")}{" "}
-                              USDT
+                              ).format("0,0")}
                             </Typography>
                           </Box>
                         </TableCell>
@@ -427,7 +423,7 @@ function Positions() {
                         </TableCell>
                         <TableCell>
                           <Typography variant="caption">
-                            {numeral(estimatedFee).format("0,0.[00]")} USDT
+                            {numeral(estimatedFee).format("0,0.[00]")}$
                           </Typography>
                         </TableCell>
                       </TableRow>
@@ -472,31 +468,151 @@ const precisionMap: Record<string, string> = {
   SUI: "0,0.000",
 };
 
-const nFormatter = (num: number, digits: number) => {
-  const lookup = [
-    { value: 1, symbol: "" },
-    { value: 1e3, symbol: "k" },
-    { value: 1e6, symbol: "M" },
-    { value: 1e9, symbol: "G" },
-    { value: 1e12, symbol: "T" },
-    { value: 1e15, symbol: "P" },
-    { value: 1e18, symbol: "E" },
-  ];
-  const regexp = /\.0+$|(?<=\.[0-9]*[1-9])0+$/;
-  const item = lookup
-    .slice()
-    .reverse()
-    .find((item) => num >= item.value);
-  return item
-    ? (num / item.value).toFixed(digits).replace(regexp, "").concat(item.symbol)
-    : "0";
-};
-
-const formatQuantity = (qty: number) => {
-  if (qty > 1000000) {
-    return nFormatter(qty, 0);
-  }
-  return numeral(qty).format("0,0.[000]");
-};
+// const formatQuantity = (qty: number) => {
+//   if (qty > 1000000) {
+//     return nFormatter(qty, 0);
+//   }
+//   return numeral(qty).format("0,0.[000]");
+// };
 
 export default Positions;
+
+const headCells: readonly HeadCell[] = [
+  {
+    id: "baseToken",
+    numeric: false,
+    disablePadding: true,
+    label: "Base Token",
+  },
+  {
+    id: "volume",
+    numeric: true,
+    disablePadding: false,
+    label: "Volume",
+    sortable: true,
+  },
+  {
+    id: "markPrice",
+    numeric: true,
+    disablePadding: false,
+    label: "M.Price",
+    sortable: false,
+  },
+  {
+    id: "unrealizedPnl",
+    numeric: true,
+    disablePadding: false,
+    label: "Unrealized.Pnl",
+    sortable: true,
+  },
+  {
+    id: "liqPrice",
+    numeric: true,
+    disablePadding: false,
+    label: "Liq.Price",
+    sortable: false,
+  },
+  {
+    id: "exchanges",
+    numeric: true,
+    disablePadding: false,
+    label: "Exchanges",
+  },
+  {
+    id: "fundingRate",
+    numeric: true,
+    disablePadding: false,
+    label: "F.Rate",
+    sortable: false,
+  },
+  {
+    id: "estimatedFee",
+    numeric: true,
+    disablePadding: false,
+    label: "Est.Fee",
+    sortable: true,
+  },
+];
+
+function descendingComparator<T>(
+  a: IPositionWithBuysAndSells,
+  b: IPositionWithBuysAndSells,
+  orderBy: keyof T
+) {
+  if (orderBy === "baseToken") {
+    return a.baseToken.localeCompare(b.baseToken);
+  }
+  if (orderBy === "volume") {
+    const totalVolumeA = a.sells.reduce(
+      (acc, sell) => acc + sell.markPrice * sell.size * 2,
+      0
+    );
+    const totalVolumeB = b.sells.reduce(
+      (acc, sell) => acc + sell.markPrice * sell.size * 2,
+      0
+    );
+    return totalVolumeB - totalVolumeA;
+  }
+  if (orderBy === "estimatedFee") {
+    const estimatedFeeA = [...a.sells, ...a.buys].reduce(
+      (acc, pos) =>
+        acc +
+        pos.markPrice *
+          pos.size *
+          pos.fundingRate *
+          (pos.side === "sell" ? 1 : -1),
+      0
+    );
+    const estimatedFeeB = [...b.sells, ...b.buys].reduce(
+      (acc, pos) =>
+        acc +
+        pos.markPrice *
+          pos.size *
+          pos.fundingRate *
+          (pos.side === "sell" ? 1 : -1),
+      0
+    );
+    return estimatedFeeB - estimatedFeeA;
+  }
+  if (orderBy === "unrealizedPnl") {
+    const maxUnrealizedPnlA = Math.max(
+      ...[...a.sells, ...a.buys].map((pos) => pos.unrealizedPnl || 0)
+    );
+    const maxUnrealizedPnlB = Math.max(
+      ...[...b.sells, ...b.buys].map((pos) => pos.unrealizedPnl || 0)
+    );
+    return maxUnrealizedPnlB - maxUnrealizedPnlA;
+  }
+  return 0;
+}
+
+type Order = "asc" | "desc";
+
+function getComparator(
+  order: Order,
+  orderBy: keyof Data
+): (a: IPositionWithBuysAndSells, b: IPositionWithBuysAndSells) => number {
+  return order === "desc"
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
+}
+
+interface IPositionWithBuysAndSells {
+  buys: IPosition[];
+  sells: IPosition[];
+  baseToken: string;
+}
+interface HeadCell {
+  disablePadding: boolean;
+  id: keyof Data;
+  label: string;
+  numeric: boolean;
+  sortable?: boolean;
+}
+
+interface Data extends IPosition {
+  exchanges: string;
+  fundingRate: number;
+  estimatedFee: number;
+  volume: number;
+}
