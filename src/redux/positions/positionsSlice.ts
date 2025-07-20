@@ -40,8 +40,11 @@ export const PositionsSlice = createSlice({
   name: 'Positions',
   initialState,
   reducers: {
-    setPositions: (_, action: PayloadAction<PostitionsState>) => {
-      return action.payload
+    setPositions: (state, action: PayloadAction<PostitionsState>) => {
+      return {
+        ...state,
+        ...action.payload
+      }
     },
   },
 })

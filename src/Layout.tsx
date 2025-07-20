@@ -7,7 +7,6 @@ import {
   Box,
   AppBar,
   Toolbar,
-  // Typography,
   Snackbar,
   Alert,
   IconButton,
@@ -31,9 +30,10 @@ import {
 } from '@mui/icons-material'
 import { styled } from '@mui/system'
 import api from './lib/axios'
+import numeral from 'numeral'
 
 import { setUser, setError } from './redux/slices/userSlice'
-// import { setSummaryBalance } from './redux/balances/balancesSlice'
+import { setSummaryBalance } from './redux/balances/balancesSlice'
 import { setPositions } from './redux/positions/positionsSlice'
 // import { setStrategies } from './redux/strategy/strategySlice'
 
@@ -52,19 +52,25 @@ function Layout() {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const isMenuOpen = Boolean(anchorEl);
+  const balances = useSelector((state: RootState) => state.balances);
+
+  const totalMargin = Object.values(balances).reduce(
+    (tot, { total = 0 }) => tot + total,
+    0
+  )
 
   const fetchBalance = () => {
     setLoading(true)
     Promise.all([
-      // api
-      //   .get('/wallet')
-      //   .then(function ({ data }) {
-      //     // handle success
-      //     dispatch(setSummaryBalance(data))
-      //   })
-      //   .catch(function (error) {
-      //     setError(error.response.data?.data?.error)
-      //   }),
+      api
+        .get('/api/v1/account/equities')
+        .then(function ({ data }) {
+          // handle success
+          dispatch(setSummaryBalance(data))
+        })
+        .catch(function (error) {
+          setError(error.response.data?.data?.error)
+        }),
       api
         .get('/api/v1/positions?withFunding=true')
         .then(function ({ data }) {
@@ -318,17 +324,21 @@ function Layout() {
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
               {userEmail ? (
-                <IconButton
-                  size="large"
-                  edge="end"
-                  aria-label="account of current user"
-                  aria-controls={menuId}
-                  aria-haspopup="true"
-                  onClick={handleProfileMenuOpen}
-                  color="inherit"
-                >
-                  <AccountCircle />
-                </IconButton>
+                <Box>
+                  ~{numeral(totalMargin).format('0,0.0')} USDT
+                  <IconButton
+                    size="large"
+                    edge="end"
+                    aria-label="account of current user"
+                    aria-controls={menuId}
+                    aria-haspopup="true"
+                    onClick={handleProfileMenuOpen}
+                    color="inherit"
+                  >
+                    <AccountCircle />
+                  </IconButton>
+                </Box>
+                
               ) : (
                 <LinkStyled to="/login">Login</LinkStyled>
               )}

@@ -32,9 +32,8 @@ export interface SummaryBalanceState {
   },
   bybit: {
     total: number,
-    funding: ICurrencyBalance[],
+    spot: ICurrencyBalance[],
     future: IFuture,
-    unified: ICurrencyBalance[]
   },
   huobi: {
     total: number,
@@ -43,8 +42,8 @@ export interface SummaryBalanceState {
   },
   okx: {
     total: number,
-    funding: ICurrencyBalance[],
-    trading: IFuture
+    spot: ICurrencyBalance[],
+    future: IFuture
   }
 }
 
@@ -72,9 +71,8 @@ const initialState: SummaryBalanceState = {
   },
   bybit: {
     total: 0,
-    funding: [],
+    spot: [],
     future: emptyFutureState,
-    unified: []
   },
   huobi: {
     total: 0,
@@ -83,8 +81,8 @@ const initialState: SummaryBalanceState = {
   },
   okx: {
     total: 0,
-    funding: [],
-    trading: emptyFutureState
+    spot: [],
+    future: emptyFutureState
   }
 }
 
@@ -92,8 +90,11 @@ export const SummaryBalanceSlice = createSlice({
   name: 'SummaryBalance',
   initialState,
   reducers: {
-    setSummaryBalance: (_state, action: PayloadAction<SummaryBalanceState>) => {
-      return action.payload
+    setSummaryBalance: (state, action: PayloadAction<SummaryBalanceState>) => {
+      return {
+        ...state,
+        ...action.payload
+      }
     },
     setTotalHuobi: (state, action: PayloadAction<number>) => {
       state.huobi.total = action.payload

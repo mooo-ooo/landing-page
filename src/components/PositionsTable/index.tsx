@@ -11,13 +11,16 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Grid,
 } from "@mui/material";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import { PieChart } from "@mui/x-charts/PieChart";
 
 // Internal components
 import BalanceConfirmationDialog from "./BalanceConfirmationDialog";
+import ExchangeMargin from "../ExchangeMargin";
 
 // Serives
 import numeral from "numeral";
@@ -162,8 +165,48 @@ function Positions() {
     [order, orderBy, positions]
   );
 
+  const equities = useMemo(() => {
+    const exchangeColors = {
+      coinex: "rgb(14, 173, 152)",
+      bitget: "rgb(3, 170, 199)",
+      gate: "rgb(35, 84, 230)",
+      huobi: "rgb(0, 148, 255)",
+      bybit: "rgb(255, 177, 26)"
+    };
+    return Object.keys(balances).map((key) => {
+      return {
+        id: key,
+        value: balances[key as keyof typeof balances].total,
+        label: key,
+        color: exchangeColors[key as keyof typeof exchangeColors],
+      };
+    });
+  }, [balances]);
+
   return (
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
+      <Grid container spacing={2}>
+        <Grid size={3}>
+          <PieChart
+            series={[
+              {
+                data: equities,
+                innerRadius: 30,
+                outerRadius: 100,
+                paddingAngle: 1,
+                cornerRadius: 5,
+                startAngle: -45,
+              },
+            ]}
+            width={300}
+            height={300}
+          />
+        </Grid>
+        <Grid size={5}></Grid>
+        <Grid size={4}>
+          <ExchangeMargin />
+        </Grid>
+      </Grid>
       {/* <Box
         display="flex"
         justifyContent="space-between"
@@ -192,7 +235,7 @@ function Positions() {
             border: "1px solid #30363d",
           }}
         >
-          <Table stickyHeader aria-label="sticky table">
+          <Table>
             <TableHead
               sx={{
                 position: "sticky",
@@ -221,7 +264,7 @@ function Positions() {
                     >
                       <Typography>{headCell.label}</Typography>
                       {headCell.sortable && orderBy === headCell.id ? (
-                        <Box component="span" >
+                        <Box component="span">
                           {order !== "desc" ? (
                             <ArrowUpwardIcon fontSize="small" />
                           ) : (
@@ -289,14 +332,14 @@ function Positions() {
                         <Typography fontWeight="bold">{baseToken}</Typography>
                       </Box>
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="left">
                       <Typography>
                         {numeral(sells[0].markPrice * totalSizeSell * 2).format(
                           "0,0]"
                         )}
                       </Typography>
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="left">
                       <Typography>
                         {numeral(sells[0].markPrice).format(
                           precisionMap[baseToken] || "0,0.[0000]"
@@ -504,7 +547,7 @@ const headCells: readonly HeadCell[] = [
     numeric: true,
     disablePadding: false,
     label: "Liq.Price %",
-    sortable: false,
+    sortable: true,
   },
   {
     id: "exchanges",
