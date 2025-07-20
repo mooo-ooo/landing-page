@@ -215,12 +215,6 @@ function Positions() {
         display="flex"
         justifyContent="space-between"
         alignItems="center"
-        sx={{
-          position: "sticky",
-          top: "70px",
-          zIndex: 1,
-          paddingLeft: "12px",
-        }}
       >
         <Typography
           sx={{ fontWeight: "bold", marginRight: 1 }}
@@ -463,7 +457,7 @@ function Positions() {
                         {numeral(
                           (100 *
                             (sells[0].fundingRate + buys[0].fundingRate) *
-                            360) /
+                            360 * 3) /
                             2
                         ).format("0,0")}
                         %
