@@ -145,20 +145,20 @@ function Positions() {
 
   const positions = normalizePositions();
 
-  // const estimatedFundingFee = positions
-  //   .map(({ buys, sells }) => {
-  //     return [...buys, ...sells];
-  //   })
-  //   .flat()
-  //   .reduce((tot, cur) => {
-  //     return (
-  //       tot +
-  //       cur.markPrice *
-  //         cur.size *
-  //         (cur.fundingRate || 0) *
-  //         (cur.side === "sell" ? 1 : -1)
-  //     );
-  //   }, 0);
+  const estimatedFundingFee = positions
+    .map(({ buys, sells }) => {
+      return [...buys, ...sells];
+    })
+    .flat()
+    .reduce((tot, cur) => {
+      return (
+        tot +
+        cur.markPrice *
+          cur.size *
+          (cur.fundingRate || 0) *
+          (cur.side === "sell" ? 1 : -1)
+      );
+    }, 0);
 
   const visibleRows = useMemo(
     () => [...positions].sort(getComparator(order, orderBy)),
@@ -179,6 +179,7 @@ function Positions() {
         value: balances[key as keyof typeof balances].total,
         label: key,
         color: exchangeColors[key as keyof typeof exchangeColors],
+        
       };
     });
   }, [balances]);
@@ -196,10 +197,13 @@ function Positions() {
                 paddingAngle: 1,
                 cornerRadius: 5,
                 startAngle: -45,
+                arcLabel: (item) => `${item.label}`,
+                arcLabelMinAngle: 35,
+                arcLabelRadius: '60%',
               },
             ]}
-            width={300}
-            height={300}
+            width={200}
+            height={200}
           />
         </Grid>
         <Grid size={5}></Grid>
@@ -207,7 +211,7 @@ function Positions() {
           <ExchangeMargin />
         </Grid>
       </Grid>
-      {/* <Box
+      <Box
         display="flex"
         justifyContent="space-between"
         alignItems="center"
@@ -219,12 +223,12 @@ function Positions() {
         }}
       >
         <Typography
-          sx={{ fontWeight: "bold", fontSize: "0.85rem", marginRight: 1 }}
+          sx={{ fontWeight: "bold", marginRight: 1 }}
         >
           Estimated funding: {numeral(estimatedFundingFee).format("0,0.00")}{" "}
           USDT
         </Typography>
-      </Box> */}
+      </Box>
       <Box display="flex" flexDirection="column" gap={2}>
         <Paper
           sx={{
