@@ -16,7 +16,8 @@ import {
 } from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-// import { percentageChange } from "../../helpers";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
 // Internal components
 import BalanceConfirmationDialog from "./BalanceConfirmationDialog";
@@ -32,6 +33,7 @@ import type {
   PostitionsState,
   IPosition,
 } from "../../redux/positions/positionsSlice";
+import { percentageChange } from "../../helpers";
 
 export const DEFAULT_PERCENT_CHANGE_TO_SL = 35;
 
@@ -178,7 +180,6 @@ function Positions() {
       >
         <Typography
           sx={{ fontWeight: "bold", fontSize: "0.85rem", marginRight: 1 }}
-          variant="caption"
         >
           Estimated funding: {numeral(estimatedFundingFee).format("0,0.00")}{" "}
           USDT
@@ -203,7 +204,6 @@ function Positions() {
                       <TableCell
                         key={headCell.id}
                         align={headCell.numeric ? "right" : "left"}
-                        // padding={headCell.disablePadding ? 'none' : 'normal'}
                         sortDirection={orderBy === headCell.id ? order : false}
                       >
                         <TableSortLabel
@@ -212,9 +212,7 @@ function Positions() {
                           direction={orderBy === headCell.id ? order : "asc"}
                           onClick={createSortHandler(headCell.id)}
                         >
-                          <Typography variant="caption">
-                            {headCell.label}
-                          </Typography>
+                          <Typography>{headCell.label}</Typography>
                           {headCell.sortable && orderBy === headCell.id ? (
                             <Box component="span" sx={visuallyHidden}>
                               {order === "desc"
@@ -266,20 +264,20 @@ function Positions() {
                               width={20}
                               height={20}
                             />
-                            <Typography variant="caption" fontWeight="bold">
+                            <Typography fontWeight="bold">
                               {baseToken}
                             </Typography>
                           </Box>
                         </TableCell>
-                        <TableCell>
-                          <Typography variant="caption">
+                        <TableCell align="right">
+                          <Typography>
                             {numeral(
                               sells[0].markPrice * totalSizeSell * 2
                             ).format("0,0]")}
                           </Typography>
                         </TableCell>
-                        <TableCell>
-                          <Typography variant="caption">
+                        <TableCell align="right">
+                          <Typography>
                             {numeral(sells[0].markPrice).format(
                               precisionMap[baseToken] || "0,0.[0000]"
                             )}
@@ -290,6 +288,7 @@ function Positions() {
                             my="12px"
                             display="flex"
                             width="100%"
+                            alignItems="center"
                             gap={1}
                           >
                             <img
@@ -301,9 +300,7 @@ function Positions() {
                               width={20}
                               height={20}
                             />
-                            <Typography
-                              variant="caption"
-                            >
+                            <Typography>
                               {numeral(
                                 Math.max(
                                   ...[...sells, ...buys].map(
@@ -314,50 +311,52 @@ function Positions() {
                             </Typography>
                           </Box>
                         </TableCell>
-                        <TableCell>
+                        <TableCell align="center">
                           <Box
                             display="flex"
                             flexDirection="column"
-                            alignItems="center"
+                            alignItems="left"
                             gap={1}
                           >
-                            <Typography
-                              sx={{
-                                color: "rgb(246, 70, 93)",
-                                mr: 1,
-                              }}
-                              variant="caption"
-                            >
-                              {numeral(sells[0].liqPrice).format(
-                                precisionMap[baseToken] || "0,0.[0000]"
-                              )}
-                            </Typography>
-                            <Typography
-                              sx={{
-                                color: "rgb(14, 203, 129)",
-                                mr: 1,
-                              }}
-                              variant="caption"
-                            >
-                              {numeral(buys[0]?.liqPrice).format(
-                                precisionMap[baseToken] || "0,0.[0000]"
-                              )}
-                            </Typography>
+                            <Box display="flex" gap={1} alignItems="center">
+                              <ArrowDropUpIcon
+                                fontSize="large"
+                                sx={{ color: "rgb(14, 203, 129)" }}
+                              />
+                              <Typography>
+                                {numeral(
+                                  percentageChange(
+                                    sells[0].markPrice,
+                                    sells[0].liqPrice || 0
+                                  )
+                                ).format("0")}
+                                %
+                              </Typography>
+                            </Box>
+                            <Box display="flex" gap={1} alignItems="center">
+                              <ArrowDropDownIcon
+                                fontSize="large"
+                                sx={{ color: "rgb(246, 70, 93)" }}
+                              />
+                              <Typography>
+                                {numeral(
+                                  percentageChange(
+                                    buys[0].markPrice,
+                                    buys[0].liqPrice || 0
+                                  )
+                                ).format("0")}
+                                %
+                              </Typography>
+                            </Box>
                           </Box>
                         </TableCell>
-                        <TableCell>
-                          <Box
-                            display="flex"
-                            flexDirection="column"
-                            alignItems="center"
-                            gap={1}
-                          >
+                        <TableCell align="left">
+                          <Box display="flex" flexDirection="column" gap={1}>
                             <Typography
                               sx={{
                                 color: "rgb(246, 70, 93)",
                                 mr: 1,
                               }}
-                              variant="caption"
                             >
                               {sells
                                 .map((s) => s.exchange)
@@ -370,7 +369,6 @@ function Positions() {
                                 color: "rgb(14, 203, 129)",
                                 mr: 1,
                               }}
-                              variant="caption"
                             >
                               {buys
                                 .map((s) => s.exchange)
@@ -379,50 +377,41 @@ function Positions() {
                             </Typography>
                           </Box>
                         </TableCell>
-                        <TableCell>
+                        <TableCell align="center">
                           <Box
                             display="flex"
                             flexDirection="column"
                             alignItems="center"
                             gap={1}
                           >
-                            <Typography
-                              sx={{
-                                color: "rgb(246, 70, 93)",
-                                mr: 1,
-                              }}
-                              variant="caption"
-                            >
-                              {sells
-                                .map(
-                                  (s) =>
-                                    numeral(s.fundingRate * 100).format(
-                                      "0,0.[00]"
-                                    ) + "%"
-                                )
-                                .join("-")}
-                            </Typography>
-
-                            <Typography
-                              sx={{
-                                color: "rgb(14, 203, 129)",
-                                mr: 1,
-                              }}
-                              variant="caption"
-                            >
-                              {buys
-                                .map(
-                                  (s) =>
-                                    numeral(s.fundingRate * 100).format(
-                                      "0,0.[00]"
-                                    ) + "%"
-                                )
-                                .join("-")}
+                            <Typography>
+                              {numeral(
+                                100 *
+                                  (sells[0].fundingRate - buys[0].fundingRate)
+                              ).format("0,0.[00]")}
+                              %
                             </Typography>
                           </Box>
                         </TableCell>
-                        <TableCell>
-                          <Typography variant="caption">
+                        <TableCell align="center">
+                          <Box
+                            display="flex"
+                            flexDirection="column"
+                            alignItems="center"
+                            gap={1}
+                          >
+                            <Typography>
+                              {numeral(
+                                100 *
+                                  (sells[0].fundingRate + buys[0].fundingRate) *
+                                  360
+                              ).format("0,0")}
+                              %
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography>
                             {numeral(estimatedFee).format("0,0.[00]")}$
                           </Typography>
                         </TableCell>
@@ -495,7 +484,7 @@ const headCells: readonly HeadCell[] = [
     id: "markPrice",
     numeric: true,
     disablePadding: false,
-    label: "M.Price",
+    label: "Mark Price",
     sortable: false,
   },
   {
@@ -509,7 +498,7 @@ const headCells: readonly HeadCell[] = [
     id: "liqPrice",
     numeric: true,
     disablePadding: false,
-    label: "Liq.Price",
+    label: "Liq. Price %",
     sortable: false,
   },
   {
@@ -522,14 +511,21 @@ const headCells: readonly HeadCell[] = [
     id: "fundingRate",
     numeric: true,
     disablePadding: false,
-    label: "F.Rate",
+    label: "Funding Rate",
     sortable: false,
+  },
+  {
+    id: "apr",
+    numeric: true,
+    disablePadding: false,
+    label: "APR",
+    sortable: true,
   },
   {
     id: "estimatedFee",
     numeric: true,
     disablePadding: false,
-    label: "Est.Fee",
+    label: "Estimated Fee",
     sortable: true,
   },
 ];
@@ -541,6 +537,11 @@ function descendingComparator<T>(
 ) {
   if (orderBy === "baseToken") {
     return a.baseToken.localeCompare(b.baseToken);
+  }
+  if (orderBy === "apr") {
+    const aprA = a.sells[0].fundingRate + a.buys[0].fundingRate;
+    const aprB = b.sells[0].fundingRate + b.buys[0].fundingRate;
+    return aprB - aprA;
   }
   if (orderBy === "volume") {
     const totalVolumeA = a.sells.reduce(
@@ -615,4 +616,5 @@ interface Data extends IPosition {
   fundingRate: number;
   estimatedFee: number;
   volume: number;
+  apr: number;
 }

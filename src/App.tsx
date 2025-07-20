@@ -29,7 +29,7 @@ const darkTheme = createTheme({
   },
   typography: {
     fontFamily: '"Kraken Plex Mono", monospace',
-    fontSize: 16,
+    fontSize: 14,
   },
 })
 
