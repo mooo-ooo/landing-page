@@ -329,9 +329,21 @@ function Layout() {
               </LinkStyled>
               <LinkStyled
                 to="/tools"
-                isActive={location.pathname === '/tools'}
+                isActive={location.pathname === '/signal'}
               >
-                Tools
+                Signal
+              </LinkStyled>
+              <LinkStyled
+                to="/tools"
+                isActive={location.pathname === '/orderbooks'}
+              >
+                Orderbooks
+              </LinkStyled>
+              <LinkStyled
+                to="/tools"
+                isActive={location.pathname === '/wallets'}
+              >
+                Wallets
               </LinkStyled>
             </Box>
             <Box sx={{ flexGrow: 1 }} />

@@ -18,6 +18,7 @@ import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { PieChart } from "@mui/x-charts/PieChart";
+import { BarChart } from '@mui/x-charts/BarChart';
 
 // Internal components
 import BalanceConfirmationDialog from "./BalanceConfirmationDialog";
@@ -38,6 +39,31 @@ import { percentageChange } from "../../helpers";
 
 export const DEFAULT_PERCENT_CHANGE_TO_SL = 35;
 
+const rewardHitory = [
+  {
+    date: 'Mon',
+    value: 200,
+  },
+  {
+    date: 'Tue',
+    value: 300,
+  },
+  {
+    date: 'Web',
+    value: 250,
+  },
+  {
+    date: 'Thus',
+    value: 420,
+  },
+  {
+    date: 'Fri',
+    value: 950,
+  }
+]
+
+const customColors = ['rgb(14 203 129)']
+
 function Positions() {
   const localOrderBy = localStorage.getItem('orderBy') || 'volume'
   const localOrder = localStorage.getItem('order') || 'desc'
@@ -47,6 +73,11 @@ function Positions() {
   const [selectedExchanges] = useState<string[]>([]);
   const positionsStore = useSelector((state: RootState) => state.positions);
   const balances = useSelector((state: RootState) => state.balances);
+
+  const totalMargin = Object.values(balances).reduce(
+    (tot, { total = 0 }) => tot + total,
+    0
+  )
 
   const createSortHandler = (property: keyof Data) => () => {
     const isAsc = orderBy === property && order === "asc";
@@ -170,6 +201,15 @@ function Positions() {
     [order, orderBy, positions]
   );
 
+  const chartSetting = {
+    xAxis: [{ dataKey: 'date', width: 10 }],
+    series: [{ dataKey: 'value' }],
+    height: 300,
+    categoryGapRatio: 0.4,
+    barGapRatio: 0.1,
+    margin: { left: 0 },
+  };
+
   const equities = useMemo(() => {
     const exchangeColors = {
       coinex: "rgb(14, 173, 152)",
@@ -181,18 +221,21 @@ function Positions() {
     return Object.keys(balances).map((key) => {
       return {
         id: key,
-        value: balances[key as keyof typeof balances].total,
+        value: (balances[key as keyof typeof balances].total / totalMargin * 100),
         label: key,
-        color: exchangeColors[key as keyof typeof exchangeColors],
-        
+        color: exchangeColors[key as keyof typeof exchangeColors]
       };
     });
-  }, [balances]);
+  }, [balances, totalMargin]);
 
   return (
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
       <Grid container spacing={2}>
         <Grid size={3}>
+          <Typography
+          >
+            Index Fund:  ~{numeral(totalMargin).format('0,0.0')} USDT
+          </Typography>
           <PieChart
             series={[
               {
@@ -200,23 +243,37 @@ function Positions() {
                 innerRadius: 30,
                 outerRadius: 100,
                 paddingAngle: 1,
-                cornerRadius: 5,
+                cornerRadius: 3,
                 startAngle: -45,
-                arcLabel: (item) => `${item.label}`,
+                arcLabel: (item) => `${numeral(item.value).format('0,0')}%`,
                 arcLabelMinAngle: 35,
                 arcLabelRadius: '60%',
               },
             ]}
-            width={200}
-            height={200}
+            width={250}
+            height={250}
           />
         </Grid>
-        <Grid size={5}></Grid>
+        
+        <Grid size={4}>
+          <Typography
+          >
+            Estimated funding: ${numeral(estimatedFundingFee).format("0,0.00")} USDT
+          </Typography>
+          <BarChart
+            dataset={rewardHitory}
+            // xAxis={[{ dataKey: 'month' }]}
+            {...chartSetting}
+            colors={customColors} // Apply custom colors
+            borderRadius={6}
+          />
+        </Grid>
+        <Grid size={1}></Grid>
         <Grid size={4}>
           <ExchangeMargin />
         </Grid>
       </Grid>
-      <Box
+      {/* <Box
         display="flex"
         justifyContent="space-between"
         alignItems="center"
@@ -227,7 +284,7 @@ function Positions() {
           Estimated funding: {numeral(estimatedFundingFee).format("0,0.00")}{" "}
           USDT
         </Typography>
-      </Box>
+      </Box> */}
       <Box display="flex" flexDirection="column" gap={2}>
         <Paper
           sx={{
@@ -487,6 +544,7 @@ function Positions() {
 const precisionMap: Record<string, string> = {
   SHIB: "0.0000e+0",
   DOGE: "0,0.0[0000]",
+  BONK: "0,0.0[0000]",
   AVAX: "0,0.00",
   ETC: "0.000",
   SUI: "0,0.000",
