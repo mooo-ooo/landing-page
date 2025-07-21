@@ -13,12 +13,12 @@ import {
   TableRow,
   Grid,
 } from "@mui/material";
-import { styled } from '@mui/system'
+import { styled } from "@mui/system";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { PieChart } from "@mui/x-charts/PieChart";
-import { BarChart } from '@mui/x-charts/BarChart';
+import { BarChart } from "@mui/x-charts/BarChart";
 
 // Internal components
 import BalanceConfirmationDialog from "./BalanceConfirmationDialog";
@@ -41,35 +41,45 @@ export const DEFAULT_PERCENT_CHANGE_TO_SL = 35;
 
 const rewardHitory = [
   {
-    date: 'Mon',
+    date: "Mon",
     value: 200,
   },
   {
-    date: 'Tue',
+    date: "Tue",
     value: 300,
   },
   {
-    date: 'Web',
+    date: "Web",
     value: 250,
   },
   {
-    date: 'Thus',
+    date: "Thus",
     value: 420,
   },
   {
-    date: 'Fri',
+    date: "Fri",
+    value: 500,
+  },
+  {
+    date: "Sat",
+    value: 700,
+  },
+  {
+    date: "Sun",
     value: 950,
-  }
-]
+  },
+];
 
-const customColors = ['rgb(14 203 129)']
+const customColors = ["rgb(14 203 129)"];
 
 function Positions() {
-  const localOrderBy = localStorage.getItem('orderBy') || 'volume'
-  const localOrder = localStorage.getItem('order') || 'desc'
+  const localOrderBy = localStorage.getItem("orderBy") || "volume";
+  const localOrder = localStorage.getItem("order") || "desc";
   const [openTransferDialog, setOpenTransferDialog] = useState<boolean>(false);
   const [order, setOrder] = useState<Order>(localOrder as Order);
-  const [orderBy, setOrderBy] = useState<keyof Data>(localOrderBy as keyof Data);
+  const [orderBy, setOrderBy] = useState<keyof Data>(
+    localOrderBy as keyof Data
+  );
   const [selectedExchanges] = useState<string[]>([]);
   const positionsStore = useSelector((state: RootState) => state.positions);
   const balances = useSelector((state: RootState) => state.balances);
@@ -77,12 +87,12 @@ function Positions() {
   const totalMargin = Object.values(balances).reduce(
     (tot, { total = 0 }) => tot + total,
     0
-  )
+  );
 
   const createSortHandler = (property: keyof Data) => () => {
     const isAsc = orderBy === property && order === "asc";
-    localStorage.setItem('orderBy', property)
-    localStorage.setItem('order', isAsc ? "desc" : "asc")
+    localStorage.setItem("orderBy", property);
+    localStorage.setItem("order", isAsc ? "desc" : "asc");
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property as keyof IPosition);
   };
@@ -202,8 +212,8 @@ function Positions() {
   );
 
   const chartSetting = {
-    xAxis: [{ dataKey: 'date', width: 10 }],
-    series: [{ dataKey: 'value' }],
+    xAxis: [{ dataKey: "date", width: 10 }],
+    series: [{ dataKey: "value" }],
     height: 300,
     categoryGapRatio: 0.4,
     barGapRatio: 0.1,
@@ -216,25 +226,27 @@ function Positions() {
       bitget: "rgb(3, 170, 199)",
       gate: "rgb(35, 84, 230)",
       huobi: "rgb(0, 148, 255)",
-      bybit: "rgb(255, 177, 26)"
+      bybit: "rgb(255, 177, 26)",
     };
     return Object.keys(balances).map((key) => {
       return {
         id: key,
-        value: (balances[key as keyof typeof balances].total / totalMargin * 100),
+        value:
+          (balances[key as keyof typeof balances].total / totalMargin) * 100,
         label: key,
-        color: exchangeColors[key as keyof typeof exchangeColors]
+        color: exchangeColors[key as keyof typeof exchangeColors],
       };
     });
   }, [balances, totalMargin]);
 
+  const headCells = getHeadCells(positions.length)
+
   return (
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
-      <Grid container spacing={2}>
+      <Grid container spacing={4}>
         <Grid size={3}>
-          <Typography
-          >
-            Index Fund:  ~{numeral(totalMargin).format('0,0.0')} USDT
+          <Typography>
+            Index Fund: ~{numeral(totalMargin).format("0,0.0")} USDT
           </Typography>
           <PieChart
             series={[
@@ -245,30 +257,30 @@ function Positions() {
                 paddingAngle: 1,
                 cornerRadius: 3,
                 startAngle: -45,
-                arcLabel: (item) => `${numeral(item.value).format('0,0')}%`,
+                arcLabel: (item) => `${numeral(item.value).format("0,0")}%`,
                 arcLabelMinAngle: 35,
-                arcLabelRadius: '60%',
+                arcLabelRadius: "60%",
               },
             ]}
             width={250}
             height={250}
           />
         </Grid>
-        
-        <Grid size={4}>
-          <Typography
-          >
-            Estimated funding: ${numeral(estimatedFundingFee).format("0,0.00")} USDT
+
+        <Grid size={3}>
+          <Typography>
+            Estimated funding: ${numeral(estimatedFundingFee).format("0,0")}{" "}
+            USDT
           </Typography>
           <BarChart
             dataset={rewardHitory}
             // xAxis={[{ dataKey: 'month' }]}
             {...chartSetting}
             colors={customColors} // Apply custom colors
-            borderRadius={6}
+            borderRadius={3}
           />
         </Grid>
-        <Grid size={1}></Grid>
+        <Grid size={2}></Grid>
         <Grid size={4}>
           <ExchangeMargin />
         </Grid>
@@ -503,7 +515,8 @@ function Positions() {
                         {numeral(
                           (100 *
                             (sells[0].fundingRate - buys[0].fundingRate) *
-                            360 * 3) /
+                            360 *
+                            3) /
                             2
                         ).format("0,0")}
                         %
@@ -559,12 +572,12 @@ const precisionMap: Record<string, string> = {
 
 export default Positions;
 
-const headCells: readonly HeadCell[] = [
+const getHeadCells = (numberOfToken: number): readonly HeadCell[] => [
   {
     id: "baseToken",
     numeric: false,
     disablePadding: true,
-    label: "Base Token",
+    label: `Token (${numberOfToken})`,
   },
   {
     id: "volume",
@@ -713,5 +726,5 @@ interface Data extends IPosition {
 }
 
 const TableCell = styled(TableCellMui)(() => ({
-  padding: "8px 16px"
-}))
+  padding: "8px 16px",
+}));
