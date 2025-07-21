@@ -29,7 +29,6 @@ export const useBalances = () => {
 
     const totalEquity =
     huobi?.total + gate?.total + okx?.total + coinex?.total + bybit?.total + bitget?.total
-    console.log({totalVol, totalEquity, okx, huobi, gate, coinex, bybit, bitget })
     return {
       totalEquity,
       totalVol,

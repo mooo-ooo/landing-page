@@ -28,6 +28,7 @@ import {
   ContentCopy,
   Group,
 } from '@mui/icons-material'
+import ReplayIcon from '@mui/icons-material/Replay'
 import { styled } from '@mui/system'
 import api from './lib/axios'
 import numeral from 'numeral'
@@ -39,6 +40,7 @@ import { setPositions } from './redux/positions/positionsSlice'
 
 function Layout() {
   const didRun = useRef(false);
+  const initialized = useRef(false)
   const [loading, setLoading] = useState(false)
   const location = useLocation();
   const navigate = useNavigate();
@@ -96,14 +98,13 @@ function Layout() {
     if (didRun.current) return;
     didRun.current = true;
     const token = localStorage.getItem('token');
-    console.log('token')
+
     if (token) {
       fetchBalance()
       // Fetch user info
       api.get('/api/v1/auth/me')
         .then(response => {
           const userData = response.data;
-          console.log('userData', userData);
           dispatch(setUser({
             id: userData.id,
             email: userData.email,
@@ -128,6 +129,19 @@ function Layout() {
         });
     }
   }, []);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchBalance()
+    }, 1000 * 60 * 5)
+    if (!initialized.current) {
+      initialized.current = true
+      fetchBalance()
+    }
+
+    return () => clearInterval(intervalId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Set x-group-id header when user data is available
   useEffect(() => {
@@ -325,6 +339,9 @@ function Layout() {
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
               {userEmail ? (
                 <Box>
+                  <IconButton onClick={fetchBalance} color="primary">
+                    <ReplayIcon />
+                  </IconButton>
                   ~{numeral(totalMargin).format('0,0.0')} USDT
                   <IconButton
                     size="large"

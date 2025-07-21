@@ -39,7 +39,7 @@ function ExchangeMargin() {
               backgroundColor: "#010409",
             }}
           >
-            <TableRow sx={{ height: "64px" }}>
+            <TableRow sx={{ height: "48px" }}>
               <TableCell align="left">
                 Exchange (x{numeral(leverage).format("0,0.00")})
               </TableCell>

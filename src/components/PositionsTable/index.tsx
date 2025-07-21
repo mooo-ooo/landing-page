@@ -8,11 +8,12 @@ import {
   Paper,
   Table,
   TableBody,
-  TableCell,
+  TableCell as TableCellMui,
   TableHead,
   TableRow,
   Grid,
 } from "@mui/material";
+import { styled } from '@mui/system'
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
@@ -38,15 +39,19 @@ import { percentageChange } from "../../helpers";
 export const DEFAULT_PERCENT_CHANGE_TO_SL = 35;
 
 function Positions() {
+  const localOrderBy = localStorage.getItem('orderBy') || 'volume'
+  const localOrder = localStorage.getItem('order') || 'desc'
   const [openTransferDialog, setOpenTransferDialog] = useState<boolean>(false);
-  const [order, setOrder] = useState<Order>("desc");
-  const [orderBy, setOrderBy] = useState<keyof Data>("volume");
+  const [order, setOrder] = useState<Order>(localOrder as Order);
+  const [orderBy, setOrderBy] = useState<keyof Data>(localOrderBy as keyof Data);
   const [selectedExchanges] = useState<string[]>([]);
   const positionsStore = useSelector((state: RootState) => state.positions);
   const balances = useSelector((state: RootState) => state.balances);
 
   const createSortHandler = (property: keyof Data) => () => {
     const isAsc = orderBy === property && order === "asc";
+    localStorage.setItem('orderBy', property)
+    localStorage.setItem('order', isAsc ? "desc" : "asc")
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property as keyof IPosition);
   };
@@ -271,22 +276,6 @@ function Positions() {
                         </Box>
                       ) : null}
                     </Box>
-
-                    {/* <TableSortLabel
-                          active={headCell.sortable && orderBy === headCell.id}
-                          hideSortIcon={!headCell.sortable}
-                          direction={orderBy === headCell.id ? order : "asc"}
-                          onClick={createSortHandler(headCell.id)}
-                        >
-                          <Typography>{headCell.label}</Typography>
-                          {headCell.sortable && orderBy === headCell.id ? (
-                            <Box component="span" sx={visuallyHidden}>
-                              {order === "desc"
-                                ? "sorted descending"
-                                : "sorted ascending"}
-                            </Box>
-                          ) : null}
-                        </TableSortLabel> */}
                   </TableCell>
                 ))}
               </TableRow>
@@ -318,7 +307,7 @@ function Positions() {
 
                 // const spreadSize = Math.abs(strip(String(totalSizeSell)) - strip(String(totalSizeBuy)))
                 return (
-                  <TableRow key={baseToken} sx={{ height: "64px" }}>
+                  <TableRow key={baseToken}>
                     <TableCell>
                       <Box display="flex" alignItems="center" gap={1}>
                         <img
@@ -381,7 +370,7 @@ function Positions() {
                       >
                         <Box display="flex" gap={1} alignItems="space-between">
                           <ArrowUpwardIcon
-                            sx={{ color: "rgb(14 203 129 / 17%)" }}
+                            sx={{ color: "rgb(14 203 129 / 40%)" }}
                           />
                           <Typography>
                             {numeral(
@@ -395,7 +384,7 @@ function Positions() {
                         </Box>
                         <Box display="flex" gap={1} alignItems="space-between">
                           <ArrowDownwardIcon
-                            sx={{ color: "rgb(246 70 93 / 17%)" }}
+                            sx={{ color: "rgb(246 70 93 / 40%)" }}
                           />
                           <Typography>
                             {numeral(
@@ -456,7 +445,7 @@ function Positions() {
                       <Typography>
                         {numeral(
                           (100 *
-                            (sells[0].fundingRate + buys[0].fundingRate) *
+                            (sells[0].fundingRate - buys[0].fundingRate) *
                             360 * 3) /
                             2
                         ).format("0,0")}
@@ -585,8 +574,8 @@ function descendingComparator<T>(
     return a.baseToken.localeCompare(b.baseToken);
   }
   if (orderBy === "apr") {
-    const aprA = a.sells[0].fundingRate + a.buys[0].fundingRate;
-    const aprB = b.sells[0].fundingRate + b.buys[0].fundingRate;
+    const aprA = a.sells[0].fundingRate - a.buys[0].fundingRate;
+    const aprB = b.sells[0].fundingRate - b.buys[0].fundingRate;
     return aprB - aprA;
   }
   if (orderBy === "volume") {
@@ -664,3 +653,7 @@ interface Data extends IPosition {
   volume: number;
   apr: number;
 }
+
+const TableCell = styled(TableCellMui)(() => ({
+  padding: "8px 16px"
+}))
