@@ -100,7 +100,6 @@ function Layout() {
     const token = localStorage.getItem('token');
 
     if (token) {
-      fetchBalance()
       // Fetch user info
       api.get('/api/v1/auth/me')
         .then(response => {
