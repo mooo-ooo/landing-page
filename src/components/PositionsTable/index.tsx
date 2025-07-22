@@ -233,7 +233,7 @@ function Positions() {
         id: key,
         value:
           (balances[key as keyof typeof balances].total / totalMargin) * 100,
-        label: key,
+        label: `${key}`,
         color: exchangeColors[key as keyof typeof exchangeColors],
       };
     });
@@ -244,7 +244,7 @@ function Positions() {
   return (
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
       <Grid container spacing={4}>
-        <Grid size={3}>
+        <Grid size={3.5}>
           <Typography>
             Index Fund: ~{numeral(totalMargin).format("0,0.0")} USDT
           </Typography>
@@ -267,7 +267,7 @@ function Positions() {
           />
         </Grid>
 
-        <Grid size={3}>
+        <Grid size={3.5}>
           <Typography>
             Estimated funding: ${numeral(estimatedFundingFee).format("0,0")}{" "}
             USDT
@@ -280,23 +280,11 @@ function Positions() {
             borderRadius={3}
           />
         </Grid>
-        <Grid size={2}></Grid>
+        <Grid size={1}></Grid>
         <Grid size={4}>
           <ExchangeMargin />
         </Grid>
       </Grid>
-      {/* <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-      >
-        <Typography
-          sx={{ fontWeight: "bold", marginRight: 1 }}
-        >
-          Estimated funding: {numeral(estimatedFundingFee).format("0,0.00")}{" "}
-          USDT
-        </Typography>
-      </Box> */}
       <Box display="flex" flexDirection="column" gap={2}>
         <Paper
           sx={{
