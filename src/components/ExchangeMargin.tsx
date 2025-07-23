@@ -147,13 +147,16 @@ function ExchangeMargin() {
                   )
                 : Number.NaN;
               return (
-                <TableRow>
-                  <TableCell
-                    sx={{
-                      color: lev > WARNING_LEV ? "#FFC107" : "unset",
-                    }}
-                  >
-                    <Box display="flex" >
+                <TableRow
+                  sx={{
+                    border:
+                      lev > WARNING_LEV
+                        ? "2px solid rgb(240 185 11 / 70%)"
+                        : "unset",
+                  }}
+                >
+                  <TableCell>
+                    <Box display="flex">
                       <img
                         style={{
                           borderRadius: "50%",

@@ -163,11 +163,6 @@ function Positions() {
             .filter((element) => selectedExchanges.includes(element));
           return intersection.length > 0;
         })
-        // .filter(({ baseToken }) => {
-        //   return strategies.data.find(({ sellSymbol }) => {
-        //     return sellSymbol.split('/')[0].toUpperCase() === baseToken
-        //   })
-        // })
         .filter(({ buys, sells }) => {
           const isSpotNotHedge = buys[0]?.side === "spot" && sells.length === 0;
           return !isSpotNotHedge;
