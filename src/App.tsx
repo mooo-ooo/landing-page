@@ -12,6 +12,7 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import Wallets from './pages/Wallets'
 import TwoFactorAuth from './pages/TwoFactorAuth'
 import TwoFactorVerify from './pages/TwoFactorVerify'
 import ApiKeys from './pages/ApiKeys'
@@ -50,6 +51,7 @@ function App() {
                   <Route index element={<Home />} />
                   <Route path="/2fa" element={<TwoFactorAuth />} />
                   <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/wallets" element={<Wallets />} />
                   <Route path="/api-keys" element={<ApiKeys />} />
                   <Route path="*" element={<Home />} />
                 </Route>

@@ -2,9 +2,6 @@ import { useState, useMemo } from "react";
 import {
   Box,
   Typography,
-  SpeedDial,
-  SpeedDialIcon,
-  SpeedDialAction,
   Paper,
   Table,
   TableBody,
@@ -14,19 +11,15 @@ import {
   Grid,
 } from "@mui/material";
 import { styled } from "@mui/system";
-import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { BarChart } from "@mui/x-charts/BarChart";
 
-// Internal components
-import BalanceConfirmationDialog from "./BalanceConfirmationDialog";
 import ExchangeMargin from "../ExchangeMargin";
 
 // Serives
 import numeral from "numeral";
-// import { strip } from "../../helpers";
 
 // Store
 import { useSelector } from "react-redux";
@@ -75,7 +68,6 @@ const customColors = ["rgb(14 203 129)"];
 function Positions() {
   const localOrderBy = localStorage.getItem("orderBy") || "volume";
   const localOrder = localStorage.getItem("order") || "desc";
-  const [openTransferDialog, setOpenTransferDialog] = useState<boolean>(false);
   const [order, setOrder] = useState<Order>(localOrder as Order);
   const [orderBy, setOrderBy] = useState<keyof Data>(
     localOrderBy as keyof Data
@@ -239,7 +231,7 @@ function Positions() {
     });
   }, [balances, totalMargin]);
 
-  const headCells = getHeadCells(positions.length)
+  const headCells = getHeadCells(positions.length);
 
   return (
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
@@ -280,8 +272,8 @@ function Positions() {
             borderRadius={3}
           />
         </Grid>
-        <Grid size={1}></Grid>
-        <Grid size={4}>
+        <Grid size={0.5}></Grid>
+        <Grid size={4.5}>
           <ExchangeMargin />
         </Grid>
       </Grid>
@@ -517,27 +509,6 @@ function Positions() {
           </Table>
         </Paper>
       </Box>
-
-      {openTransferDialog ? (
-        <BalanceConfirmationDialog
-          id="ringtone-menu"
-          keepMounted
-          open={openTransferDialog}
-          onClose={() => setOpenTransferDialog(false)}
-        />
-      ) : null}
-      <SpeedDial
-        ariaLabel="SpeedDial basic example"
-        sx={{ position: "fixed", bottom: 16, right: 16 }}
-        icon={<SpeedDialIcon />}
-      >
-        <SpeedDialAction
-          key="transfer"
-          icon={<SwapHorizIcon />}
-          tooltipTitle="transfer"
-          onClick={() => setOpenTransferDialog(true)}
-        />
-      </SpeedDial>
     </Box>
   );
 }
@@ -550,13 +521,6 @@ const precisionMap: Record<string, string> = {
   ETC: "0.000",
   SUI: "0,0.000",
 };
-
-// const formatQuantity = (qty: number) => {
-//   if (qty > 1000000) {
-//     return nFormatter(qty, 0);
-//   }
-//   return numeral(qty).format("0,0.[000]");
-// };
 
 export default Positions;
 

@@ -340,7 +340,7 @@ function Layout() {
                 Orderbooks
               </LinkStyled>
               <LinkStyled
-                to="/tools"
+                to="/wallets"
                 isActive={location.pathname === '/wallets'}
               >
                 Wallets

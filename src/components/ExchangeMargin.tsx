@@ -104,7 +104,7 @@ function ExchangeMargin() {
           >
             <TableRow sx={{ height: "48px" }}>
               <TableCell align="left">
-                Exchange (x{numeral(leverage).format("0,0.00")})
+                Ex (x{numeral(leverage).format("0,0.00")})
               </TableCell>
 
               <TableCell align="left">Equity</TableCell>
@@ -153,7 +153,7 @@ function ExchangeMargin() {
                       color: lev > WARNING_LEV ? "#FFC107" : "unset",
                     }}
                   >
-                    <Box display="flex">
+                    <Box display="flex" >
                       <img
                         style={{
                           borderRadius: "50%",
