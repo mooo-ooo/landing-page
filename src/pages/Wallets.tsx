@@ -54,7 +54,7 @@ const Dashboard: FC = () => {
   const [page, setPage] = useState(0);
   const { enqueueSnackbar } = useSnackbar();
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [amount, setAmount] = useState(0);
   const [ggToken, setToken] = useState("");
   const [fromEx, setFromExchange] = useState("");
@@ -163,7 +163,7 @@ const Dashboard: FC = () => {
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - transactions.length) : 0;
 
   const handleChangePage = (
-    event: React.MouseEvent<HTMLButtonElement> | null,
+    _event: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number
   ) => {
     setPage(newPage);
