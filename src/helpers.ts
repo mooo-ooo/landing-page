@@ -19,3 +19,17 @@ export function getPrecision (n: number) {
 export function strip(number: string) {
   return Number(parseFloat(number).toPrecision(12));
 }
+
+export const genExplorerTxUrl = (tx: string, chain: string) => {
+  if (chain === 'BSC') {
+    return `https://bscscan.com/tx/${tx}`
+  }
+  return tx
+}
+
+export const genExplorerAddUrl = (tx: string, chain: string) => {
+  if (chain === 'BSC') {
+    return `https://bscscan.com/address/${tx}`
+  }
+  return tx
+}

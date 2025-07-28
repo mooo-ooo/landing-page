@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../lib/axios';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "../../lib/axios";
 
 interface UserState {
   data: {
@@ -20,9 +20,9 @@ const initialState: UserState = {
 };
 
 export const fetchUserData = createAsyncThunk(
-  'user/fetchUserData',
+  "user/fetchUserData",
   async () => {
-    const response = await api.get('/api/v1/auth/me');
+    const response = await api.get("/api/v1/auth/me");
     return {
       id: response.data.id,
       email: response.data.email,
@@ -34,7 +34,7 @@ export const fetchUserData = createAsyncThunk(
 );
 
 const userSlice = createSlice({
-  name: 'user',
+  name: "user",
   initialState,
   reducers: {
     setUser: (state, action) => {
@@ -63,10 +63,10 @@ const userSlice = createSlice({
       })
       .addCase(fetchUserData.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to fetch user data';
+        state.error = action.error.message || "Failed to fetch user data";
       });
   },
 });
 
 export const { setUser, setError, clearUser } = userSlice.actions;
-export default userSlice.reducer; 
+export default userSlice.reducer;
