@@ -19,11 +19,13 @@ import {
   InputAdornment,
   Button,
 } from "@mui/material";
+import DoubleArrowIcon from "@mui/icons-material/DoubleArrow";
 import LoadingButton from "@mui/lab/LoadingButton";
 import {
   TablePagination,
   tablePaginationClasses as classes,
 } from "@mui/base/TablePagination";
+import PhonelinkLockIcon from "@mui/icons-material/PhonelinkLock";
 import SwapVertIcon from "@mui/icons-material/SwapVert";
 import { useSnackbar } from "notistack";
 import numeral from "numeral";
@@ -58,8 +60,8 @@ const Dashboard: FC = () => {
   const [amount, setAmount] = useState(0);
   const [ggToken, setToken] = useState("");
   const [fromEx, setFromExchange] = useState("");
+  const [transactionMap, setTransactionMap] = useState<Record<string, string>>({})
   const [toEx, setToExchange] = useState("");
-  const [withdrawMap] = useState<Record<string, string>>({});
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
   const [isTransferPending, setisTransferPending] = useState<boolean>(false);
 
@@ -83,15 +85,20 @@ const Dashboard: FC = () => {
   };
 
   const fetchTransferPending = () => {
-    setLoading(true);
-    api.get("/wallet/transfer-pending").then(function ({ data }) {
-      setisTransferPending(data.isTransferPending);
-      setLoading(false);
+    // api.get("/wallet/transfer-pending").then(function ({ data }) {
+    //   setisTransferPending(data.isTransferPending);
+    // });
+  };
+
+  const fetchTransferMap = () => {
+    api.get("/api/v1/wallets/transaction-map").then(function ({ data }) {
+      console.log({data})
+      setTransactionMap(data);
     });
   };
 
-  useEffect(() => {
-    fetchTransferPending();
+  const fetchTransactions = () => {
+    setLoading(true);
     api.get("/api/v1/wallets/transactions").then(({ data }) => {
       const results = Object.keys(data).reduce(
         (acum: ITransaction[], exchange: string) => {
@@ -111,6 +118,12 @@ const Dashboard: FC = () => {
 
       setTransactions(results);
     });
+  };
+
+  useEffect(() => {
+    fetchTransferPending();
+    fetchTransactions();
+    fetchTransferMap()
   }, []);
 
   const handleTransfer = async () => {
@@ -142,12 +155,12 @@ const Dashboard: FC = () => {
   };
 
   const chainSelected = useMemo(() => {
-    if (!fromEx || !toEx || !withdrawMap) {
+    if (!fromEx || !toEx || !transactionMap) {
       return null;
     }
-    return withdrawMap[`${fromEx}-${toEx}`];
-  }, [fromEx, toEx, withdrawMap]);
-
+    return transactionMap[`${fromEx}-${toEx}`];
+  }, [fromEx, toEx, transactionMap]);
+  console.log({chainSelected})
   const validEx =
     exchanges.includes(fromEx) && exchanges.includes(toEx) && fromEx !== toEx;
 
@@ -180,125 +193,147 @@ const Dashboard: FC = () => {
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
       <Grid container spacing={6}>
         <Grid size={6}>
-          <ExchangeMargin />
-        </Grid>
-        <Grid size={6}>
-          <Box sx={{ border: "1px solid rgba(81, 81, 81, 1)" }} padding={2}>
-            <FormControl fullWidth sx={{ mb: 4 }}>
-              {selectedFromEx ? (
-                <Typography variant="caption">
-                  Availale balance:&nbsp;
-                  {numeral(
-                    (
-                      selectedFromEx as unknown as {
-                        future: { marginAvailable: number };
-                        trading: { marginAvailable: number };
-                      }
-                    )?.future?.marginAvailable ||
+          <Box
+            sx={{ border: "1px solid rgba(81, 81, 81, 1)" }}
+            padding={2}
+            alignItems="center"
+          >
+            <Box
+              display="flex"
+              gap={2}
+              justifyContent="space-around"
+              alignItems="center"
+            >
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                {selectedFromEx ? (
+                  <Typography variant="caption">
+                    Availale balance:&nbsp;
+                    {numeral(
                       (
                         selectedFromEx as unknown as {
                           future: { marginAvailable: number };
                           trading: { marginAvailable: number };
                         }
-                      )?.trading?.marginAvailable
-                  ).format("0,0.0")}{" "}
-                  USDT
-                </Typography>
-              ) : (
-                <Typography variant="caption">From exchange</Typography>
-              )}
-              <Select value={fromEx} onChange={handleChangeFrom} displayEmpty>
-                {exchanges.map((ex) => (
-                  <MenuItem disabled={ex === toEx} key={ex} value={ex}>
-                    {ex}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth sx={{ mb: 4 }}>
-              {selectedToEx ? (
-                <Typography variant="caption">
-                  Availale balance: &nbsp;
-                  {numeral(
-                    (
-                      selectedToEx as unknown as {
-                        future: { marginAvailable: number };
-                        trading: { marginAvailable: number };
-                      }
-                    )?.future?.marginAvailable ||
+                      )?.future?.marginAvailable ||
+                        (
+                          selectedFromEx as unknown as {
+                            future: { marginAvailable: number };
+                            trading: { marginAvailable: number };
+                          }
+                        )?.trading?.marginAvailable
+                    ).format("0,0.0")}{" "}
+                    USDT
+                  </Typography>
+                ) : (
+                  <Typography variant="caption">From exchange</Typography>
+                )}
+                <Select value={fromEx} onChange={handleChangeFrom} displayEmpty>
+                  {exchanges.map((ex) => (
+                    <MenuItem disabled={ex === toEx} key={ex} value={ex}>
+                      {ex}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <DoubleArrowIcon />
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                {selectedToEx ? (
+                  <Typography variant="caption">
+                    Availale balance: &nbsp;
+                    {numeral(
                       (
                         selectedToEx as unknown as {
                           future: { marginAvailable: number };
                           trading: { marginAvailable: number };
                         }
-                      )?.trading?.marginAvailable
-                  ).format("0,0.0")}{" "}
-                  USDT
-                </Typography>
-              ) : (
-                <Typography variant="caption">To exchange</Typography>
-              )}
-              <Select value={toEx} onChange={handleChangeTo} displayEmpty>
-                {exchanges.map((ex) => (
-                  <MenuItem disabled={ex === fromEx} key={ex} value={ex}>
-                    {ex}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                      )?.future?.marginAvailable ||
+                        (
+                          selectedToEx as unknown as {
+                            future: { marginAvailable: number };
+                            trading: { marginAvailable: number };
+                          }
+                        )?.trading?.marginAvailable
+                    ).format("0,0.0")}{" "}
+                    USDT
+                  </Typography>
+                ) : (
+                  <Typography variant="caption">To exchange</Typography>
+                )}
+                <Select value={toEx} onChange={handleChangeTo} displayEmpty>
+                  {exchanges.map((ex) => (
+                    <MenuItem disabled={ex === fromEx} key={ex} value={ex}>
+                      {ex}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
             {chainSelected ? (
               <Typography sx={{ mb: 4 }} variant="caption">
                 Chain: {chainSelected}
               </Typography>
             ) : null}
-            <FormControl fullWidth sx={{ mb: 4 }}>
-              <TextField
-                fullWidth
-                id="filled-number"
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                  const val = Number(event.target.value);
-                  setAmount(val);
-                }}
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">USDT</InputAdornment>
-                    ),
-                  },
-                }}
-                label={`Amount`}
-                type="number"
-                value={amount || ""}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                inputProps={{
-                  step: "5",
-                  min: String(30),
-                }}
-                variant="standard"
-              />
-            </FormControl>
-            <FormControl fullWidth sx={{ mb: 4 }}>
-              <TextField
-                fullWidth
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                  setToken(event.target.value);
-                }}
-                label={`Fund password`}
-                type="string"
-                value={ggToken}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                variant="standard"
-              />
-            </FormControl>
+            <Box mt={2} display="flex" gap={6} justifyContent="space-around">
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <TextField
+                  fullWidth
+                  id="filled-number"
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                    const val = Number(event.target.value);
+                    setAmount(val);
+                  }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">USDT</InputAdornment>
+                      ),
+                    },
+                  }}
+                  label={`Amount`}
+                  type="number"
+                  value={amount || ""}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  inputProps={{
+                    step: "5",
+                    min: String(30),
+                  }}
+                  variant="standard"
+                />
+              </FormControl>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <TextField
+                  fullWidth
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                    setToken(event.target.value);
+                  }}
+                  label={`2FA Code`}
+                  type="string"
+                  value={ggToken}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="standard"
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PhonelinkLockIcon />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              </FormControl>
+            </Box>
+
             <Box
               width="100%"
               display="flex"
               alignItems="center"
-              justifyContent="space-between"
+              justifyContent="flex-end"
               py={1}
             >
               {isTransferPending ? (
@@ -323,8 +358,14 @@ const Dashboard: FC = () => {
             </Box>
           </Box>
         </Grid>
+        <Grid size={6}>
+          <ExchangeMargin />
+        </Grid>
       </Grid>
       <Box>
+        <Typography mb={2} fontWeight="bold">
+          Withdrawal/Deposit Records
+        </Typography>
         <Paper
           sx={{
             width: "100%",
@@ -436,7 +477,7 @@ const Dashboard: FC = () => {
                             borderRadius: 8,
                             width: "fit-content",
                             padding: "4px 8px",
-                            background: COLOR_MAP[
+                            color: COLOR_MAP[
                               status as unknown as keyof typeof COLOR_MAP
                             ] as string,
                           }}
@@ -488,7 +529,10 @@ const Dashboard: FC = () => {
 const COLOR_MAP = {
   finished: "rgb(14, 203, 129)",
   DONE: "rgb(14, 203, 129)",
+  success: "rgb(14, 203, 129)",
+  confirmed: "rgb(14, 203, 129)",
   PENDING: "rgb(240, 185, 11)",
+  canceled: "rgb(246, 70, 93)"
 };
 
 export default Dashboard;
