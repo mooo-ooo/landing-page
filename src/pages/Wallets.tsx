@@ -18,7 +18,10 @@ import {
   TableFooter,
   InputAdornment,
   Button,
+  Alert,
+  IconButton,
 } from "@mui/material";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DoubleArrowIcon from "@mui/icons-material/DoubleArrow";
 import LoadingButton from "@mui/lab/LoadingButton";
 import {
@@ -51,6 +54,11 @@ interface ITransaction {
   from: string;
 }
 
+interface IAddress {
+  address: string;
+  chain: string;
+}
+
 const Dashboard: FC = () => {
   const balances = useSelector((state: RootState) => state.balances);
   const [page, setPage] = useState(0);
@@ -60,10 +68,15 @@ const Dashboard: FC = () => {
   const [amount, setAmount] = useState(0);
   const [ggToken, setToken] = useState("");
   const [fromEx, setFromExchange] = useState("");
-  const [transactionMap, setTransactionMap] = useState<Record<string, string>>({})
+  const [transactionMap, setTransactionMap] = useState<Record<string, string>>(
+    {}
+  );
   const [toEx, setToExchange] = useState("");
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
   const [isTransferPending, setisTransferPending] = useState<boolean>(false);
+  const [exchangeAddresses, setExchangeAddresses] = useState<
+    Record<string, IAddress[]>
+  >({});
 
   const handleChangeFrom = (event: SelectChangeEvent) => {
     setFromExchange(event.target.value);
@@ -92,8 +105,13 @@ const Dashboard: FC = () => {
 
   const fetchTransferMap = () => {
     api.get("/api/v1/wallets/transaction-map").then(function ({ data }) {
-      console.log({data})
       setTransactionMap(data);
+    });
+  };
+
+  const fetchDepositAddresses = () => {
+    api.get("/api/v1/wallets/deposit-addresses").then(function ({ data }) {
+      setExchangeAddresses(data);
     });
   };
 
@@ -123,7 +141,8 @@ const Dashboard: FC = () => {
   useEffect(() => {
     fetchTransferPending();
     fetchTransactions();
-    fetchTransferMap()
+    fetchTransferMap();
+    fetchDepositAddresses();
   }, []);
 
   const handleTransfer = async () => {
@@ -154,13 +173,21 @@ const Dashboard: FC = () => {
     setToken("");
   };
 
-  const chainSelected = useMemo(() => {
-    if (!fromEx || !toEx || !transactionMap) {
-      return null;
+  const { chainSelected, addressSelected } = useMemo(() => {
+    if (!fromEx || !toEx || !transactionMap || !exchangeAddresses) {
+      return {};
     }
-    return transactionMap[`${fromEx}-${toEx}`];
-  }, [fromEx, toEx, transactionMap]);
-  console.log({chainSelected})
+    const chainSelected = transactionMap[`${fromEx}-${toEx}`];
+    const foundAdd = exchangeAddresses[toEx]?.find(
+      ({ chain }) => chain === chainSelected
+    );
+    console.log();
+    return {
+      chainSelected,
+      addressSelected: foundAdd?.address,
+    };
+  }, [fromEx, toEx, transactionMap, exchangeAddresses]);
+  console.log({ chainSelected });
   const validEx =
     exchanges.includes(fromEx) && exchanges.includes(toEx) && fromEx !== toEx;
 
@@ -268,12 +295,6 @@ const Dashboard: FC = () => {
                 </Select>
               </FormControl>
             </Box>
-
-            {chainSelected ? (
-              <Typography sx={{ mb: 4 }} variant="caption">
-                Chain: {chainSelected}
-              </Typography>
-            ) : null}
             <Box mt={2} display="flex" gap={6} justifyContent="space-around">
               <FormControl fullWidth sx={{ mb: 2 }}>
                 <TextField
@@ -320,7 +341,9 @@ const Dashboard: FC = () => {
                     input: {
                       startAdornment: (
                         <InputAdornment position="start">
-                          <PhonelinkLockIcon />
+                          <PhonelinkLockIcon
+                            sx={{ fill: "rgba(255, 255, 255, 0.5)" }}
+                          />
                         </InputAdornment>
                       ),
                     },
@@ -329,33 +352,58 @@ const Dashboard: FC = () => {
               </FormControl>
             </Box>
 
-            <Box
-              width="100%"
-              display="flex"
-              alignItems="center"
-              justifyContent="flex-end"
-              py={1}
-            >
-              {isTransferPending ? (
-                <Button
-                  onClick={handleResolveTransferPending}
-                  disabled={!isTransferPending}
-                  variant="contained"
-                  endIcon={<SwapVertIcon />}
-                >
-                  {isTransferPending ? "Resolve" : "All gud"}
-                </Button>
-              ) : null}
-              <LoadingButton
-                size="large"
-                // loading={loading}
-                onClick={handleTransfer}
-                variant="contained"
-                disabled={!ggToken || amount <= 0 || !validEx}
-              >
-                Transfer
-              </LoadingButton>
-            </Box>
+            <Grid container spacing={1}>
+              <Grid size={6}>
+                {/* {addressSelected} */}
+                {chainSelected && addressSelected ? (
+                  <Alert severity="info">
+                    <Box display="flex" flexDirection="column">
+                      <Typography fontSize="14px">
+                        Chain: {chainSelected}
+                      </Typography>
+                      <Box display="flex" flexDirection="row" alignItems="center">
+                        <Typography fontSize="14px">
+                          Address: {shortenAddress(addressSelected || "", 7, 7)}
+                        </Typography>
+                        <IconButton
+                          onClick={() => {
+                            navigator.clipboard.writeText(addressSelected);
+                            enqueueSnackbar(`Copy ${addressSelected}`, {
+                              variant: "success",
+                            });
+                          }}
+                        >
+                          <ContentCopyIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
+                  </Alert>
+                ) : null}
+              </Grid>
+              <Grid size={6}>
+                <Box display="flex" justifyContent="flex-end">
+                  {isTransferPending ? (
+                    <Button
+                      onClick={handleResolveTransferPending}
+                      disabled={!isTransferPending}
+                      variant="contained"
+                      endIcon={<SwapVertIcon />}
+                    >
+                      {isTransferPending ? "Resolve" : "All gud"}
+                    </Button>
+                  ) : null}
+                  <LoadingButton
+                    size="large"
+                    // loading={loading}
+                    onClick={handleTransfer}
+                    variant="contained"
+                    disabled={!ggToken || amount <= 0 || !validEx}
+                  >
+                    Transfer
+                  </LoadingButton>
+                </Box>
+              </Grid>
+            </Grid>
           </Box>
         </Grid>
         <Grid size={6}>
@@ -363,7 +411,7 @@ const Dashboard: FC = () => {
         </Grid>
       </Grid>
       <Box>
-        <Typography mb={2} fontWeight="bold">
+        <Typography my={2} fontWeight="bold">
           Withdrawal/Deposit Records
         </Typography>
         <Paper
@@ -416,7 +464,9 @@ const Dashboard: FC = () => {
                     <TableRow key={id}>
                       <TableCell>
                         <Typography>
-                          {dayjs(createdAt).format("DD/MM/YYYY HH:mm")}
+                          {dayjs(new Date(Number(createdAt))).format(
+                            "DD/MM/YYYY HH:mm"
+                          )}
                         </Typography>
                       </TableCell>
                       <TableCell>
@@ -532,7 +582,7 @@ const COLOR_MAP = {
   success: "rgb(14, 203, 129)",
   confirmed: "rgb(14, 203, 129)",
   PENDING: "rgb(240, 185, 11)",
-  canceled: "rgb(246, 70, 93)"
+  canceled: "rgb(246, 70, 93)",
 };
 
 export default Dashboard;
