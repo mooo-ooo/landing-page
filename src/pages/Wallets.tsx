@@ -20,7 +20,9 @@ import {
   Button,
   Alert,
   IconButton,
+  LinearProgress,
 } from "@mui/material";
+import ReplayIcon from "@mui/icons-material/Replay";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DoubleArrowIcon from "@mui/icons-material/DoubleArrow";
 import LoadingButton from "@mui/lab/LoadingButton";
@@ -64,7 +66,7 @@ const Dashboard: FC = () => {
   const [page, setPage] = useState(0);
   const { enqueueSnackbar } = useSnackbar();
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState(0);
   const [ggToken, setToken] = useState("");
   const [fromEx, setFromExchange] = useState("");
@@ -86,13 +88,11 @@ const Dashboard: FC = () => {
   };
 
   const handleResolveTransferPending = async () => {
-    setLoading(true);
     const { data } = await api.post("/wallet/transfer-pending", {
       status: false,
     });
     if (data) {
       setisTransferPending(data.isTransferPending);
-      setLoading(false);
       enqueueSnackbar(`You now can do transfer again`, { variant: "success" });
     }
   };
@@ -135,6 +135,7 @@ const Dashboard: FC = () => {
       );
 
       setTransactions(results);
+      setLoading(false);
     });
   };
 
@@ -146,7 +147,7 @@ const Dashboard: FC = () => {
   }, []);
 
   const handleTransfer = async () => {
-    setLoading(true);
+    // setLoading(true);
     const { data } = await api
       .post("/wallet/transfer", {
         from: fromEx.toLowerCase(),
@@ -169,7 +170,7 @@ const Dashboard: FC = () => {
       );
     }
     setAmount(0);
-    setLoading(false);
+    // setLoading(false);
     setToken("");
   };
 
@@ -181,7 +182,6 @@ const Dashboard: FC = () => {
     const foundAdd = exchangeAddresses[toEx]?.find(
       ({ chain }) => chain === chainSelected
     );
-    console.log();
     return {
       chainSelected,
       addressSelected: foundAdd?.address,
@@ -361,7 +361,11 @@ const Dashboard: FC = () => {
                       <Typography fontSize="14px">
                         Chain: {chainSelected}
                       </Typography>
-                      <Box display="flex" flexDirection="row" alignItems="center">
+                      <Box
+                        display="flex"
+                        flexDirection="row"
+                        alignItems="center"
+                      >
                         <Typography fontSize="14px">
                           Address: {shortenAddress(addressSelected || "", 7, 7)}
                         </Typography>
@@ -411,9 +415,19 @@ const Dashboard: FC = () => {
         </Grid>
       </Grid>
       <Box>
-        <Typography my={2} fontWeight="bold">
-          Withdrawal/Deposit Records
-        </Typography>
+        <Box display="flex" my={2} alignItems="center">
+          <Box>
+            <Typography fontWeight="bold">
+              Withdrawal/Deposit Records
+            </Typography>
+            {loading ? <LinearProgress color="info" /> : null}
+          </Box>
+
+          <IconButton size="medium" onClick={fetchTransactions}>
+            <ReplayIcon />
+          </IconButton>
+        </Box>
+
         <Paper
           sx={{
             width: "100%",
@@ -432,10 +446,11 @@ const Dashboard: FC = () => {
               <TableRow sx={{ height: "48px" }}>
                 <TableCell align="left">Datetime</TableCell>
                 <TableCell align="left">Exchange</TableCell>
-                <TableCell align="left">Chain</TableCell>
-                <TableCell align="left">From</TableCell>
+
+                <TableCell align="left">Type</TableCell>
                 <TableCell align="left">To</TableCell>
                 <TableCell align="left">Amount</TableCell>
+                <TableCell align="left">Chain</TableCell>
                 <TableCell align="left">TxId</TableCell>
 
                 <TableCell align="left">Status</TableCell>
@@ -451,7 +466,7 @@ const Dashboard: FC = () => {
               ).map(
                 ({
                   createdAt,
-                  from,
+                  type,
                   amount,
                   status,
                   tx,
@@ -474,22 +489,8 @@ const Dashboard: FC = () => {
                           {exchange}
                         </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Typography textTransform="capitalize">
-                          {chain}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        {from?.length > 10 ? (
-                          <a href="tx" target="_blank">
-                            {shortenAddress(from)}
-                          </a>
-                        ) : (
-                          <Typography textTransform="capitalize">
-                            {from || "Unknown"}
-                          </Typography>
-                        )}
-                      </TableCell>
+
+                      <TableCell>{type}</TableCell>
                       <TableCell>
                         {to?.length > 10 ? (
                           <a
@@ -515,6 +516,11 @@ const Dashboard: FC = () => {
                             {numeral(amount).format("0,0.0")}
                           </Typography>
                         </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography textTransform="capitalize">
+                          {chain}
+                        </Typography>
                       </TableCell>
                       <TableCell>
                         <a href={genExplorerTxUrl(tx, chain)} target="_blank">

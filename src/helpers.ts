@@ -21,15 +21,27 @@ export function strip(number: string) {
 }
 
 export const genExplorerTxUrl = (tx: string, chain: string) => {
-  if (chain === 'BSC') {
+  if (chain === 'BSC (BEP20)') {
     return `https://bscscan.com/tx/${tx}`
+  }
+  if (chain === 'TRX (TRC20)') {
+    return `https://tronscan.org/#/transaction/${tx}`
+  }
+  if (chain === 'Avalanche C-Chain') {
+    return `https://snowtrace.io/tx/${tx}`
   }
   return tx
 }
 
 export const genExplorerAddUrl = (tx: string, chain: string) => {
-  if (chain === 'BSC') {
+  if (chain === 'BSC (BEP20)') {
     return `https://bscscan.com/address/${tx}`
+  }
+  if (chain === 'TRX (TRC20)') {
+    return `https://tronscan.org/#/address/${tx}`
+  }
+  if (chain === 'Avalanche C-Chain') {
+    return `https://snowtrace.io/address/${tx}`
   }
   return tx
 }
