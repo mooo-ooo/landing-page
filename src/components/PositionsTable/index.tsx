@@ -37,7 +37,6 @@ export const DEFAULT_PERCENT_CHANGE_TO_SL = 35;
 const customColors = ["rgb(14 203 129)"];
 
 function Positions() {
-  console.log('position')
   const localOrderBy = localStorage.getItem("orderBy") || "volume";
   const localOrder = localStorage.getItem("order") || "desc";
   const [order, setOrder] = useState<Order>(localOrder as Order);
@@ -56,7 +55,6 @@ function Positions() {
   const [rewardHistory, setRewardHistory] = useState<{ date: string; value: number }[]>([]);
 
   useEffect(() => {
-    // Replace with your actual base_url
     api.get("/api/v1/account/funding-fees/last-7-days")
       .then((result: any) => {
         if (result.data?.fundingByDay && Object.keys(result.data.fundingByDay).length > 0) {
@@ -94,6 +92,7 @@ function Positions() {
         }
       })
       .catch((err) => {
+        setRewardHistory([]);
         console.log(err);
       });
   }, []);
