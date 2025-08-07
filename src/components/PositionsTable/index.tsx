@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -30,39 +30,9 @@ import type {
   IPosition,
 } from "../../redux/positions/positionsSlice";
 import { percentageChange } from "../../helpers";
+import api from "../../lib/axios";
 
 export const DEFAULT_PERCENT_CHANGE_TO_SL = 35;
-
-const rewardHitory = [
-  {
-    date: "Mon",
-    value: 200,
-  },
-  {
-    date: "Tue",
-    value: 300,
-  },
-  {
-    date: "Web",
-    value: 250,
-  },
-  {
-    date: "Thus",
-    value: 420,
-  },
-  {
-    date: "Fri",
-    value: 500,
-  },
-  {
-    date: "Sat",
-    value: 700,
-  },
-  {
-    date: "Sun",
-    value: 950,
-  },
-];
 
 const customColors = ["rgb(14 203 129)"];
 
@@ -81,6 +51,51 @@ function Positions() {
     (tot, { total = 0 }) => tot + total,
     0
   );
+
+  const [rewardHistory, setRewardHistory] = useState<{ date: string; value: number }[]>([]);
+
+  useEffect(() => {
+    api.get("/api/v1/account/funding-fees/last-7-days")
+      .then((result: any) => {
+        if (result.data?.fundingByDay && Object.keys(result.data.fundingByDay).length > 0) {
+          const fundingByDay = result.data.fundingByDay;
+
+          const fullToShortMap: Record<string, string> = {
+            Monday: "Mon",
+            Tuesday: "Tue",
+            Wednesday: "Wed",
+            Thursday: "Thu",
+            Friday: "Fri",
+            Saturday: "Sat",
+            Sunday: "Sun",
+          };
+
+          const shortDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+          // Get today's index in short form: 0 = Sun, 1 = Mon, ..., 6 = Sat
+          const todayIndex = new Date().getDay();
+
+          // Create circular day order ending with today
+          const circularOrder = [
+            ...shortDays.slice((todayIndex + 1) % 7),
+            ...shortDays.slice(0, (todayIndex + 1) % 7),
+          ];
+
+          const mappedHistory = circularOrder.map(shortName => {
+            const fullName = Object.keys(fullToShortMap).find(key => fullToShortMap[key] === shortName)!;
+            return {
+              date: shortName,
+              value: fundingByDay[fullName] || 0,
+            };
+          });
+          setRewardHistory(mappedHistory);
+        }
+      })
+      .catch((err) => {
+        setRewardHistory([]);
+        console.log(err);
+      });
+  }, []);
 
   const createSortHandler = (property: keyof Data) => () => {
     const isAsc = orderBy === property && order === "asc";
@@ -188,9 +203,9 @@ function Positions() {
       return (
         tot +
         cur.markPrice *
-          cur.size *
-          (cur.fundingRate || 0) *
-          (cur.side === "sell" ? 1 : -1)
+        cur.size *
+        (cur.fundingRate || 0) *
+        (cur.side === "sell" ? 1 : -1)
       );
     }, 0);
 
@@ -261,10 +276,9 @@ function Positions() {
             USDT
           </Typography>
           <BarChart
-            dataset={rewardHitory}
-            // xAxis={[{ dataKey: 'month' }]}
+            dataset={rewardHistory}
             {...chartSetting}
-            colors={customColors} // Apply custom colors
+            colors={customColors}
             borderRadius={3}
           />
         </Grid>
@@ -331,9 +345,9 @@ function Positions() {
                   return (
                     tot +
                     cur.markPrice *
-                      cur.size *
-                      cur.fundingRate *
-                      (cur.side === "sell" ? 1 : -1)
+                    cur.size *
+                    cur.fundingRate *
+                    (cur.side === "sell" ? 1 : -1)
                   );
                 }, 0);
                 const totalSizeSell = sells.reduce(
@@ -493,7 +507,7 @@ function Positions() {
                             (sells[0].fundingRate - buys[0].fundingRate) *
                             360 *
                             3) /
-                            2
+                          2
                         ).format("0,0")}
                         %
                       </Typography>
@@ -613,18 +627,18 @@ function descendingComparator<T>(
       (acc, pos) =>
         acc +
         pos.markPrice *
-          pos.size *
-          pos.fundingRate *
-          (pos.side === "sell" ? 1 : -1),
+        pos.size *
+        pos.fundingRate *
+        (pos.side === "sell" ? 1 : -1),
       0
     );
     const estimatedFeeB = [...b.sells, ...b.buys].reduce(
       (acc, pos) =>
         acc +
         pos.markPrice *
-          pos.size *
-          pos.fundingRate *
-          (pos.side === "sell" ? 1 : -1),
+        pos.size *
+        pos.fundingRate *
+        (pos.side === "sell" ? 1 : -1),
       0
     );
     return estimatedFeeB - estimatedFeeA;
