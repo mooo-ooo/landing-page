@@ -345,6 +345,12 @@ function Layout() {
               >
                 Wallets
               </LinkStyled>
+              <LinkStyled
+                to="/fundings"
+                isActive={location.pathname === '/fundings'}
+              >
+                Funding Fees
+              </LinkStyled>
             </Box>
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
