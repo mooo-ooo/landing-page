@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../redux/store";
 import dayjs from "dayjs";
@@ -42,6 +42,7 @@ import api from "../lib/axios";
 import { genExplorerTxUrl, genExplorerAddUrl } from "../helpers";
 
 const exchanges = ["coinex", "huobi", "okx", "bybit", "gate", "bitget"];
+const disabledFeeExchanges = ["bybit"];
 
 interface ITransaction {
   tx: string;
@@ -67,18 +68,24 @@ const Dashboard: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [loading, setLoading] = useState(false);
+  const [loadingTransfer, setLoadingTransfer] = useState(false);
   const [amount, setAmount] = useState(0);
-  const [ggToken, setToken] = useState("");
+  const [fee, setFee] = useState(0);
+  const [token2fa, setToken] = useState("");
+  const [transferError, setTransferError] = useState("");
   const [fromEx, setFromExchange] = useState("");
   const [transactionMap, setTransactionMap] = useState<Record<string, string>>(
     {}
   );
+  const [, setFetchTransferCount] = useState(0);
   const [toEx, setToExchange] = useState("");
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
   const [isTransferPending, setisTransferPending] = useState<boolean>(false);
   const [exchangeAddresses, setExchangeAddresses] = useState<
     Record<string, IAddress[]>
   >({});
+
+  const intervalRef = useRef<number | undefined>(undefined);
 
   const handleChangeFrom = (event: SelectChangeEvent) => {
     setFromExchange(event.target.value);
@@ -117,7 +124,7 @@ const Dashboard: FC = () => {
 
   const fetchTransactions = () => {
     setLoading(true);
-    api.get("/api/v1/wallets/transactions").then(({ data }) => {
+    return api.get("/api/v1/wallets/transactions").then(({ data }) => {
       const results = Object.keys(data).reduce(
         (acum: ITransaction[], exchange: string) => {
           const trans = data[exchange] as ITransaction[];
@@ -136,6 +143,7 @@ const Dashboard: FC = () => {
 
       setTransactions(results);
       setLoading(false);
+      return results;
     });
   };
 
@@ -147,30 +155,49 @@ const Dashboard: FC = () => {
   }, []);
 
   const handleTransfer = async () => {
-    // setLoading(true);
+    setLoadingTransfer(true);
+    setTransferError("");
     const { data } = await api
-      .post("/wallet/transfer", {
+      .post("/api/v1/wallets/transfer", {
         from: fromEx.toLowerCase(),
         to: toEx.toLowerCase(),
         amount,
-        ggToken,
+        token2fa,
       })
       .catch((err) => {
-        enqueueSnackbar(err.response?.data?.error, { variant: "error" });
+        console.log("err.response", err.response);
+        setTransferError(err.response?.data?.message);
         return {
           data: undefined,
         };
       });
     if (data) {
       enqueueSnackbar(
-        `Withdrew to \n${
-          data?.depositAddress?.address || toEx.toLowerCase()
-        }, \ncheck tele for new updates`,
+        `Withdrew to \n${data?.depositAddress?.address || toEx.toLowerCase()}`,
         { variant: "success" }
       );
+      // Update the count for the initial fetch.
+      setFetchTransferCount(1);
+
+      // If the initial fetch is successful, start the interval.
+      intervalRef.current = setInterval(async () => {
+        const fetchSucceeded = await fetchTransactions();
+        if (fetchSucceeded) {
+          setFetchTransferCount((prevCount) => {
+            const newCount = prevCount + 1;
+            // Check if we've reached the limit of 10 fetches (including the initial one).
+            if (newCount >= 10) {
+              clearInterval(intervalRef.current);
+              intervalRef.current = undefined;
+              console.log("Interval cleared.");
+            }
+            return newCount;
+          });
+        }
+      }, 1000 * 30); // Fetch every 30 seconds
     }
-    setAmount(0);
-    // setLoading(false);
+    // setAmount(0);
+    setLoadingTransfer(false);
     setToken("");
   };
 
@@ -187,7 +214,7 @@ const Dashboard: FC = () => {
       addressSelected: foundAdd?.address,
     };
   }, [fromEx, toEx, transactionMap, exchangeAddresses]);
-  console.log({ chainSelected });
+
   const validEx =
     exchanges.includes(fromEx) && exchanges.includes(toEx) && fromEx !== toEx;
 
@@ -332,7 +359,7 @@ const Dashboard: FC = () => {
                   }}
                   label={`2FA Code`}
                   type="string"
-                  value={ggToken}
+                  value={token2fa}
                   InputLabelProps={{
                     shrink: true,
                   }}
@@ -352,62 +379,91 @@ const Dashboard: FC = () => {
               </FormControl>
             </Box>
 
-            <Grid container spacing={1}>
-              <Grid size={6}>
-                {/* {addressSelected} */}
-                {chainSelected && addressSelected ? (
-                  <Alert severity="info">
-                    <Box display="flex" flexDirection="column">
-                      <Typography fontSize="14px">
-                        Chain: {chainSelected}
-                      </Typography>
-                      <Box
-                        display="flex"
-                        flexDirection="row"
-                        alignItems="center"
-                      >
-                        <Typography fontSize="14px">
-                          Address: {shortenAddress(addressSelected || "", 7, 7)}
-                        </Typography>
-                        <IconButton
-                          onClick={() => {
-                            navigator.clipboard.writeText(addressSelected);
-                            enqueueSnackbar(`Copy ${addressSelected}`, {
-                              variant: "success",
-                            });
-                          }}
-                        >
-                          <ContentCopyIcon />
-                        </IconButton>
-                      </Box>
-                    </Box>
-                  </Alert>
-                ) : null}
-              </Grid>
-              <Grid size={6}>
-                <Box display="flex" justifyContent="flex-end">
-                  {isTransferPending ? (
-                    <Button
-                      onClick={handleResolveTransferPending}
-                      disabled={!isTransferPending}
-                      variant="contained"
-                      endIcon={<SwapVertIcon />}
-                    >
-                      {isTransferPending ? "Resolve" : "All gud"}
-                    </Button>
-                  ) : null}
-                  <LoadingButton
-                    size="large"
-                    // loading={loading}
-                    onClick={handleTransfer}
+            <Box my={2} display="flex" gap={6} justifyContent="space-around">
+              <FormControl fullWidth>
+                <TextField
+                  fullWidth
+                  disabled={disabledFeeExchanges.includes(fromEx)}
+                  id="filled-number"
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                    const val = Number(event.target.value);
+                    setFee(val);
+                  }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">USDT</InputAdornment>
+                      ),
+                    },
+                  }}
+                  label={`Fee (Optional)`}
+                  type="number"
+                  value={disabledFeeExchanges.includes(fromEx) ? "" : fee || ""}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  inputProps={{
+                    step: "5",
+                    min: String(30),
+                  }}
+                  variant="standard"
+                />
+              </FormControl>
+              <FormControl fullWidth>
+                {isTransferPending ? (
+                  <Button
+                    onClick={handleResolveTransferPending}
+                    disabled={!isTransferPending}
                     variant="contained"
-                    disabled={!ggToken || amount <= 0 || !validEx}
+                    endIcon={<SwapVertIcon />}
                   >
-                    Transfer
-                  </LoadingButton>
+                    {isTransferPending ? "Resolve" : "All gud"}
+                  </Button>
+                ) : null}
+                <LoadingButton
+                  size="large"
+                  loading={loadingTransfer}
+                  onClick={handleTransfer}
+                  variant="contained"
+                  disabled={!token2fa || amount <= 0 || !validEx}
+                >
+                  Transfer
+                </LoadingButton>
+              </FormControl>
+            </Box>
+            <Box>
+              {transferError && (
+                <Box mb={1}>
+                  <Alert severity="error">
+                    <Typography fontSize="14px">{transferError}</Typography>
+                  </Alert>
                 </Box>
-              </Grid>
-            </Grid>
+              )}
+              {chainSelected && addressSelected ? (
+                <Alert severity="info">
+                  <Box display="flex" flexDirection="column">
+                    <Typography fontSize="14px">
+                      Chain: {chainSelected}
+                    </Typography>
+                    <Box display="flex" flexDirection="row" alignItems="center">
+                      <Typography fontSize="14px">
+                        Address: {addressSelected}
+                      </Typography>
+                      <IconButton
+                        onClick={() => {
+                          navigator.clipboard.writeText(addressSelected);
+                          enqueueSnackbar(`Copy ${addressSelected}`, {
+                            variant: "success",
+                          });
+                        }}
+                      >
+                        <ContentCopyIcon />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                </Alert>
+              ) : null}
+            </Box>
           </Box>
         </Grid>
         <Grid size={6}>
@@ -476,7 +532,7 @@ const Dashboard: FC = () => {
                   exchange,
                 }) => {
                   return (
-                    <TableRow key={id}>
+                    <TableRow key={id + tx}>
                       <TableCell>
                         <Typography>
                           {dayjs(new Date(Number(createdAt))).format(
@@ -533,12 +589,14 @@ const Dashboard: FC = () => {
                             borderRadius: 8,
                             width: "fit-content",
                             padding: "4px 8px",
-                            color: COLOR_MAP[
-                              status as unknown as keyof typeof COLOR_MAP
-                            ] as string,
                           }}
                         >
-                          <Typography textTransform="capitalize" fontSize={12}>
+                          <Typography sx={{
+                            maxWidth: "100px",
+                            overflow: "hidden",
+                            whiteSpace: "nowrap",
+                            textOverflow: "ellipsis"
+                          }}>
                             {status.toLowerCase()}
                           </Typography>
                         </Box>
@@ -580,15 +638,6 @@ const Dashboard: FC = () => {
       </Box>
     </Box>
   );
-};
-
-const COLOR_MAP = {
-  finished: "rgb(14, 203, 129)",
-  DONE: "rgb(14, 203, 129)",
-  success: "rgb(14, 203, 129)",
-  confirmed: "rgb(14, 203, 129)",
-  PENDING: "rgb(240, 185, 11)",
-  canceled: "rgb(246, 70, 93)",
 };
 
 export default Dashboard;

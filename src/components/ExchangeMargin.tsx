@@ -148,6 +148,7 @@ function ExchangeMargin() {
                 : Number.NaN;
               return (
                 <TableRow
+                  key={exchangeName}
                   sx={{
                     border:
                       lev > WARNING_LEV

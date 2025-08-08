@@ -113,13 +113,8 @@ function ApiKeys() {
         token: formData.token,
       };
 
-      if (editingKey) {
-        await api.put(`/api/v1/exchange/keys/${editingKey.id}`, payload);
-        setSuccess('API keys updated successfully');
-      } else {
-        await api.post('/api/v1/exchange/keys', payload);
-        setSuccess('API keys saved successfully');
-      }
+      await api.post('/api/v1/exchange/keys', payload);
+      setSuccess('API keys saved successfully');
 
       setFormData({
         exchange: '',
