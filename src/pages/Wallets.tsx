@@ -21,6 +21,7 @@ import {
   Alert,
   IconButton,
   LinearProgress,
+  AlertTitle,
 } from "@mui/material";
 import ReplayIcon from "@mui/icons-material/Replay";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -31,7 +32,6 @@ import {
   tablePaginationClasses as classes,
 } from "@mui/base/TablePagination";
 import PhonelinkLockIcon from "@mui/icons-material/PhonelinkLock";
-import SwapVertIcon from "@mui/icons-material/SwapVert";
 import { useSnackbar } from "notistack";
 import numeral from "numeral";
 import MenuItem from "@mui/material/MenuItem";
@@ -62,6 +62,8 @@ interface IAddress {
   chain: string;
 }
 
+const exchangesWhichAllowFee: string[] = ["huobi"];
+
 const Dashboard: FC = () => {
   const balances = useSelector((state: RootState) => state.balances);
   const [page, setPage] = useState(0);
@@ -80,7 +82,7 @@ const Dashboard: FC = () => {
   const [, setFetchTransferCount] = useState(0);
   const [toEx, setToExchange] = useState("");
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
-  const [isTransferPending, setisTransferPending] = useState<boolean>(false);
+  const [transferPending, setTransferPending] = useState<Record<string, string>>();
   const [exchangeAddresses, setExchangeAddresses] = useState<
     Record<string, IAddress[]>
   >({});
@@ -95,23 +97,25 @@ const Dashboard: FC = () => {
   };
 
   const handleResolveTransferPending = async () => {
-    const { data } = await api.post("/wallet/transfer-pending", {
-      status: false,
-    });
+    const { data } = await api.delete("/api/v1/wallets/transfer-pending");
+    console.log({ data });
     if (data) {
-      setisTransferPending(data.isTransferPending);
+      setTransferPending(undefined);
       enqueueSnackbar(`You now can do transfer again`, { variant: "success" });
     }
   };
+  console.log({ transferPending });
 
   const fetchTransferPending = () => {
-    // api.get("/wallet/transfer-pending").then(function ({ data }) {
-    //   setisTransferPending(data.isTransferPending);
-    // });
+    api.get("/api/v1/wallets/transfer-pending").then(function ({ data }) {
+      console.log('debug fetchTransferPending',  data );
+      setTransferPending(data);
+    });
   };
 
   const fetchTransferMap = () => {
     api.get("/api/v1/wallets/transaction-map").then(function ({ data }) {
+      console.log('debug',  data );
       setTransactionMap(data);
     });
   };
@@ -157,13 +161,23 @@ const Dashboard: FC = () => {
   const handleTransfer = async () => {
     setLoadingTransfer(true);
     setTransferError("");
+    const body: {
+      from: string;
+      to: string;
+      amount: number;
+      token2fa: string;
+      fee?: number;
+    } = {
+      from: fromEx.toLowerCase(),
+      to: toEx.toLowerCase(),
+      amount,
+      token2fa,
+    };
+    if (exchangesWhichAllowFee.includes(fromEx)) {
+      body.fee = fee;
+    }
     const { data } = await api
-      .post("/api/v1/wallets/transfer", {
-        from: fromEx.toLowerCase(),
-        to: toEx.toLowerCase(),
-        amount,
-        token2fa,
-      })
+      .post("/api/v1/wallets/transfer", body)
       .catch((err) => {
         console.log("err.response", err.response);
         setTransferError(err.response?.data?.message);
@@ -381,45 +395,33 @@ const Dashboard: FC = () => {
 
             <Box my={2} display="flex" gap={6} justifyContent="space-around">
               <FormControl fullWidth>
-                <TextField
-                  fullWidth
-                  disabled={disabledFeeExchanges.includes(fromEx)}
-                  id="filled-number"
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                    const val = Number(event.target.value);
-                    setFee(val);
-                  }}
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position="start">USDT</InputAdornment>
-                      ),
-                    },
-                  }}
-                  label={`Fee (Optional)`}
-                  type="number"
-                  value={disabledFeeExchanges.includes(fromEx) ? "" : fee || ""}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  inputProps={{
-                    step: "5",
-                    min: String(30),
-                  }}
-                  variant="standard"
-                />
-              </FormControl>
-              <FormControl fullWidth>
-                {isTransferPending ? (
-                  <Button
-                    onClick={handleResolveTransferPending}
-                    disabled={!isTransferPending}
-                    variant="contained"
-                    endIcon={<SwapVertIcon />}
-                  >
-                    {isTransferPending ? "Resolve" : "All gud"}
-                  </Button>
+                {exchangesWhichAllowFee.includes(fromEx) ? (
+                  <TextField
+                    fullWidth
+                    disabled={disabledFeeExchanges.includes(fromEx)}
+                    id="filled-number"
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                      const val = Number(event.target.value);
+                      setFee(val);
+                    }}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">USDT</InputAdornment>
+                        ),
+                      },
+                    }}
+                    label={`Fee (Optional)`}
+                    type="number"
+                    value={
+                      disabledFeeExchanges.includes(fromEx) ? "" : fee || ""
+                    }
+                    variant="standard"
+                  />
                 ) : null}
+              </FormControl>
+
+              <FormControl fullWidth>
                 <LoadingButton
                   size="large"
                   loading={loadingTransfer}
@@ -431,6 +433,28 @@ const Dashboard: FC = () => {
                 </LoadingButton>
               </FormControl>
             </Box>
+
+            {transferPending ? (
+              <Alert
+                sx={{my: 1}}
+                severity="warning"
+                action={
+                  <Button
+                    onClick={handleResolveTransferPending}
+                    disabled={!transferPending}
+                    variant="contained"
+                    color="inherit"
+                    size="small"
+                  >
+                    {transferPending ? "Resolve" : "All gud"}
+                  </Button>
+                }
+              >
+                <AlertTitle>Warning</AlertTitle>
+                Waiting deposit from {transferPending && transferPending?.from?.toUpperCase()} to {transferPending && transferPending?.to?.toUpperCase()}
+              </Alert>
+            ) : null}
+
             <Box>
               {transferError && (
                 <Box mb={1}>
@@ -591,12 +615,14 @@ const Dashboard: FC = () => {
                             padding: "4px 8px",
                           }}
                         >
-                          <Typography sx={{
-                            maxWidth: "100px",
-                            overflow: "hidden",
-                            whiteSpace: "nowrap",
-                            textOverflow: "ellipsis"
-                          }}>
+                          <Typography
+                            sx={{
+                              maxWidth: "100px",
+                              overflow: "hidden",
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
                             {status.toLowerCase()}
                           </Typography>
                         </Box>

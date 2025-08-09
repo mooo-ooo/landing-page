@@ -35,7 +35,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     // Transform the response data structure
-    if (response.data?.data) {
+    if (response.data?.error === null) {
       response.data = response.data.data;
     }
     return response;
