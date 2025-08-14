@@ -14,8 +14,14 @@ import { styled } from "@mui/system";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { PieChart } from "@mui/x-charts/PieChart";
-import { BarChart } from "@mui/x-charts/BarChart";
 
+import { LinePlot, MarkPlot } from "@mui/x-charts/LineChart";
+import { ChartContainer } from "@mui/x-charts/ChartContainer";
+import { ChartsXAxis } from "@mui/x-charts/ChartsXAxis";
+import { ChartsYAxis } from "@mui/x-charts/ChartsYAxis";
+import { ChartsTooltip } from "@mui/x-charts/ChartsTooltip";
+import { BarPlot } from "@mui/x-charts/BarChart";
+import { ChartsAxisHighlight } from "@mui/x-charts/ChartsAxisHighlight";
 
 import ExchangeMargin from "../ExchangeMargin";
 
@@ -34,8 +40,6 @@ import api from "../../lib/axios";
 
 export const DEFAULT_PERCENT_CHANGE_TO_SL = 35;
 
-const customColors = ["rgb(14 203 129)"];
-
 function Positions() {
   const localOrderBy = localStorage.getItem("orderBy") || "volume";
   const localOrder = localStorage.getItem("order") || "desc";
@@ -52,12 +56,18 @@ function Positions() {
     0
   );
 
-  const [rewardHistory, setRewardHistory] = useState<{ date: string; value: number }[]>([]);
+  const [rewardHistory, setRewardHistory] = useState<
+    { date: string; value: number }[]
+  >([]);
 
   useEffect(() => {
-    api.get("/api/v1/account/funding-fees/last-7-days")
-      .then((result: any) => {
-        if (result.data?.fundingByDay && Object.keys(result.data.fundingByDay).length > 0) {
+    api
+      .get("/api/v1/account/funding-fees/last-7-days")
+      .then((result: { data: { fundingByDay: Record<string, number> } }) => {
+        if (
+          result.data?.fundingByDay &&
+          Object.keys(result.data.fundingByDay).length > 0
+        ) {
           const fundingByDay = result.data.fundingByDay;
 
           const fullToShortMap: Record<string, string> = {
@@ -81,19 +91,22 @@ function Positions() {
             ...shortDays.slice(0, (todayIndex + 1) % 7),
           ];
 
-          const mappedHistory = circularOrder.map(shortName => {
-            const fullName = Object.keys(fullToShortMap).find(key => fullToShortMap[key] === shortName)!;
+          const mappedHistory = circularOrder.map((shortName) => {
+            const fullName = Object.keys(fullToShortMap).find(
+              (key) => fullToShortMap[key] === shortName
+            )!;
             return {
               date: shortName,
               value: fundingByDay[fullName] || 0,
             };
           });
+          console.log({mappedHistory})
           setRewardHistory(mappedHistory);
         }
       })
       .catch((err) => {
+        console.error(err)
         setRewardHistory([]);
-        console.log(err);
       });
   }, []);
 
@@ -162,34 +175,32 @@ function Positions() {
       }
     });
 
-    return (
-      Object.keys(posMap)
-        .map((baseToken) => {
-          return {
-            baseToken,
-            ...posMap[baseToken],
-          };
-        })
-        .filter(({ buys, sells }) => {
-          if (!selectedExchanges?.length) {
-            return true;
-          }
-          const intersection = [...buys, ...sells]
-            .map((ex) => ex.exchange)
-            .filter((element) => selectedExchanges.includes(element));
-          return intersection.length > 0;
-        })
-        .filter(({ buys, sells }) => {
-          const isSpotNotHedge = buys[0]?.side === "spot" && sells.length === 0;
-          return !isSpotNotHedge;
-        })
-        .map((pos) => {
-          return {
-            ...pos,
-            ...posMap[pos.baseToken],
-          };
-        })
-    );
+    return Object.keys(posMap)
+      .map((baseToken) => {
+        return {
+          baseToken,
+          ...posMap[baseToken],
+        };
+      })
+      .filter(({ buys, sells }) => {
+        if (!selectedExchanges?.length) {
+          return true;
+        }
+        const intersection = [...buys, ...sells]
+          .map((ex) => ex.exchange)
+          .filter((element) => selectedExchanges.includes(element));
+        return intersection.length > 0;
+      })
+      .filter(({ buys, sells }) => {
+        const isSpotNotHedge = buys[0]?.side === "spot" && sells.length === 0;
+        return !isSpotNotHedge;
+      })
+      .map((pos) => {
+        return {
+          ...pos,
+          ...posMap[pos.baseToken],
+        };
+      });
   };
 
   const positions = normalizePositions();
@@ -203,9 +214,9 @@ function Positions() {
       return (
         tot +
         cur.markPrice *
-        cur.size *
-        (cur.fundingRate || 0) *
-        (cur.side === "sell" ? 1 : -1)
+          cur.size *
+          (cur.fundingRate || 0) *
+          (cur.side === "sell" ? 1 : -1)
       );
     }, 0);
 
@@ -213,15 +224,6 @@ function Positions() {
     () => [...positions].sort(getComparator(order, orderBy)),
     [order, orderBy, positions]
   );
-
-  const chartSetting = {
-    xAxis: [{ dataKey: "date", width: 10 }],
-    series: [{ dataKey: "value" }],
-    height: 300,
-    categoryGapRatio: 0.4,
-    barGapRatio: 0.1,
-    margin: { left: 0 },
-  };
 
   const equities = useMemo(() => {
     const exchangeColors = {
@@ -243,6 +245,7 @@ function Positions() {
   }, [balances, totalMargin]);
 
   const headCells = getHeadCells(positions.length);
+  console.log({ rewardHistory });
 
   return (
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
@@ -275,12 +278,49 @@ function Positions() {
             Estimated funding: ${numeral(estimatedFundingFee).format("0,0")}{" "}
             USDT
           </Typography>
-          <BarChart
+          {/* <BarChart
             dataset={rewardHistory}
             {...chartSetting}
             colors={customColors}
             borderRadius={3}
-          />
+          /> */}
+          {rewardHistory.length ? (
+            <ChartContainer
+              xAxis={[
+                {
+                  scaleType: "band",
+                  data: rewardHistory.map(({ date }) => date),
+                },
+              ]}
+              series={[
+                {
+                  type: "line",
+                  curve: "step",
+                  data: getAccumulatedArray(
+                    rewardHistory.map(({ value }) => value)
+                  ),
+                  color: "rgb(14, 203, 129)",
+                },
+                {
+                  data: rewardHistory.map(({ value }) => value),
+                  type: "bar",
+                  color: "rgb(14, 203, 129)",
+                },
+              ]}
+              height={250}
+              margin={{ bottom: 10 }}
+            >
+              <BarPlot />
+              <ChartsAxisHighlight x="band" />
+              <LinePlot />
+              <MarkPlot />
+              <ChartsXAxis />
+              <ChartsYAxis />
+              <ChartsTooltip />
+            </ChartContainer>
+          ) : (
+            "loading ..."
+          )}
         </Grid>
         <Grid size={0.5}></Grid>
         <Grid size={4.5}>
@@ -345,9 +385,9 @@ function Positions() {
                   return (
                     tot +
                     cur.markPrice *
-                    cur.size *
-                    cur.fundingRate *
-                    (cur.side === "sell" ? 1 : -1)
+                      cur.size *
+                      cur.fundingRate *
+                      (cur.side === "sell" ? 1 : -1)
                   );
                 }, 0);
                 const totalSizeSell = sells.reduce(
@@ -379,6 +419,28 @@ function Positions() {
                       </Box>
                     </TableCell>
                     <TableCell align="left">
+                      <Box display="flex" flexDirection="column" gap={1}>
+                        <Typography
+                          sx={{
+                            color: "rgb(246, 70, 93)",
+                            mr: 1,
+                          }}
+                        >
+                          {sells.map((s) => s.exchange).join("-")}
+                        </Typography>
+
+                        <Typography
+                          sx={{
+                            color: "rgb(14, 203, 129)",
+                            mr: 1,
+                          }}
+                        >
+                          {buys.map((s) => s.exchange).join("-")}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+
+                    <TableCell align="left">
                       <Typography>
                         {numeral(sells[0].markPrice * totalSizeSell * 2).format(
                           "0,0]"
@@ -387,9 +449,13 @@ function Positions() {
                     </TableCell>
                     <TableCell align="left">
                       <Typography>
-                        {numeral(sells[0].markPrice).format(
-                          precisionMap[baseToken] || "0,0.[0000]"
-                        )}
+                        {numeral(
+                          percentageChange(
+                            buys[0]?.avgPrice,
+                            sells[0]?.avgPrice
+                          )
+                        ).format("0.[000]")}
+                        %
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -419,6 +485,13 @@ function Positions() {
                           ).format("0,0")}
                         </Typography>
                       </Box>
+                    </TableCell>
+                    <TableCell align="left">
+                      <Typography>
+                        {numeral(sells[0].markPrice).format(
+                          precisionMap[baseToken] || "0,0.[0000]"
+                        )}
+                      </Typography>
                     </TableCell>
                     <TableCell align="center">
                       <Box
@@ -457,27 +530,7 @@ function Positions() {
                         </Box>
                       </Box>
                     </TableCell>
-                    <TableCell align="left">
-                      <Box display="flex" flexDirection="column" gap={1}>
-                        <Typography
-                          sx={{
-                            color: "rgb(246, 70, 93)",
-                            mr: 1,
-                          }}
-                        >
-                          {sells.map((s) => s.exchange).join("-")}
-                        </Typography>
 
-                        <Typography
-                          sx={{
-                            color: "rgb(14, 203, 129)",
-                            mr: 1,
-                          }}
-                        >
-                          {buys.map((s) => s.exchange).join("-")}
-                        </Typography>
-                      </Box>
-                    </TableCell>
                     <TableCell align="left">
                       <Typography>
                         {numeral(
@@ -507,7 +560,7 @@ function Positions() {
                             (sells[0].fundingRate - buys[0].fundingRate) *
                             360 *
                             3) /
-                          2
+                            2
                         ).format("0,0")}
                         %
                       </Typography>
@@ -542,10 +595,30 @@ const getHeadCells = (numberOfToken: number): readonly HeadCell[] => [
     label: `Token (${numberOfToken})`,
   },
   {
+    id: "exchanges",
+    numeric: true,
+    disablePadding: false,
+    label: "Exchanges",
+  },
+
+  {
     id: "volume",
     numeric: true,
     disablePadding: false,
     label: "Volume",
+    sortable: true,
+  },
+  {
+    id: "premium",
+    numeric: true,
+    disablePadding: false,
+    label: "%Premium",
+  },
+  {
+    id: "unrealizedPnl",
+    numeric: true,
+    disablePadding: false,
+    label: "Unrealized.Pnl",
     sortable: true,
   },
   {
@@ -556,25 +629,13 @@ const getHeadCells = (numberOfToken: number): readonly HeadCell[] => [
     sortable: false,
   },
   {
-    id: "unrealizedPnl",
-    numeric: true,
-    disablePadding: false,
-    label: "Unrealized.Pnl",
-    sortable: true,
-  },
-  {
     id: "liqPrice",
     numeric: true,
     disablePadding: false,
     label: "Liq.Price %",
     sortable: true,
   },
-  {
-    id: "exchanges",
-    numeric: true,
-    disablePadding: false,
-    label: "Exchanges",
-  },
+
   {
     id: "fundingRate",
     numeric: true,
@@ -627,18 +688,18 @@ function descendingComparator<T>(
       (acc, pos) =>
         acc +
         pos.markPrice *
-        pos.size *
-        pos.fundingRate *
-        (pos.side === "sell" ? 1 : -1),
+          pos.size *
+          pos.fundingRate *
+          (pos.side === "sell" ? 1 : -1),
       0
     );
     const estimatedFeeB = [...b.sells, ...b.buys].reduce(
       (acc, pos) =>
         acc +
         pos.markPrice *
-        pos.size *
-        pos.fundingRate *
-        (pos.side === "sell" ? 1 : -1),
+          pos.size *
+          pos.fundingRate *
+          (pos.side === "sell" ? 1 : -1),
       0
     );
     return estimatedFeeB - estimatedFeeA;
@@ -685,8 +746,40 @@ interface Data extends IPosition {
   estimatedFee: number;
   volume: number;
   apr: number;
+  premium: string;
 }
 
 const TableCell = styled(TableCellMui)(() => ({
   padding: "8px 16px",
 }));
+
+const getAccumulatedArray = (arr: number[]): number[] => {
+  // A variable to store the running total.
+  let runningSum = 0;
+
+  // We use the `map` method to create a new array.
+  // The `map` callback function takes each number in the original array
+  // and updates the running sum.
+  return arr.map((num) => {
+    runningSum += num;
+    return runningSum;
+  });
+};
+
+const calculateLeverage = (
+  markPrice: number,
+  liqPrice: number
+): number | null => {
+  // Check for invalid inputs to prevent division by zero or negative results.
+  if (markPrice <= 0 || liqPrice <= 0) {
+    console.error(
+      "Error: Both mark price and liquidation price must be greater than zero."
+    );
+    return null;
+  }
+
+  // The leverage multiplier is the ratio of the liquidation price to the mark price.
+  const leverage = liqPrice / markPrice;
+
+  return leverage;
+};

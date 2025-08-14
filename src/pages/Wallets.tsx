@@ -355,12 +355,9 @@ const Dashboard: FC = () => {
                   label={`Amount`}
                   type="number"
                   value={amount || ""}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
                   inputProps={{
                     step: "5",
-                    min: String(30),
+                    min: String(0),
                   }}
                   variant="standard"
                 />
