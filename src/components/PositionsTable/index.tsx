@@ -765,21 +765,3 @@ const getAccumulatedArray = (arr: number[]): number[] => {
     return runningSum;
   });
 };
-
-const calculateLeverage = (
-  markPrice: number,
-  liqPrice: number
-): number | null => {
-  // Check for invalid inputs to prevent division by zero or negative results.
-  if (markPrice <= 0 || liqPrice <= 0) {
-    console.error(
-      "Error: Both mark price and liquidation price must be greater than zero."
-    );
-    return null;
-  }
-
-  // The leverage multiplier is the ratio of the liquidation price to the mark price.
-  const leverage = liqPrice / markPrice;
-
-  return leverage;
-};
