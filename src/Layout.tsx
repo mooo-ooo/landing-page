@@ -74,7 +74,7 @@ function Layout() {
           setError(error.response.data?.data?.error)
         }),
       api
-        .get('/api/v1/positions?withFunding=true')
+        .get('/api/v1/positions')
         .then(function ({ data }) {
           // handle success
           dispatch(setPositions(data))

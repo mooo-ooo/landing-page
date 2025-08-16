@@ -4,7 +4,7 @@ import type { ExchangeName } from '../types/exchange';
 export interface FundingRate {
   symbol: string;
   rate: number;
-  timestamp: number;
+  interval: number | null;
 }
 
 export interface FundingRateResponse {
@@ -56,7 +56,33 @@ export const getExchangeFundingRate = async (
         return {
           symbol,
           rate: parseFloat(data.data[0].fundingRate),
-          timestamp: parseInt(data.data[0].nextFundingTime),
+          interval: 8
+        };
+      }
+      case 'gate': {
+        const { data } = await axios.get(
+          `${CORS_PROXY}/https://api.gateio.ws/api/v4/futures/usdt/contracts/${symbol}_USDT`,
+        );
+        return {
+          symbol,
+          rate: parseFloat(data.funding_rate),
+          interval: data.funding_interval / 60 / 60
+        };
+      }
+      case 'bitget': {
+        const { data } = await axios.get(
+          `https://api.bitget.com/api/v2/mix/market/current-fund-rate?symbol=${symbol}USDT&productType=usdt-futures`,
+        );
+        if (data.code !== '00000') {
+          throw new Error(`Bitget API error: ${data.code}`);
+        }
+        if (!data.data[0]) {
+          throw new Error('Bitget API returned no data');
+        }
+        return {
+          symbol,
+          rate: parseFloat(data.data[0].fundingRate),
+          interval: Number(data.data[0].fundingRateInterval)
         };
       }
       case 'huobi': {
@@ -71,10 +97,11 @@ export const getExchangeFundingRate = async (
         if (data.status !== 'ok') {
           throw new Error('Huobi API returned error status');
         }
+
         return {
           symbol,
           rate: parseFloat(data.data.funding_rate),
-          timestamp: parseInt(data.data.funding_time),
+          interval: null
         };
       }
       default: {

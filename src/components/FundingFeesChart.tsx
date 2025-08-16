@@ -1,0 +1,140 @@
+import type { FC } from 'react';
+import { useEffect, useState } from 'react';
+import api from "../lib/axios";
+import { Typography, Box } from '@mui/material';
+import numeral from 'numeral';
+import { LinePlot, MarkPlot } from "@mui/x-charts/LineChart";
+import { ChartContainer } from "@mui/x-charts/ChartContainer";
+import { ChartsXAxis } from "@mui/x-charts/ChartsXAxis";
+import { ChartsYAxis } from "@mui/x-charts/ChartsYAxis";
+import { ChartsTooltip } from "@mui/x-charts/ChartsTooltip";
+import { BarPlot } from "@mui/x-charts/BarChart";
+import { ChartsAxisHighlight } from "@mui/x-charts/ChartsAxisHighlight";
+
+interface FundingFeesChartProps {
+  period?: number;
+  width?: number
+  height?: number
+  estimatedFundingFee: number
+}
+
+const FundingFeesChart: FC<FundingFeesChartProps> = ({
+  period = 7,
+  estimatedFundingFee,
+  height,
+  width
+}) => {
+  const [rewardHistory, setRewardHistory] = useState<
+    { date: string; value: number }[]
+  >([]);
+  useEffect(() => {
+    api
+      .get(`/api/v1/account/funding-fees/last-7-days?period=${period}`)
+      .then((result: { data: { fundingByDay: Record<string, number> } }) => {
+        if (
+          result.data?.fundingByDay &&
+          Object.keys(result.data.fundingByDay).length > 0
+        ) {
+          const fundingByDay = result.data.fundingByDay;
+
+          const fullToShortMap: Record<string, string> = {
+            Monday: "Mon",
+            Tuesday: "Tue",
+            Wednesday: "Wed",
+            Thursday: "Thu",
+            Friday: "Fri",
+            Saturday: "Sat",
+            Sunday: "Sun",
+          };
+
+          const shortDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+          // Get today's index in short form: 0 = Sun, 1 = Mon, ..., 6 = Sat
+          const todayIndex = new Date().getDay();
+
+          // Create circular day order ending with today
+          const circularOrder = [
+            ...shortDays.slice((todayIndex + 1) % 7),
+            ...shortDays.slice(0, (todayIndex + 1) % 7),
+          ];
+
+          const mappedHistory = circularOrder.map((shortName) => {
+            const fullName = Object.keys(fullToShortMap).find(
+              (key) => fullToShortMap[key] === shortName
+            )!;
+            return {
+              date: shortName,
+              value: fundingByDay[fullName] || 0,
+            };
+          });
+          setRewardHistory(mappedHistory);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setRewardHistory([]);
+      });
+  }, []);
+
+  return (
+    <Box>
+      <Typography>
+            Estimated funding: ${numeral(estimatedFundingFee).format("0,0")}{" "}
+            USDT
+          </Typography>
+          {rewardHistory.length ? (
+            <ChartContainer
+              xAxis={[
+                {
+                  scaleType: "band",
+                  data: rewardHistory.map(({ date }) => date),
+                },
+              ]}
+              series={[
+                {
+                  type: "line",
+                  curve: "step",
+                  data: getAccumulatedArray(
+                    rewardHistory.map(({ value }) => value)
+                  ),
+                  color: "rgb(14, 203, 129)",
+                },
+                {
+                  data: rewardHistory.map(({ value }) => value),
+                  type: "bar",
+                  color: "rgb(14, 203, 129)",
+                },
+              ]}
+              height={height}
+              width={width}
+              margin={{ bottom: 10 }}
+            >
+              <BarPlot />
+              <ChartsAxisHighlight x="band" />
+              <LinePlot />
+              <MarkPlot />
+              <ChartsXAxis />
+              <ChartsYAxis />
+              <ChartsTooltip />
+            </ChartContainer>
+          ) : (
+            "loading ..."
+          )}
+    </Box>
+  );
+};
+
+export default FundingFeesChart;
+
+const getAccumulatedArray = (arr: number[]): number[] => {
+  // A variable to store the running total.
+  let runningSum = 0;
+
+  // We use the `map` method to create a new array.
+  // The `map` callback function takes each number in the original array
+  // and updates the running sum.
+  return arr.map((num) => {
+    runningSum += num;
+    return runningSum;
+  });
+};
