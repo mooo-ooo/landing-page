@@ -9,10 +9,21 @@ import {
   TableHead,
   TableRow,
   Skeleton,
+  Accordion as MuiAccordion,
+  AccordionSummary,
+  AccordionDetails,
+  TextField,
+  InputAdornment,
+  Stack,
+  Chip,
 } from "@mui/material";
+import type { AccordionProps } from "@mui/material";
 import { styled } from "@mui/system";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import SearchIcon from "@mui/icons-material/Search";
 
 // Services
 import numeral from "numeral";
@@ -26,7 +37,9 @@ export const DEFAULT_PERCENT_CHANGE_TO_SL = 35;
 function Positions({
   positions,
   loadingFundingRates,
+  exchanges,
 }: {
+  exchanges: string[];
   loadingFundingRates: boolean;
   positions: {
     buys: IPosition[];
@@ -34,6 +47,8 @@ function Positions({
     baseToken: string;
   }[];
 }) {
+  const [searchToken, setSearchToken] = useState("");
+  const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
   const localOrderBy = localStorage.getItem("orderBy") || "volume";
   const localOrder = localStorage.getItem("order") || "desc";
   const [order, setOrder] = useState<Order>(localOrder as Order);
@@ -49,12 +64,42 @@ function Positions({
     setOrderBy(property as keyof IPosition);
   };
 
+  const handleSelectExchange = (exchange: string) => {
+    const isIncluded = selectedExchanges.includes(exchange);
+    if (!isIncluded) {
+      setSelectedExchanges([...selectedExchanges, exchange]);
+    } else {
+      setSelectedExchanges(selectedExchanges.filter((ex) => ex !== exchange));
+    }
+  };
+
   const visibleRows = useMemo(
     () => [...positions].sort(getComparator(order, orderBy)),
     [order, orderBy, positions]
   );
 
-  const headCells = getHeadCells(positions.length);
+  
+
+  const filteredPositions = useMemo(() => {
+    return visibleRows
+      .filter(({ buys, sells }) => {
+        if (!selectedExchanges?.length) {
+          return true;
+        }
+        const intersection = [...buys, ...sells]
+          .map((ex) => ex.exchange)
+          .filter((element) => selectedExchanges.includes(element));
+        return intersection.length > 0;
+      })
+      .filter(({ baseToken }) => {
+        if (!searchToken) {
+          return true;
+        }
+        return searchToken.toLowerCase().includes(baseToken.toLowerCase());
+      });
+  }, [selectedExchanges, visibleRows, searchToken]);
+
+  const headCells = getHeadCells(filteredPositions.length);
   return (
     <Box display="flex" flexDirection="column" gap={2}>
       <Paper
@@ -66,6 +111,64 @@ function Positions({
           border: "1px solid #30363d",
         }}
       >
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel1-content"
+            id="panel1-header"
+          >
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              width="100%"
+              alignItems="center"
+            >
+              <Box display="flex" width="100%" alignItems="center">
+                <FilterListIcon />
+                <Typography ml={1} component="span">
+                  My positions
+                </Typography>
+              </Box>
+              <Box
+                onClick={(event) => {
+                  event.stopPropagation();
+                  event.preventDefault();
+                }}
+              >
+                <TextField
+                  size="small"
+                  value={searchToken}
+                  onChange={(e) => setSearchToken(e.target.value)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              </Box>
+            </Box>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Stack direction="row" spacing={1}>
+              {exchanges.map((exchange) => (
+                <Chip
+                  key={exchange}
+                  label={exchange}
+                  variant={
+                    !selectedExchanges.includes(exchange)
+                      ? "outlined"
+                      : "filled"
+                  }
+                  onClick={() => handleSelectExchange(exchange)}
+                />
+              ))}
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
         <Table>
           <TableHead
             sx={{
@@ -109,7 +212,7 @@ function Positions({
             </TableRow>
           </TableHead>
           <TableBody>
-            {visibleRows.map(({ sells, buys, baseToken }) => {
+            {filteredPositions.map(({ sells, buys, baseToken }) => {
               const estimatedFee = [...sells, ...buys].reduce((tot, cur) => {
                 return (
                   tot +
@@ -484,4 +587,16 @@ interface Data extends IPosition {
 
 const TableCell = styled(TableCellMui)(() => ({
   padding: "8px 16px",
+}));
+
+const Accordion = styled((props: AccordionProps) => (
+  <MuiAccordion disableGutters elevation={0} square {...props} />
+))(({ theme }) => ({
+  border: `1px solid ${theme.palette.divider}`,
+  "&:not(:last-child)": {
+    borderBottom: 0,
+  },
+  "&::before": {
+    display: "none",
+  },
 }));

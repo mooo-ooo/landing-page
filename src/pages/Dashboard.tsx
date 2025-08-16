@@ -5,12 +5,18 @@ import ExchangeMargin from "../components/ExchangeMargin";
 import FundingFeesChart from "../components/FundingFeesChart";
 import EquitiesChart from "../components/EquitiesChart";
 import { useNormalizedPositions, useFundingRates } from "../hooks";
+import { useSelector } from "react-redux";
+import type { RootState } from "../redux/store";
 
 const Dashboard: FC = () => {
+  const balances = useSelector((state: RootState) => state.balances);
   const dashboardRef = useRef<HTMLDivElement>(null);
   const exchangeMarginRef = useRef<HTMLDivElement>(null);
   const [dashboardWidth, setDashboardWidth] = useState<number>(0);
   const [exchangeMarginHeight, setExchangeMarginHeight] = useState<number>(0);
+  const exchanges = useMemo(() => {
+    return Object.keys(balances)
+  }, [balances])
 
   const positions = useNormalizedPositions([]);
   const { fundingRates, loading: loadingFundingRates } = useFundingRates();
@@ -110,6 +116,7 @@ const Dashboard: FC = () => {
         <Grid size={3.5}>
           {dashboardWidth && exchangeMarginHeight ? (
             <FundingFeesChart
+              loadingFundingRates={loadingFundingRates}
               period={7}
               width={dashboardWidth / (12 / 3.5) || 250}
               height={fixedHeight}
@@ -127,6 +134,7 @@ const Dashboard: FC = () => {
       <PositionsTable
         positions={positionsWithFunding}
         loadingFundingRates={loadingFundingRates}
+        exchanges={exchanges}
       />
     </Box>
   );

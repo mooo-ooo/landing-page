@@ -74,7 +74,6 @@ export const useFundingRates = () => {
             };
           });
           
-          console.log({ fundingRatesObject });
           setFundingRates(fundingRatesObject);
         }
       } catch (error) {

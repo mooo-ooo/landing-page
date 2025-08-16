@@ -1,8 +1,8 @@
-import type { FC } from 'react';
-import { useEffect, useState } from 'react';
+import type { FC } from "react";
+import { useEffect, useState } from "react";
 import api from "../lib/axios";
-import { Typography, Box } from '@mui/material';
-import numeral from 'numeral';
+import { Typography, Box, Skeleton } from "@mui/material";
+import numeral from "numeral";
 import { LinePlot, MarkPlot } from "@mui/x-charts/LineChart";
 import { ChartContainer } from "@mui/x-charts/ChartContainer";
 import { ChartsXAxis } from "@mui/x-charts/ChartsXAxis";
@@ -12,17 +12,19 @@ import { BarPlot } from "@mui/x-charts/BarChart";
 import { ChartsAxisHighlight } from "@mui/x-charts/ChartsAxisHighlight";
 
 interface FundingFeesChartProps {
+  loadingFundingRates: boolean;
   period?: number;
-  width?: number
-  height?: number
-  estimatedFundingFee: number
+  width?: number;
+  height?: number;
+  estimatedFundingFee: number;
 }
 
 const FundingFeesChart: FC<FundingFeesChartProps> = ({
   period = 7,
   estimatedFundingFee,
   height,
-  width
+  width,
+  loadingFundingRates,
 }) => {
   const [rewardHistory, setRewardHistory] = useState<
     { date: string; value: number }[]
@@ -78,48 +80,51 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
 
   return (
     <Box>
-      <Typography>
-            Estimated funding: ${numeral(estimatedFundingFee).format("0,0")}{" "}
-            USDT
-          </Typography>
-          {rewardHistory.length ? (
-            <ChartContainer
-              xAxis={[
-                {
-                  scaleType: "band",
-                  data: rewardHistory.map(({ date }) => date),
-                },
-              ]}
-              series={[
-                {
-                  type: "line",
-                  curve: "step",
-                  data: getAccumulatedArray(
-                    rewardHistory.map(({ value }) => value)
-                  ),
-                  color: "rgb(14, 203, 129)",
-                },
-                {
-                  data: rewardHistory.map(({ value }) => value),
-                  type: "bar",
-                  color: "rgb(14, 203, 129)",
-                },
-              ]}
-              height={height}
-              width={width}
-              margin={{ bottom: 10 }}
-            >
-              <BarPlot />
-              <ChartsAxisHighlight x="band" />
-              <LinePlot />
-              <MarkPlot />
-              <ChartsXAxis />
-              <ChartsYAxis />
-              <ChartsTooltip />
-            </ChartContainer>
-          ) : (
-            "loading ..."
-          )}
+      {loadingFundingRates ? (
+        <Skeleton animation="wave" />
+      ) : (
+        <Typography>
+          Estimated funding: ${numeral(estimatedFundingFee).format("0,0")} USDT
+        </Typography>
+      )}
+      {rewardHistory.length ? (
+        <ChartContainer
+          xAxis={[
+            {
+              scaleType: "band",
+              data: rewardHistory.map(({ date }) => date),
+            },
+          ]}
+          series={[
+            {
+              type: "line",
+              curve: "step",
+              data: getAccumulatedArray(
+                rewardHistory.map(({ value }) => value)
+              ),
+              color: "rgb(14, 203, 129)",
+            },
+            {
+              data: rewardHistory.map(({ value }) => value),
+              type: "bar",
+              color: "rgb(14, 203, 129)",
+            },
+          ]}
+          height={height}
+          width={width}
+          margin={{ bottom: 10 }}
+        >
+          <BarPlot />
+          <ChartsAxisHighlight x="band" />
+          <LinePlot />
+          <MarkPlot />
+          <ChartsXAxis />
+          <ChartsYAxis />
+          <ChartsTooltip />
+        </ChartContainer>
+      ) : (
+        "loading ..."
+      )}
     </Box>
   );
 };
