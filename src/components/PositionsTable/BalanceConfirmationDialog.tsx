@@ -18,7 +18,6 @@ import Select, { type SelectChangeEvent } from '@mui/material/Select'
 import axios from 'axios'
 import LoadingButton from '@mui/lab/LoadingButton'
 import type { RootState } from '../../redux/store'
-import type { SummaryBalanceState } from '../../redux/balances/balancesSlice'
 import { useSnackbar } from 'notistack'
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 
@@ -128,10 +127,10 @@ function BalanceConfirmationDialog(props: ConfirmationDialogRawProps) {
     exchanges.includes(fromEx) && exchanges.includes(toEx) && fromEx !== toEx
 
   const selectedFromEx = fromEx
-    ? balances[fromEx as unknown as keyof SummaryBalanceState]
+    ? balances[fromEx as unknown as keyof typeof balances]
     : null
   const selectedToEx = toEx
-    ? balances[toEx as unknown as keyof SummaryBalanceState]
+    ? balances[toEx as unknown as keyof typeof balances]
     : null
   return (
     <Dialog
