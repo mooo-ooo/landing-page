@@ -563,7 +563,7 @@ function descendingComparator<T>(
     return a.baseToken.localeCompare(b.baseToken);
   }
   if (orderBy === "apr") {
-    if (!a.sells.length || !a.buys.length) {
+    if (!a.sells.length || !a.buys.length || !b.sells.length || !b.buys.length) {
       return 0;
     }
     const aprA = a.sells[0].fundingRate - a.buys[0].fundingRate;

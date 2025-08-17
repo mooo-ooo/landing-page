@@ -6,12 +6,12 @@ import FundingFeesChart from "../components/FundingFeesChart";
 import EquitiesChart from "../components/EquitiesChart";
 import { useNormalizedPositions, useFundingRates } from "../hooks";
 import { selectPositionsError } from "../redux/positions/positionsSlice";
+import { selectBalances } from "../redux/balances/balancesSlice";
 import { useSelector } from "react-redux";
-import type { RootState } from "../redux/store";
 
 const Dashboard: FC = () => {
   const positionsError = useSelector(selectPositionsError)
-  const balances = useSelector((state: RootState) => state.balances);
+  const balances = useSelector(selectBalances);
   const dashboardRef = useRef<HTMLDivElement>(null);
   const exchangeMarginRef = useRef<HTMLDivElement>(null);
   const [dashboardWidth, setDashboardWidth] = useState<number>(0);
