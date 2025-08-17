@@ -8,17 +8,33 @@ import { useNormalizedPositions, useFundingRates } from "../hooks";
 import { selectPositionsError } from "../redux/positions/positionsSlice";
 import { selectBalances } from "../redux/balances/balancesSlice";
 import { useSelector } from "react-redux";
+import type { ISymbol } from '../types'
+import api from "../lib/axios";
+
 
 const Dashboard: FC = () => {
-  const positionsError = useSelector(selectPositionsError)
+  const [symbols, setSymbols] = useState<ISymbol[]>([])
+  const positionsError = useSelector(selectPositionsError);
   const balances = useSelector(selectBalances);
   const dashboardRef = useRef<HTMLDivElement>(null);
   const exchangeMarginRef = useRef<HTMLDivElement>(null);
   const [dashboardWidth, setDashboardWidth] = useState<number>(0);
   const [exchangeMarginHeight, setExchangeMarginHeight] = useState<number>(0);
   const exchanges = useMemo(() => {
-    return Object.keys(balances)
-  }, [balances])
+    return Object.keys(balances);
+  }, [balances]);
+
+  useEffect(() => {
+    api
+      .get("/api/v1/symbols")
+      .then(
+        ({
+          data,
+        }: {
+          data: ISymbol[];
+        }) => setSymbols(data)
+      );
+  }, []);
 
   const positions = useNormalizedPositions([]);
   const { fundingRates, loading: loadingFundingRates } = useFundingRates();
@@ -134,6 +150,7 @@ const Dashboard: FC = () => {
         </Grid>
       </Grid>
       <PositionsTable
+        symbols={symbols}
         positions={positionsWithFunding}
         loadingFundingRates={loadingFundingRates}
         exchanges={exchanges}
