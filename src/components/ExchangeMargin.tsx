@@ -9,9 +9,10 @@ import {
   TableBody,
   Typography,
   Tooltip,
+  Alert,
+  AlertTitle,
 } from "@mui/material";
 import MoneyIcon from "@mui/icons-material/Money";
-import type { RootState } from "../redux/store";
 import numeral from "numeral";
 import { useSelector } from "react-redux";
 import { useBalances } from "../redux/selector";
@@ -20,12 +21,18 @@ import type {
   PostitionsState,
   IPosition,
 } from "../redux/positions/positionsSlice";
+import { selectPositions } from "../redux/positions/positionsSlice";
+import {
+  selectBalances,
+  selectBalancesError,
+} from "../redux/balances/balancesSlice";
 import { percentageChange } from "../helpers";
 
 const WARNING_LEV = 6;
 function ExchangeMargin() {
-  const balances = useSelector((state: RootState) => state.balances);
-  const positions = useSelector((state: RootState) => state.positions);
+  const error = useSelector(selectBalancesError);
+  const balances = useSelector(selectBalances);
+  const positions = useSelector(selectPositions);
   const { leverage } = useBalances();
 
   const nearestLiqEchange = useMemo(() => {
@@ -113,133 +120,149 @@ function ExchangeMargin() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {Object.keys(balances).map((exchangeName) => {
-              const vol = positions[
-                exchangeName as unknown as keyof typeof balances
-              ]?.reduce((tot, { markPrice, size }) => {
-                return (tot = tot + markPrice * size);
-              }, 0);
+            {error ? (
+              <TableRow>
+                <TableCell colSpan={4}>
+                  <Alert severity="error">
+                    <AlertTitle>Fetching balances error</AlertTitle>
+                    {error}
+                  </Alert>
+                </TableCell>
+              </TableRow>
+            ) : (
+              Object.keys(balances).map((exchangeName) => {
+                const vol = positions[
+                  exchangeName as unknown as keyof typeof balances
+                ]?.reduce((tot, { markPrice, size }) => {
+                  return (tot = tot + markPrice * size);
+                }, 0);
 
-              const isShown =
-                positions[exchangeName as unknown as keyof typeof balances]
-                  ?.length > 0;
+                const isShown =
+                  positions[exchangeName as unknown as keyof typeof balances]
+                    ?.length > 0;
 
-              const exchange: IFuture =
-                balances[exchangeName as unknown as keyof typeof balances]
-                  .future;
+                const exchange: IFuture =
+                  balances[exchangeName as unknown as keyof typeof balances]
+                    .future;
 
-              const lev = vol / exchange.marginBalance;
+                const lev = vol / exchange.marginBalance;
 
-              if (!isShown) {
-                return null;
-              }
+                if (!isShown) {
+                  return null;
+                }
 
-              const liqSellPercent = nearestLiqEchange[exchangeName]?.sell
-                ? percentageChange(
-                    nearestLiqEchange[exchangeName]?.sell?.markPrice || 0,
-                    nearestLiqEchange[exchangeName]?.sell?.liqPrice || 0
-                  )
-                : Number.NaN;
-              const liqBuyPercent = nearestLiqEchange[exchangeName]?.buy
-                ? percentageChange(
-                    nearestLiqEchange[exchangeName]?.buy?.markPrice || 0,
-                    nearestLiqEchange[exchangeName]?.buy?.liqPrice || 0
-                  )
-                : Number.NaN;
-              return (
-                <TableRow
-                  key={exchangeName}
-                  sx={{
-                    border:
-                      lev > WARNING_LEV
-                        ? "2px solid rgb(240 185 11 / 70%)"
-                        : "unset",
-                  }}
-                >
-                  <TableCell>
-                    <Box display="flex">
-                      <img
-                        style={{
-                          borderRadius: "50%",
-                        }}
-                        src={`/${exchangeName}.png`}
-                        alt="USDT"
-                        width={20}
-                        height={20}
-                      />
-                      [x
-                      {numeral(vol / exchange.marginBalance).format("0.0")}]
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    ${numeral(exchange.marginBalance).format("0,0")}
-                  </TableCell>
-                  <TableCell>
-                    ${numeral(exchange.marginAvailable).format("0,0")}
-                  </TableCell>
-                  <TableCell>
-                    <Box display="flex" justifyContent="space-between" gap={2}>
+                const liqSellPercent = nearestLiqEchange[exchangeName]?.sell
+                  ? percentageChange(
+                      nearestLiqEchange[exchangeName]?.sell?.markPrice || 0,
+                      nearestLiqEchange[exchangeName]?.sell?.liqPrice || 0
+                    )
+                  : Number.NaN;
+                const liqBuyPercent = nearestLiqEchange[exchangeName]?.buy
+                  ? percentageChange(
+                      nearestLiqEchange[exchangeName]?.buy?.markPrice || 0,
+                      nearestLiqEchange[exchangeName]?.buy?.liqPrice || 0
+                    )
+                  : Number.NaN;
+                return (
+                  <TableRow
+                    key={exchangeName}
+                    sx={{
+                      border:
+                        lev > WARNING_LEV
+                          ? "2px solid rgb(240 185 11 / 70%)"
+                          : "unset",
+                    }}
+                  >
+                    <TableCell>
                       <Box display="flex">
-                        {nearestLiqEchange[exchangeName]?.sell ? (
-                          <Tooltip
-                            placement="top"
-                            title={
-                              nearestLiqEchange[exchangeName].sell?.baseToken
-                            }
-                          >
-                            <img
-                              src={`https://assets.coincap.io/assets/icons/${nearestLiqEchange[
-                                exchangeName
-                              ].sell?.baseToken.toLowerCase()}@2x.png`}
-                              alt={
+                        <img
+                          style={{
+                            borderRadius: "50%",
+                          }}
+                          src={`/${exchangeName}.png`}
+                          alt="USDT"
+                          width={20}
+                          height={20}
+                        />
+                        [x
+                        {numeral(vol / exchange.marginBalance).format("0.0")}]
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      ${numeral(exchange.marginBalance).format("0,0")}
+                    </TableCell>
+                    <TableCell>
+                      ${numeral(exchange.marginAvailable).format("0,0")}
+                    </TableCell>
+                    <TableCell>
+                      <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        gap={2}
+                      >
+                        <Box display="flex">
+                          {nearestLiqEchange[exchangeName]?.sell ? (
+                            <Tooltip
+                              placement="top"
+                              title={
                                 nearestLiqEchange[exchangeName].sell?.baseToken
                               }
-                              width={20}
-                              height={20}
-                            />
-                          </Tooltip>
-                        ) : null}
-                        <Typography color="rgb(246, 70, 93)" fontSize={14}>
-                          {liqSellPercent ? (
-                            `${numeral(liqSellPercent).format("0,0")}%`
-                          ) : (
-                            <MoneyIcon />
-                          )}
-                        </Typography>
-                      </Box>
-                      <Box display="flex">
-                        {nearestLiqEchange[exchangeName]?.buy ? (
-                          <Tooltip
-                            placement="top"
-                            title={
-                              nearestLiqEchange[exchangeName].buy?.baseToken
-                            }
-                          >
-                            <img
-                              src={`https://assets.coincap.io/assets/icons/${nearestLiqEchange[
-                                exchangeName
-                              ].buy?.baseToken.toLowerCase()}@2x.png`}
-                              alt={
+                            >
+                              <img
+                                src={`https://assets.coincap.io/assets/icons/${nearestLiqEchange[
+                                  exchangeName
+                                ].sell?.baseToken.toLowerCase()}@2x.png`}
+                                alt={
+                                  nearestLiqEchange[exchangeName].sell
+                                    ?.baseToken
+                                }
+                                width={20}
+                                height={20}
+                              />
+                            </Tooltip>
+                          ) : null}
+                          <Typography color="rgb(246, 70, 93)" fontSize={14}>
+                            {liqSellPercent ? (
+                              `${numeral(liqSellPercent).format("0,0")}%`
+                            ) : (
+                              <MoneyIcon />
+                            )}
+                          </Typography>
+                        </Box>
+                        <Box display="flex">
+                          {nearestLiqEchange[exchangeName]?.buy ? (
+                            <Tooltip
+                              placement="top"
+                              title={
                                 nearestLiqEchange[exchangeName].buy?.baseToken
                               }
-                              width={20}
-                              height={20}
-                            />
-                          </Tooltip>
-                        ) : null}
-                        <Typography color="rgb(14, 203, 129)" fontSize={14}>
-                          {liqBuyPercent ? (
-                            `${numeral(liqBuyPercent).format("0,0")}%`
-                          ) : (
-                            <MoneyIcon />
-                          )}
-                        </Typography>
+                            >
+                              <img
+                                src={`https://assets.coincap.io/assets/icons/${nearestLiqEchange[
+                                  exchangeName
+                                ].buy?.baseToken.toLowerCase()}@2x.png`}
+                                alt={
+                                  nearestLiqEchange[exchangeName].buy?.baseToken
+                                }
+                                width={20}
+                                height={20}
+                              />
+                            </Tooltip>
+                          ) : null}
+                          <Typography color="rgb(14, 203, 129)" fontSize={14}>
+                            {liqBuyPercent ? (
+                              `${numeral(liqBuyPercent).format("0,0")}%`
+                            ) : (
+                              <MoneyIcon />
+                            )}
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </Paper>

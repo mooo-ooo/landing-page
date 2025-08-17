@@ -1,14 +1,15 @@
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
-import type { RootState } from "../redux/store";
+import { selectPositions } from "../redux/positions/positionsSlice";
+import { selectBalances } from "../redux/balances/balancesSlice";
 import type {
   PostitionsState,
   IPosition,
 } from "../redux/positions/positionsSlice";
 
 export const useNormalizedPositions = (selectedExchanges: string[] = []) => {
-  const positionsStore = useSelector((state: RootState) => state.positions);
-  const balances = useSelector((state: RootState) => state.balances);
+  const positionsStore = useSelector(selectPositions);
+  const balances = useSelector(selectBalances);
 
   const spotPositions: IPosition[] = useMemo(() => {
     return balances.gate.spot.map(({ coin, amount }) => ({

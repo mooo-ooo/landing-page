@@ -5,10 +5,12 @@ import ExchangeMargin from "../components/ExchangeMargin";
 import FundingFeesChart from "../components/FundingFeesChart";
 import EquitiesChart from "../components/EquitiesChart";
 import { useNormalizedPositions, useFundingRates } from "../hooks";
+import { selectPositionsError } from "../redux/positions/positionsSlice";
 import { useSelector } from "react-redux";
 import type { RootState } from "../redux/store";
 
 const Dashboard: FC = () => {
+  const positionsError = useSelector(selectPositionsError)
   const balances = useSelector((state: RootState) => state.balances);
   const dashboardRef = useRef<HTMLDivElement>(null);
   const exchangeMarginRef = useRef<HTMLDivElement>(null);
@@ -96,7 +98,7 @@ const Dashboard: FC = () => {
 
   const fixedHeight =
     exchangeMarginHeight > 700 || exchangeMarginHeight < 250
-      ? 500
+      ? 300
       : exchangeMarginHeight - 24;
 
   return (
@@ -135,6 +137,7 @@ const Dashboard: FC = () => {
         positions={positionsWithFunding}
         loadingFundingRates={loadingFundingRates}
         exchanges={exchanges}
+        error={positionsError}
       />
     </Box>
   );

@@ -26,14 +26,26 @@ export interface PostitionsState {
   bitget: IPosition[],
 }
 
-const initialState: PostitionsState = {
-  gate: [],
-  bybit: [],
-  huobi: [],
-  okx: [],
-  coinex: [],
-  mexc: [],
-  bitget: []
+export interface PositionsStateWithMeta {
+  positions: PostitionsState;
+  loading: boolean;
+  error: string | null;
+  lastUpdated: number | null;
+}
+
+const initialState: PositionsStateWithMeta = {
+  positions: {
+    gate: [],
+    bybit: [],
+    huobi: [],
+    okx: [],
+    coinex: [],
+    mexc: [],
+    bitget: []
+  },
+  loading: false,
+  error: null,
+  lastUpdated: null
 }
 
 export const PositionsSlice = createSlice({
@@ -41,15 +53,38 @@ export const PositionsSlice = createSlice({
   initialState,
   reducers: {
     setPositions: (state, action: PayloadAction<PostitionsState>) => {
-      return {
-        ...state,
-        ...action.payload
+      state.positions = action.payload;
+      state.loading = false;
+      state.error = null;
+      state.lastUpdated = Date.now();
+    },
+    setPositionsLoading: (state, action: PayloadAction<boolean>) => {
+      state.loading = action.payload;
+      if (action.payload) {
+        state.error = null;
       }
+    },
+    setPositionsError: (state, action: PayloadAction<string>) => {
+      state.error = action.payload;
+      state.loading = false;
+    },
+    clearPositionsError: (state) => {
+      state.error = null;
     },
   },
 })
 
 // Action creators are generated for each case reducer function
-export const { setPositions } = PositionsSlice.actions
+export const { 
+  setPositions, 
+  setPositionsLoading, 
+  setPositionsError, 
+  clearPositionsError 
+} = PositionsSlice.actions
+
+// Selectors
+export const selectPositions = (state: { positions: PositionsStateWithMeta }) => state.positions.positions;
+export const selectPositionsLoading = (state: { positions: PositionsStateWithMeta }) => state.positions.loading;
+export const selectPositionsError = (state: { positions: PositionsStateWithMeta }) => state.positions.error;
 
 export default PositionsSlice.reducer

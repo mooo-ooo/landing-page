@@ -4,7 +4,7 @@ import { Typography, Box } from '@mui/material';
 import numeral from 'numeral';
 import { PieChart } from "@mui/x-charts/PieChart";
 import { useSelector } from "react-redux";
-import type { RootState } from "../redux/store";
+import { selectBalances } from "../redux/balances/balancesSlice";
 
 interface EquitiesChartProps {
   width?: number
@@ -15,7 +15,7 @@ const EquitiesChart: FC<EquitiesChartProps> = ({
   width = 250,
   height = 250
 }) => {
-  const balances = useSelector((state: RootState) => state.balances);
+  const balances = useSelector(selectBalances);
   const totalMargin = Object.values(balances).reduce(
     (tot, { total = 0 }) => tot + total,
     0

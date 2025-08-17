@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import type { RootState } from "../redux/store";
+import { selectPositions } from "../redux/positions/positionsSlice";
 import type { PostitionsState } from "../redux/positions/positionsSlice";
 import { getExchangeFundingRate } from "../services/funding";
 import type { ExchangeName } from "../types/exchange";
@@ -11,10 +11,12 @@ const exchangesHasFundingRate: string[] = [
   "okx",
 ];
 
+type IFundingRate = Record<string, Record<string, { symbol: string; rate: number; interval: number | null }>>
+
 export const useFundingRates = () => {
-  const positionsStore = useSelector((state: RootState) => state.positions);
+  const positionsStore = useSelector(selectPositions);
   const [fundingRates, setFundingRates] = useState<
-    Record<string, Record<string, { symbol: string; rate: number; interval: number | null }>>
+    IFundingRate
   >({});
   const [loading, setLoading] = useState(false);
 
@@ -61,7 +63,7 @@ export const useFundingRates = () => {
           );
           
           // Transform array to object structure: { exchange: { baseToken: fundingData } }
-          const fundingRatesObject: Record<string, Record<string, { symbol: string; rate: number; interval: number | null }>> = {};
+          const fundingRatesObject: IFundingRate = {};
           
           data.forEach((item) => {
             if (!fundingRatesObject[item.exchange]) {

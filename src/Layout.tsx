@@ -34,14 +34,13 @@ import api from './lib/axios'
 import numeral from 'numeral'
 
 import { setUser, setError } from './redux/slices/userSlice'
-import { setSummaryBalance } from './redux/balances/balancesSlice'
-import { setPositions } from './redux/positions/positionsSlice'
+import { setSummaryBalance, selectBalances, setBalancesError } from './redux/balances/balancesSlice'
+import { setPositions, setPositionsError, setPositionsLoading, selectPositionsLoading } from './redux/positions/positionsSlice'
 // import { setStrategies } from './redux/strategy/strategySlice'
 
 function Layout() {
   const didRun = useRef(false);
   const initialized = useRef(false)
-  const [loading, setLoading] = useState(false)
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
@@ -54,7 +53,8 @@ function Layout() {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const isMenuOpen = Boolean(anchorEl);
-  const balances = useSelector((state: RootState) => state.balances);
+  const balances = useSelector(selectBalances);
+  const positionLoading = useSelector(selectPositionsLoading)
 
   const totalMargin = Object.values(balances).reduce(
     (tot, { total = 0 }) => tot + total,
@@ -62,36 +62,26 @@ function Layout() {
   )
 
   const fetchBalance = () => {
-    setLoading(true)
+    setPositionsLoading(true)
     Promise.all([
       api
         .get('/api/v1/account/equities')
         .then(function ({ data }) {
-          // handle success
           dispatch(setSummaryBalance(data))
         })
         .catch(function (error) {
-          setError(error.response.data?.data?.error)
+          dispatch(setBalancesError(error.response.data?.message))
         }),
       api
         .get('/api/v1/positions')
         .then(function ({ data }) {
-          // handle success
           dispatch(setPositions(data))
         })
         .catch(function (error) {
-          setError(error.response.data?.error)
+          dispatch(setPositionsError(error.response.data?.message))
         }),
-      // api
-      //   .get('/positions/strategies')
-      //   .then(function ({ data }) {
-      //     // handle success
-      //     dispatch(setStrategies(data))
-      //   })
-      //   .catch(function (error) {
-      //     setError(error.response.data?.data?.error)
-      //   }),
-    ]).then(() => setLoading(false))
+
+    ]).finally(() => setPositionsLoading(false))
   }
 
   useEffect(() => {
@@ -378,7 +368,7 @@ function Layout() {
               )}
             </Box>
           </Toolbar>
-          {loading ? (
+          {positionLoading ? (
             <Box sx={{ width: '100%' }}>
               <LinearProgress />
             </Box>

@@ -16,6 +16,10 @@ import {
   InputAdornment,
   Stack,
   Chip,
+  IconButton,
+  // Collapse,
+  Alert,
+  AlertTitle,
 } from "@mui/material";
 import type { AccordionProps } from "@mui/material";
 import { styled } from "@mui/system";
@@ -24,6 +28,9 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SearchIcon from "@mui/icons-material/Search";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 // Services
 import numeral from "numeral";
@@ -38,7 +45,9 @@ function Positions({
   positions,
   loadingFundingRates,
   exchanges,
+  error,
 }: {
+  error: string | null;
   exchanges: string[];
   loadingFundingRates: boolean;
   positions: {
@@ -48,6 +57,7 @@ function Positions({
   }[];
 }) {
   const [searchToken, setSearchToken] = useState("");
+  const [openTokenDetails, setOpenTokenDetails] = useState("");
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
   const localOrderBy = localStorage.getItem("orderBy") || "volume";
   const localOrder = localStorage.getItem("order") || "desc";
@@ -77,8 +87,6 @@ function Positions({
     () => [...positions].sort(getComparator(order, orderBy)),
     [order, orderBy, positions]
   );
-
-  
 
   const filteredPositions = useMemo(() => {
     return visibleRows
@@ -209,202 +217,253 @@ function Positions({
                   </Box>
                 </TableCell>
               ))}
+              <TableCell>
+                <MoreVertIcon />
+              </TableCell>
             </TableRow>
           </TableHead>
+
           <TableBody>
-            {filteredPositions.map(({ sells, buys, baseToken }) => {
-              const estimatedFee = [...sells, ...buys].reduce((tot, cur) => {
-                return (
-                  tot +
-                  cur.markPrice *
-                    cur.size *
-                    cur.fundingRate *
-                    (cur.side === "sell" ? 1 : -1)
+            {error ? (
+              <TableRow>
+                <TableCell colSpan={headCells.length + 1}>
+                  <Alert severity="error">
+                    <AlertTitle>Fetching positions error</AlertTitle>
+                    {error}
+                  </Alert>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredPositions.map(({ sells, buys, baseToken }) => {
+                const estimatedFee = [...sells, ...buys].reduce((tot, cur) => {
+                  return (
+                    tot +
+                    cur.markPrice *
+                      cur.size *
+                      cur.fundingRate *
+                      (cur.side === "sell" ? 1 : -1)
+                  );
+                }, 0);
+                const totalSizeSell = sells.reduce(
+                  (tot, { size }) => size + tot,
+                  0
                 );
-              }, 0);
-              const totalSizeSell = sells.reduce(
-                (tot, { size }) => size + tot,
-                0
-              );
-              const biggestPnLExchange = [...sells, ...buys].reduce(
-                (maxExchange, position) => {
-                  const maxPnL = position.unrealizedPnl || 0;
-                  return maxPnL > maxExchange.maxPnL
-                    ? { maxPnL, exchange: position.exchange }
-                    : maxExchange;
-                },
-                { maxPnL: 0, exchange: "" }
-              ).exchange;
+                const biggestPnLExchange = [...sells, ...buys].reduce(
+                  (maxExchange, position) => {
+                    const maxPnL = position.unrealizedPnl || 0;
+                    return maxPnL > maxExchange.maxPnL
+                      ? { maxPnL, exchange: position.exchange }
+                      : maxExchange;
+                  },
+                  { maxPnL: 0, exchange: "" }
+                ).exchange;
 
-              // const spreadSize = Math.abs(strip(String(totalSizeSell)) - strip(String(totalSizeBuy)))
-              return (
-                <TableRow key={baseToken}>
-                  <TableCell>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <img
-                        src={`https://assets.coincap.io/assets/icons/${baseToken.toLowerCase()}@2x.png`}
-                        alt={baseToken}
-                        width={20}
-                        height={20}
-                      />
-                      <Typography fontWeight="bold">{baseToken}</Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell align="left">
-                    <Box display="flex" flexDirection="column" gap={1}>
-                      <Typography
-                        sx={{
-                          color: "rgb(246, 70, 93)",
-                          mr: 1,
-                        }}
-                      >
-                        {sells.map((s) => s.exchange).join("-")}
-                      </Typography>
+                // const spreadSize = Math.abs(strip(String(totalSizeSell)) - strip(String(totalSizeBuy)))
+                return (
+                  <TableRow key={baseToken}>
+                    <TableCell>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <img
+                          src={`https://assets.coincap.io/assets/icons/${baseToken.toLowerCase()}@2x.png`}
+                          alt={baseToken}
+                          width={20}
+                          height={20}
+                        />
+                        <Typography fontWeight="bold">{baseToken}</Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell align="left">
+                      <Box display="flex" flexDirection="column" gap={1}>
+                        <Typography
+                          sx={{
+                            color: "rgb(246, 70, 93)",
+                            mr: 1,
+                          }}
+                        >
+                          {sells.map((s) => s.exchange).join("-")}
+                        </Typography>
 
-                      <Typography
-                        sx={{
-                          color: "rgb(14, 203, 129)",
-                          mr: 1,
-                        }}
-                      >
-                        {buys.map((s) => s.exchange).join("-")}
-                      </Typography>
-                    </Box>
-                  </TableCell>
+                        <Typography
+                          sx={{
+                            color: "rgb(14, 203, 129)",
+                            mr: 1,
+                          }}
+                        >
+                          {buys.map((s) => s.exchange).join("-")}
+                        </Typography>
+                      </Box>
+                    </TableCell>
 
-                  <TableCell align="left">
-                    <Typography>
-                      {numeral(sells[0].markPrice * totalSizeSell * 2).format(
-                        "0,0]"
+                    <TableCell align="left">
+                      {sells.length ? (
+                        <Typography>
+                          {numeral(
+                            sells[0].markPrice * totalSizeSell * 2
+                          ).format("0,0]")}
+                        </Typography>
+                      ) : (
+                        <Skeleton animation="wave" />
                       )}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="left">
-                    <Typography>
-                      {numeral(
-                        percentageChange(buys[0]?.avgPrice, sells[0]?.avgPrice)
-                      ).format("0.[000]")}
-                      %
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Box
-                      my="12px"
-                      display="flex"
-                      width="100%"
-                      alignItems="center"
-                      gap={1}
-                    >
-                      <img
-                        style={{
-                          borderRadius: "50%",
-                        }}
-                        src={`/${biggestPnLExchange}.png`}
-                        alt="USDT"
-                        width={20}
-                        height={20}
-                      />
-                      <Typography>
-                        {numeral(
-                          Math.max(
-                            ...[...sells, ...buys].map(
-                              (pos) => pos.unrealizedPnl || 0
+                    </TableCell>
+                    <TableCell align="left">
+                      {sells.length & buys.length ? (
+                        <Typography>
+                          {numeral(
+                            percentageChange(
+                              buys[0]?.avgPrice,
+                              sells[0]?.avgPrice
                             )
+                          ).format("0.[000]")}
+                          %
+                        </Typography>
+                      ) : (
+                        <Skeleton animation="wave" />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Box
+                        my="12px"
+                        display="flex"
+                        width="100%"
+                        alignItems="center"
+                        gap={1}
+                      >
+                        <img
+                          style={{
+                            borderRadius: "50%",
+                          }}
+                          src={`/${biggestPnLExchange}.png`}
+                          alt="USDT"
+                          width={20}
+                          height={20}
+                        />
+                        <Typography>
+                          {numeral(
+                            Math.max(
+                              ...[...sells, ...buys].map(
+                                (pos) => pos.unrealizedPnl || 0
+                              )
+                            )
+                          ).format("0,0")}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell align="left">
+                      <Typography>
+                        {sells.length ? (
+                          numeral(sells[0].markPrice).format(
+                            precisionMap[baseToken] || "0,0.[0000]"
                           )
-                        ).format("0,0")}
+                        ) : (
+                          <Skeleton animation="wave" />
+                        )}
                       </Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell align="left">
-                    <Typography>
-                      {numeral(sells[0].markPrice).format(
-                        precisionMap[baseToken] || "0,0.[0000]"
+                    </TableCell>
+                    <TableCell align="center">
+                      <Box
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="left"
+                        gap={1}
+                      >
+                        <Box display="flex" gap={1} alignItems="space-between">
+                          <ArrowUpwardIcon
+                            sx={{ color: "rgb(14 203 129 / 40%)" }}
+                          />
+                          {sells.length ? (
+                            <Typography>
+                              {numeral(
+                                percentageChange(
+                                  sells[0].markPrice,
+                                  sells[0].liqPrice || 0
+                                )
+                              ).format("0")}
+                              %
+                            </Typography>
+                          ) : (
+                            <Skeleton animation="wave" />
+                          )}
+                        </Box>
+                        <Box display="flex" gap={1} alignItems="space-between">
+                          <ArrowDownwardIcon
+                            sx={{ color: "rgb(246 70 93 / 40%)" }}
+                          />
+                          {buys.length ? (
+                            <Typography>
+                              {numeral(
+                                percentageChange(
+                                  buys[0].markPrice,
+                                  buys[0].liqPrice || 0
+                                )
+                              ).format("0")}
+                              %
+                            </Typography>
+                          ) : (
+                            <Skeleton animation="wave" />
+                          )}
+                        </Box>
+                      </Box>
+                    </TableCell>
+
+                    <TableCell align="left">
+                      {loadingFundingRates || !sells.length || !buys.length ? (
+                        <Skeleton animation="wave" />
+                      ) : (
+                        <Typography>
+                          {numeral(
+                            100 * (sells[0].fundingRate - buys[0].fundingRate)
+                          ).format("0,0.[00]")}
+                          %
+                        </Typography>
                       )}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Box
-                      display="flex"
-                      flexDirection="column"
-                      alignItems="left"
-                      gap={1}
-                    >
-                      <Box display="flex" gap={1} alignItems="space-between">
-                        <ArrowUpwardIcon
-                          sx={{ color: "rgb(14 203 129 / 40%)" }}
-                        />
+                    </TableCell>
+
+                    <TableCell align="left">
+                      <Typography
+                        sx={{
+                          color:
+                            estimatedFee > 0
+                              ? "rgb(14 203 129)"
+                              : "rgb(246 70 93)",
+                        }}
+                        fontWeight="bold"
+                      >
+                        {numeral(estimatedFee).format("0,0.[00]")}$
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="left">
+                      {loadingFundingRates || !sells.length || !buys.length ? (
+                        <Skeleton animation="wave" />
+                      ) : (
                         <Typography>
                           {numeral(
-                            percentageChange(
-                              sells[0].markPrice,
-                              sells[0].liqPrice || 0
-                            )
-                          ).format("0")}
+                            (100 *
+                              (sells[0].fundingRate - buys[0].fundingRate) *
+                              360 *
+                              3) /
+                              2
+                          ).format("0,0")}
                           %
                         </Typography>
-                      </Box>
-                      <Box display="flex" gap={1} alignItems="space-between">
-                        <ArrowDownwardIcon
-                          sx={{ color: "rgb(246 70 93 / 40%)" }}
-                        />
-                        <Typography>
-                          {numeral(
-                            percentageChange(
-                              buys[0].markPrice,
-                              buys[0].liqPrice || 0
-                            )
-                          ).format("0")}
-                          %
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </TableCell>
-
-                  <TableCell align="left">
-                    {loadingFundingRates ? (
-                      <Skeleton animation="wave" />
-                    ) : (
-                      <Typography>
-                        {numeral(
-                          100 * (sells[0].fundingRate - buys[0].fundingRate)
-                        ).format("0,0.[00]")}
-                        %
-                      </Typography>
-                    )}
-                  </TableCell>
-
-                  <TableCell align="left">
-                    <Typography
-                      sx={{
-                        color:
-                          estimatedFee > 0
-                            ? "rgb(14 203 129)"
-                            : "rgb(246 70 93)",
-                      }}
-                      fontWeight="bold"
-                    >
-                      {numeral(estimatedFee).format("0,0.[00]")}$
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="left">
-                    {loadingFundingRates ? (
-                      <Skeleton animation="wave" />
-                    ) : (
-                      <Typography>
-                        {numeral(
-                          (100 *
-                            (sells[0].fundingRate - buys[0].fundingRate) *
-                            360 *
-                            3) /
-                            2
-                        ).format("0,0")}
-                        %
-                      </Typography>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <IconButton
+                        aria-label="expand row"
+                        size="small"
+                        onClick={() => setOpenTokenDetails(baseToken)}
+                      >
+                        {openTokenDetails ? (
+                          <KeyboardArrowUpIcon />
+                        ) : (
+                          <KeyboardArrowDownIcon />
+                        )}
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </Paper>
@@ -504,6 +563,9 @@ function descendingComparator<T>(
     return a.baseToken.localeCompare(b.baseToken);
   }
   if (orderBy === "apr") {
+    if (!a.sells.length || !a.buys.length) {
+      return 0;
+    }
     const aprA = a.sells[0].fundingRate - a.buys[0].fundingRate;
     const aprB = b.sells[0].fundingRate - b.buys[0].fundingRate;
     return aprB - aprA;
