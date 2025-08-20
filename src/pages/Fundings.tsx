@@ -282,19 +282,8 @@ const Fundings: FC = () => {
           </Grid>
           <Grid gridColumn="span 3">
             <Box display="flex" alignItems="center" gap={2}>
-              <TextField
-                label="Base Token"
-                value={baseToken}
-                onChange={e => setBaseToken(e.target.value.toUpperCase())}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    fetchFundings({ page: 1 });
-                  }
-                }}
-                fullWidth
-              />
               <LoadingButton loading={loading} variant="contained" sx={{ minWidth: 120 }} onClick={() => fetchFundings({ page: 1 })}>
-                Search
+                Sum
               </LoadingButton>
             </Box>
           </Grid>
