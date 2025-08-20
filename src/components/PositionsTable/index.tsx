@@ -31,19 +31,23 @@ import SearchIcon from "@mui/icons-material/Search";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import type { ISymbol } from '../../types'
+import ViewQuiltIcon from "@mui/icons-material/ViewQuilt";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../../redux/store";
+import { setNewStrategy } from "../../redux/strategy/strategySlice";
+import type { ISymbol } from "../../types";
 
 // Type declaration for custom gecko widget element
 interface GeckoWidgetProps {
   locale?: string;
-  'dark-mode'?: string;
-  'transparent-background'?: string;
-  'coin-id'?: string;
-  'initial-currency'?: string;
+  "dark-mode"?: string;
+  "transparent-background"?: string;
+  "coin-id"?: string;
+  "initial-currency"?: string;
 }
 
 const GeckoWidget: React.FC<GeckoWidgetProps> = (props) => {
-  return React.createElement('gecko-coin-price-chart-widget', props);
+  return React.createElement("gecko-coin-price-chart-widget", props);
 };
 
 // Services
@@ -60,9 +64,9 @@ function Positions({
   loadingFundingRates,
   exchanges,
   error,
-  symbols
+  symbols,
 }: {
-  symbols: ISymbol[]
+  symbols: ISymbol[];
   error: string | null;
   exchanges: string[];
   loadingFundingRates: boolean;
@@ -72,6 +76,7 @@ function Positions({
     baseToken: string;
   }[];
 }) {
+  const dispatch = useDispatch<AppDispatch>();
   const [searchToken, setSearchToken] = useState("");
   const [openTokenDetails, setOpenTokenDetails] = useState("");
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
@@ -274,12 +279,14 @@ function Positions({
                   { maxPnL: 0, exchange: "" }
                 ).exchange;
 
-                const coinId = symbols.find(({ symbol }) => symbol === baseToken)?.id
+                const coinId = symbols.find(
+                  ({ symbol }) => symbol === baseToken
+                )?.id;
 
                 // const spreadSize = Math.abs(strip(String(totalSizeSell)) - strip(String(totalSizeBuy)))
                 return (
-                  <Fragment>
-                    <TableRow key={baseToken}>
+                  <Fragment key={baseToken}>
+                    <TableRow>
                       <TableCell>
                         <Box display="flex" alignItems="center" gap={1}>
                           <img
@@ -394,7 +401,7 @@ function Positions({
                               sx={{ color: "rgb(14 203 129 / 40%)" }}
                             />
                             {sells.length ? (
-                              <Typography>
+                              <Typography fontSize="14px">
                                 {numeral(
                                   percentageChange(
                                     sells[0].markPrice,
@@ -416,7 +423,7 @@ function Positions({
                               sx={{ color: "rgb(246 70 93 / 40%)" }}
                             />
                             {buys.length ? (
-                              <Typography>
+                              <Typography fontSize="14px">
                                 {numeral(
                                   percentageChange(
                                     buys[0].markPrice,
@@ -509,7 +516,31 @@ function Positions({
                           unmountOnExit
                         >
                           <Box sx={{ margin: 1 }}>
-                            {coinId ? <GeckoWidget locale="en" dark-mode="true" transparent-background="true" coin-id={coinId} initial-currency="usd" /> : <Typography>{baseToken} is not configured yet, please contact admin to update</Typography>}
+                            <IconButton
+                              onClick={() =>
+                                dispatch(
+                                  setNewStrategy({ open: true, baseToken })
+                                )
+                              }
+                            >
+                              <ViewQuiltIcon />
+                            </IconButton>
+                          </Box>
+                          <Box sx={{ margin: 1 }}>
+                            {coinId ? (
+                              <GeckoWidget
+                                locale="en"
+                                dark-mode="true"
+                                transparent-background="true"
+                                coin-id={coinId}
+                                initial-currency="usd"
+                              />
+                            ) : (
+                              <Typography>
+                                {baseToken} is not configured yet, please
+                                contact admin to update
+                              </Typography>
+                            )}
                           </Box>
                         </Collapse>
                       </TableCell>
@@ -561,7 +592,7 @@ const getHeadCells = (numberOfToken: number): readonly HeadCell[] => [
     id: "premium",
     numeric: true,
     disablePadding: false,
-    label: "%Premium",
+    label: "Spread rate",
   },
   {
     id: "unrealizedPnl",

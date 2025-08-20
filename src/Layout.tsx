@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
-import type { AppDispatch, RootState } from './redux/store'
+import { useState, useEffect, useRef } from "react";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "./redux/store";
 import {
   Container,
   Box,
@@ -16,34 +16,49 @@ import {
   Tooltip,
   LinearProgress,
   // IconButton
-} from '@mui/material'
-import { 
-  AccountCircle, 
-  VpnKey, 
-  Security, 
+} from "@mui/material";
+import {
+  AccountCircle,
+  VpnKey,
+  Security,
   Logout,
   Email,
   ShowChart,
   MonetizationOn,
   ContentCopy,
   Group,
-} from '@mui/icons-material'
-import ReplayIcon from '@mui/icons-material/Replay'
-import { styled } from '@mui/system'
-import api from './lib/axios'
-import numeral from 'numeral'
+} from "@mui/icons-material";
+import ReplayIcon from "@mui/icons-material/Replay";
+import { styled } from "@mui/system";
+import api from "./lib/axios";
+import numeral from "numeral";
+import NewStrategyDialog from "./components/StrategyDialog/NewStrategy";
 
-import { setUser, setError } from './redux/slices/userSlice'
-import { setSummaryBalance, selectBalances, setBalancesError } from './redux/balances/balancesSlice'
-import { setPositions, setPositionsError, setPositionsLoading, selectPositionsLoading } from './redux/positions/positionsSlice'
+import { setUser, setError } from "./redux/slices/userSlice";
+import {
+  setSummaryBalance,
+  selectBalances,
+  setBalancesError,
+} from "./redux/balances/balancesSlice";
+import {
+  selectNewStrategy,
+  setNewStrategy,
+} from "./redux/strategy/strategySlice";
+import {
+  setPositions,
+  setPositionsError,
+  setPositionsLoading,
+  selectPositionsLoading,
+} from "./redux/positions/positionsSlice";
 // import { setStrategies } from './redux/strategy/strategySlice'
 
 function Layout() {
   const didRun = useRef(false);
-  const initialized = useRef(false)
+  const initialized = useRef(false);
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
+  const newStrategyProps = useSelector(selectNewStrategy);
   const user = useSelector((state: RootState) => state.user.data);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [localError, setLocalError] = useState<string>();
@@ -54,56 +69,59 @@ function Layout() {
   const [copySuccess, setCopySuccess] = useState(false);
   const isMenuOpen = Boolean(anchorEl);
   const balances = useSelector(selectBalances);
-  const positionLoading = useSelector(selectPositionsLoading)
+  const positionLoading = useSelector(selectPositionsLoading);
 
+  console.log({ newStrategyProps });
   const totalMargin = Object.values(balances).reduce(
     (tot, { total = 0 }) => tot + total,
     0
-  )
+  );
 
   const fetchBalance = () => {
-    setPositionsLoading(true)
+    setPositionsLoading(true);
     Promise.all([
       api
-        .get('/api/v1/account/equities')
+        .get("/api/v1/account/equities")
         .then(function ({ data }) {
-          dispatch(setSummaryBalance(data))
+          dispatch(setSummaryBalance(data));
         })
         .catch(function (error) {
-          dispatch(setBalancesError(error.response.data?.message))
+          dispatch(setBalancesError(error.response.data?.message));
         }),
       api
-        .get('/api/v1/positions')
+        .get("/api/v1/positions")
         .then(function ({ data }) {
-          dispatch(setPositions(data))
+          dispatch(setPositions(data));
         })
         .catch(function (error) {
-          dispatch(setPositionsError(error.response.data?.message))
+          dispatch(setPositionsError(error.response.data?.message));
         }),
-
-    ]).finally(() => setPositionsLoading(false))
-  }
+    ]).finally(() => setPositionsLoading(false));
+  };
 
   useEffect(() => {
     if (didRun.current) return;
     didRun.current = true;
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
 
     if (token) {
       // Fetch user info
-      api.get('/api/v1/auth/me')
-        .then(response => {
+      api
+        .get("/api/v1/auth/me")
+        .then((response) => {
           const userData = response.data;
-          dispatch(setUser({
-            id: userData.id,
-            email: userData.email,
-            is2faEnabled: userData.two_factor_enabled,
-            groupId: userData.groupId,
-            groupCode: userData.groupCode,
-          }));
+          dispatch(
+            setUser({
+              id: userData.id,
+              email: userData.email,
+              is2faEnabled: userData.two_factor_enabled,
+              groupId: userData.groupId,
+              groupCode: userData.groupCode,
+            })
+          );
           // Store groupId in localStorage for axios interceptor
           if (userData.groupId) {
-            localStorage.setItem('groupId', userData.groupId.toString());
+            localStorage.setItem("groupId", userData.groupId.toString());
           }
           setUserEmail(userData.email);
           setUserCredit(userData.credit);
@@ -112,30 +130,30 @@ function Layout() {
         })
         .catch((err) => {
           // If token is invalid, clear it and redirect to login
-          localStorage.removeItem('token');
-          dispatch(setError(err.message || 'Failed to fetch user data'));
-          navigate('/login');
+          localStorage.removeItem("token");
+          dispatch(setError(err.message || "Failed to fetch user data"));
+          navigate("/login");
         });
     }
   }, []);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      fetchBalance()
-    }, 1000 * 60 * 5)
+      fetchBalance();
+    }, 1000 * 60 * 5);
     if (!initialized.current) {
-      initialized.current = true
-      fetchBalance()
+      initialized.current = true;
+      fetchBalance();
     }
 
-    return () => clearInterval(intervalId)
+    return () => clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
   // Set x-group-id header when user data is available
   useEffect(() => {
     if (user?.groupId) {
-      api.defaults.headers.common['x-group-id'] = user.groupId.toString();
+      api.defaults.headers.common["x-group-id"] = user.groupId.toString();
     }
   }, [user?.groupId]);
 
@@ -143,12 +161,12 @@ function Layout() {
     _event?: React.SyntheticEvent | Event,
     reason?: string
   ) => {
-    if (reason === 'clickaway') {
-      return
+    if (reason === "clickaway") {
+      return;
     }
 
-    setLocalError(undefined)
-  }
+    setLocalError(undefined);
+  };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
@@ -159,8 +177,8 @@ function Layout() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    localStorage.removeItem("token");
+    navigate("/login");
     handleMenuClose();
   };
 
@@ -172,68 +190,72 @@ function Layout() {
     }
   };
 
-  const menuId = 'primary-search-account-menu';
+  const menuId = "primary-search-account-menu";
 
   const renderMenu = (
     <Menu
       anchorEl={anchorEl}
       anchorOrigin={{
-        vertical: 'bottom',
-        horizontal: 'left',
+        vertical: "bottom",
+        horizontal: "left",
       }}
       id={menuId}
       keepMounted
       transformOrigin={{
-        vertical: 'top',
-        horizontal: 'left',
+        vertical: "top",
+        horizontal: "left",
       }}
       open={isMenuOpen}
       onClose={handleMenuClose}
       PaperProps={{
         sx: {
-          padding: '0px',
-          minWidth: '200px',
-        }
+          padding: "0px",
+          minWidth: "200px",
+        },
       }}
     >
       <Box
         sx={{
           py: 2,
           px: 2,
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          backgroundColor: "rgba(255, 255, 255, 0.05)",
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Email sx={{ mr: 2, fontSize: 20, color: 'text.secondary' }} />
-          <Typography variant="body1">
-            {userEmail}
-          </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+          <Email sx={{ mr: 2, fontSize: 20, color: "text.secondary" }} />
+          <Typography variant="body1">{userEmail}</Typography>
         </Box>
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <MonetizationOn sx={{ mr: 2, fontSize: 20, color: 'text.secondary' }} />
+
+        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+          <MonetizationOn
+            sx={{ mr: 2, fontSize: 20, color: "text.secondary" }}
+          />
           <Typography variant="body1">
-            {userCredit?.toFixed(2) || '0.00'}
+            {userCredit?.toFixed(2) || "0.00"}
           </Typography>
         </Box>
 
         {userGroupCode && (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Group sx={{ mr: 2, fontSize: 20, color: 'text.secondary' }} />
-              <Typography variant="body1">
-                {userGroupCode}
-              </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Group sx={{ mr: 2, fontSize: 20, color: "text.secondary" }} />
+              <Typography variant="body1">{userGroupCode}</Typography>
             </Box>
             <Tooltip title={copySuccess ? "Copied!" : "Copy to clipboard"}>
-              <IconButton 
+              <IconButton
                 onClick={handleCopyGroupCode}
                 size="small"
-                sx={{ 
-                  color: 'text.secondary',
-                  '&:hover': { color: 'primary.main' }
+                sx={{
+                  color: "text.secondary",
+                  "&:hover": { color: "primary.main" },
                 }}
               >
                 <ContentCopy sx={{ fontSize: 16 }} />
@@ -242,48 +264,48 @@ function Layout() {
           </Box>
         )}
       </Box>
-      <MenuItem 
+      <MenuItem
         onClick={() => {
           handleMenuClose();
-          navigate('/api-keys');
+          navigate("/api-keys");
         }}
         sx={{ py: 1.5 }}
       >
         <VpnKey sx={{ mr: 2, fontSize: 20 }} />
         API Keys
       </MenuItem>
-      <MenuItem 
+      <MenuItem
         onClick={() => {
           handleMenuClose();
-          navigate('/2fa');
+          navigate("/2fa");
         }}
-        sx={{ 
+        sx={{
           py: 1.5,
-          color: !twoFactorEnabled ? 'warning.main' : 'inherit',
-          '&:hover': {
-            backgroundColor: !twoFactorEnabled ? 'warning.dark' : undefined,
-          }
+          color: !twoFactorEnabled ? "warning.main" : "inherit",
+          "&:hover": {
+            backgroundColor: !twoFactorEnabled ? "warning.dark" : undefined,
+          },
         }}
       >
         <Security sx={{ mr: 2, fontSize: 20 }} />
         2FA Setup
         {!twoFactorEnabled && (
-          <Typography 
-            variant="caption" 
-            sx={{ 
-              ml: 1, 
-              color: 'warning.main',
-              fontWeight: 'bold'
+          <Typography
+            variant="caption"
+            sx={{
+              ml: 1,
+              color: "warning.main",
+              fontWeight: "bold",
             }}
           >
             (Required)
           </Typography>
         )}
       </MenuItem>
-      <MenuItem 
+      <MenuItem
         onClick={() => {
           handleMenuClose();
-          navigate('/equity');
+          navigate("/equity");
         }}
         sx={{ py: 1.5 }}
       >
@@ -295,61 +317,64 @@ function Layout() {
         Logout
       </MenuItem>
     </Menu>
-  )
-  
+  );
 
   return (
     <Box mt="60px">
       <Box sx={{ flexGrow: 1 }}>
-        <AppBar position="fixed" sx={{background: "#181a20"}}>
+        <AppBar position="fixed" sx={{ background: "#181a20" }}>
           <Toolbar>
             <Box display="flex" justifyContent="space-between" gap="36px">
-              <img style={{ height: 18, marginRight: '12px' }} src="/logo.png" alt="logo" />
+              <img
+                style={{ height: 18, marginRight: "12px" }}
+                src="/logo.png"
+                alt="logo"
+              />
               <LinkStyled
                 to="/dashboard"
-                isActive={location.pathname === '/dashboard'}
+                isActive={location.pathname === "/dashboard"}
               >
                 Dashboard
               </LinkStyled>
               <LinkStyled
                 to="/funding-arbitrage"
-                isActive={location.pathname === '/funding-arbitrage'}
+                isActive={location.pathname === "/funding-arbitrage"}
               >
                 Funding Arbitrage
               </LinkStyled>
               <LinkStyled
                 to="/tools"
-                isActive={location.pathname === '/signal'}
+                isActive={location.pathname === "/signal"}
               >
                 Signal
               </LinkStyled>
               <LinkStyled
                 to="/tools"
-                isActive={location.pathname === '/orderbooks'}
+                isActive={location.pathname === "/orderbooks"}
               >
                 Orderbooks
               </LinkStyled>
               <LinkStyled
                 to="/wallets"
-                isActive={location.pathname === '/wallets'}
+                isActive={location.pathname === "/wallets"}
               >
                 Wallets
               </LinkStyled>
               <LinkStyled
                 to="/fundings"
-                isActive={location.pathname === '/fundings'}
+                isActive={location.pathname === "/fundings"}
               >
                 Funding Fees
               </LinkStyled>
             </Box>
             <Box sx={{ flexGrow: 1 }} />
-            <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+            <Box sx={{ display: { xs: "none", md: "flex" } }}>
               {userEmail ? (
                 <Box>
                   <IconButton onClick={fetchBalance} color="primary">
                     <ReplayIcon />
                   </IconButton>
-                  ~{numeral(totalMargin).format('0,0.0')} USDT
+                  ~{numeral(totalMargin).format("0,0.0")} USDT
                   <IconButton
                     size="large"
                     edge="end"
@@ -362,14 +387,13 @@ function Layout() {
                     <AccountCircle />
                   </IconButton>
                 </Box>
-                
               ) : (
                 <LinkStyled to="/login">Login</LinkStyled>
               )}
             </Box>
           </Toolbar>
           {positionLoading ? (
-            <Box sx={{ width: '100%' }}>
+            <Box sx={{ width: "100%" }}>
               <LinearProgress />
             </Box>
           ) : null}
@@ -382,6 +406,12 @@ function Layout() {
       <Container id="content-layout" maxWidth="xl">
         <Outlet />
       </Container>
+      {newStrategyProps?.open ? (
+        <NewStrategyDialog
+          {...newStrategyProps}
+          onClose={() => dispatch(setNewStrategy({ open: false }))}
+        />
+      ) : null}
       <Snackbar
         open={Boolean(localError?.length)}
         autoHideDuration={10000}
@@ -391,23 +421,25 @@ function Layout() {
           onClose={handleClose}
           severity="error"
           variant="filled"
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {localError}
         </Alert>
       </Snackbar>
     </Box>
-  )
+  );
 }
 
-export default Layout
+export default Layout;
 
-const LinkStyled = styled(Link)<{ isActive?: boolean }>(({ theme, isActive }) => ({
-  textDecoration: 'auto',
-  color: isActive ? theme.palette.primary.main : 'unset',
-  fontSize: '16px',
-  whiteSpace: 'nowrap',
-  '&:hover': {
-    color: theme.palette.primary.main
-  }
-}))
+const LinkStyled = styled(Link)<{ isActive?: boolean }>(
+  ({ theme, isActive }) => ({
+    textDecoration: "auto",
+    color: isActive ? theme.palette.primary.main : "unset",
+    fontSize: "16px",
+    whiteSpace: "nowrap",
+    "&:hover": {
+      color: theme.palette.primary.main,
+    },
+  })
+);

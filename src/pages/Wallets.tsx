@@ -37,6 +37,7 @@ import numeral from "numeral";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select, { type SelectChangeEvent } from "@mui/material/Select";
+import { selectBalances } from '../redux/balances/balancesSlice'
 import ExchangeMargin from "../components/ExchangeMargin";
 import api from "../lib/axios";
 import { genExplorerTxUrl, genExplorerAddUrl } from "../helpers";
@@ -65,7 +66,7 @@ interface IAddress {
 const exchangesWhichAllowFee: string[] = ["huobi"];
 
 const Dashboard: FC = () => {
-  const balances = useSelector((state: RootState) => state.balances);
+  const balances = useSelector(selectBalances);
   const [page, setPage] = useState(0);
   const { enqueueSnackbar } = useSnackbar();
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -275,7 +276,7 @@ const Dashboard: FC = () => {
               <FormControl fullWidth sx={{ mb: 2 }}>
                 {selectedFromEx ? (
                   <Typography variant="caption">
-                    Availale balance:&nbsp;
+                    Available balance:&nbsp;
                     {numeral(
                       (
                         selectedFromEx as unknown as {

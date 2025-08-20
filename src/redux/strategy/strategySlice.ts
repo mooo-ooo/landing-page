@@ -1,61 +1,78 @@
-import { createSlice } from '@reduxjs/toolkit'
-import type { PayloadAction } from '@reduxjs/toolkit'
+import { createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
 
 export interface IStrategy {
-  strategyName: string // Unique for display and seeking
+  strategyName: string; // Unique for display and seeking
   // Exchanges name
-  sellExchange: string
-  buyExchange: string
-  sellSymbol: string
-  buySymbol: string
+  sellExchange: string;
+  buyExchange: string;
+  sellSymbol: string;
+  buySymbol: string;
 
   // Spread
-  bestInSpread: number // in percentage
-  secondInSpread: number
-  bestOutSpread: number // in percentage
-  secondOutSpread: number
+  bestInSpread: number; // in percentage
+  secondInSpread: number;
+  bestOutSpread: number; // in percentage
+  secondOutSpread: number;
 
   // Order
-  maxOrderVol: number
-  requiredOrderVol: number
-  
-  isIncrease: boolean
-  isReduce: boolean
+  maxOrderVol: number;
+  requiredOrderVol: number;
 
-  precision?: number
-  multiple?: number
+  isIncrease: boolean;
+  isReduce: boolean;
 
-  
+  precision?: number;
+  multiple?: number;
+
   // Vol position
-  maxVolOfPosition: number
-  minVolOfPosition: number
+  maxVolOfPosition: number;
+  minVolOfPosition: number;
 
-
-  percentChangeToSL: number
-  alertSL?: number
-  alertLiq?: number
-  enabaledupdateSL?: boolean
-  ignoreCheckSize?: boolean
+  percentChangeToSL: number;
+  alertSL?: number;
+  alertLiq?: number;
+  enabaledupdateSL?: boolean;
+  ignoreCheckSize?: boolean;
 }
 export interface StrategiesState {
-  data: IStrategy[]
+  data: IStrategy[];
+  newStrategy: {
+    open: boolean;
+    baseToken?: string;
+  };
 }
 
 const initialState: StrategiesState = {
-  data: []
-}
+  data: [],
+  newStrategy: {
+    open: false,
+  },
+};
 
 export const StrategiesSlice = createSlice({
-  name: 'Strategies',
+  name: "Strategies",
   initialState,
   reducers: {
     setStrategies: (state, action: PayloadAction<IStrategy[]>) => {
-      state.data = action.payload
+      state.data = action.payload;
+    },
+    setNewStrategy: (
+      state,
+      action: PayloadAction<{
+        open: boolean;
+        baseToken?: string;
+      }>
+    ) => {
+      state.newStrategy = action.payload;
     },
   },
-})
+});
 
 // Action creators are generated for each case reducer function
-export const { setStrategies } = StrategiesSlice.actions
+export const { setStrategies, setNewStrategy } = StrategiesSlice.actions;
 
-export default StrategiesSlice.reducer
+export const selectNewStrategy = (state: { strategies: StrategiesState }) =>
+  state.strategies.newStrategy;
+
+export default StrategiesSlice.reducer;

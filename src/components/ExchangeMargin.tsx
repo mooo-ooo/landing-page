@@ -28,7 +28,7 @@ import {
 } from "../redux/balances/balancesSlice";
 import { percentageChange } from "../helpers";
 
-const WARNING_LEV = 6;
+const WARNING_LEV = 7.5;
 function ExchangeMargin() {
   const error = useSelector(selectBalancesError);
   const balances = useSelector(selectBalances);
