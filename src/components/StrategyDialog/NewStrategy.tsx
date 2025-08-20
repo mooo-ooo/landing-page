@@ -3,7 +3,6 @@ import { useState, useMemo, useEffect } from "react";
 import {
   Box,
   Dialog,
-  Button,
   DialogContent,
   DialogActions,
   DialogTitle,
@@ -31,7 +30,6 @@ import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import LoadingButton from "@mui/lab/LoadingButton";
-import { useSnackbar } from "notistack";
 import { selectBalances } from "../../redux/balances/balancesSlice";
 import { useSelector } from "react-redux";
 
@@ -50,7 +48,6 @@ function NewStrategyDialog(props: NewStrategyProps) {
   const balances = useSelector(selectBalances);
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   const { baseToken, onClose, open } = props;
-  const { enqueueSnackbar } = useSnackbar();
   // const [loading, setLoading] = useState(false);
   const [markPrice, setMarkPrice] = useState("");
   const exchanges = useMemo(() => {

@@ -1,7 +1,6 @@
 import type { FC } from "react";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
-import type { RootState } from "../redux/store";
 import dayjs from "dayjs";
 import { styled } from "@mui/system";
 import {
