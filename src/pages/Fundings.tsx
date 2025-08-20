@@ -282,7 +282,20 @@ const Fundings: FC = () => {
           </Grid>
           <Grid gridColumn="span 3">
             <Box display="flex" alignItems="center" gap={2}>
-              <LoadingButton loading={loading} variant="contained" sx={{ minWidth: 120 }} onClick={() => fetchFundings({ page: 1 })}>
+              <LoadingButton
+                loading={loading}
+                variant="contained"
+                sx={{ minWidth: 120 }}
+                onClick={() => {
+                  setBaseToken("");
+                  fetchFundings({
+                    page: 1, baseTokenArg: "", fromDateArg: fromDate,
+                    toDateArg: toDate,
+                    exchangeArg: exchange,
+                    sortConfigArg: sortConfig,
+                  });
+                }}
+              >
                 Sum
               </LoadingButton>
             </Box>
