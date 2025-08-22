@@ -26,15 +26,12 @@ const Dashboard: FC = () => {
   }, [balances]);
 
   useEffect(() => {
-    api
-      .get("/api/v1/symbols")
-      .then(({ data }: { data: ISymbol[] }) => setSymbols(data));
-  }, []);
-
-  useEffect(() => {
     api.get("/api/v1/strategies").then(({ data }) => {
       setStrategies(data);
     });
+    api
+      .get("/api/v1/symbols")
+      .then(({ data }: { data: ISymbol[] }) => setSymbols(data));
   }, []);
 
   const positions = useNormalizedPositions([]);

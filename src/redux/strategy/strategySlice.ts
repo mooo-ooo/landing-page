@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
 export interface IStrategy {
+  _id: string
   strategyName: string; // Unique for display and seeking
   // Exchanges name
   sellExchange: string;

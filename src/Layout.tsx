@@ -344,7 +344,7 @@ function Layout() {
                 to="/strategies"
                 isActive={location.pathname === "/strategies"}
               >
-                Funding Arbitrage
+                Strategies
               </LinkStyled>
               <LinkStyled
                 to="/tools"
