@@ -282,19 +282,21 @@ const Fundings: FC = () => {
           </Grid>
           <Grid gridColumn="span 3">
             <Box display="flex" alignItems="center" gap={2}>
-              <TextField
-                label="Base Token"
-                value={baseToken}
-                onChange={e => setBaseToken(e.target.value.toUpperCase())}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    fetchFundings({ page: 1 });
-                  }
+              <LoadingButton
+                loading={loading}
+                variant="contained"
+                sx={{ minWidth: 120 }}
+                onClick={() => {
+                  setBaseToken("");
+                  fetchFundings({
+                    page: 1, baseTokenArg: "", fromDateArg: fromDate,
+                    toDateArg: toDate,
+                    exchangeArg: exchange,
+                    sortConfigArg: sortConfig,
+                  });
                 }}
-                fullWidth
-              />
-              <LoadingButton loading={loading} variant="contained" sx={{ minWidth: 120 }} onClick={() => fetchFundings({ page: 1 })}>
-                Search
+              >
+                Sum
               </LoadingButton>
             </Box>
           </Grid>
@@ -308,8 +310,9 @@ const Fundings: FC = () => {
             px: 2,
             py: 1,
             borderRadius: 3,
-            bgcolor: totalFundingFee < 0 ? '#d32f2f' : '#222',
+            bgcolor: '#847d7db9',
             color: '#fff',
+            borderColor: totalFundingFee < 0 ? '#d32f2f' : '#222',
             fontWeight: 600,
             fontSize: 16,
             minWidth: 120,
@@ -320,20 +323,37 @@ const Fundings: FC = () => {
         </Box>
         {Object.entries(baseTokenFundings).map(([token, total]) => (
           <Box
-            key={token}
-            sx={{
-              px: 2,
-              py: 1,
-              borderRadius: 3,
-              bgcolor: total < 0 ? '#d32f2f' : '#0033ad',
-              color: '#fff',
-              fontWeight: 600,
-              fontSize: 16,
-              display: 'flex',
-              alignItems: 'center',
-              minWidth: 80,
-              textAlign: 'center',
+              key={token}
+              sx={{
+                px: 2,
+                py: 1,
+                borderRadius: 3,
+                bgcolor: '#000', // background black
+                color: total > 0 ? '#2e7d32' : total < 0 ? '#d32f2f' : '#fff', // green if >0, red if <0, white otherwise
+                border: '1px solid #888', // border color gray
+                fontWeight: 600,
+                fontSize: 16,
+                display: 'flex',
+                alignItems: 'center',
+                minWidth: 80,
+                textAlign: 'center',
+                cursor: 'pointer', // Make it look clickable
+                opacity: baseToken === token ? 0.7 : 1, // Highlight if selected
+                boxShadow: baseToken === token ? '0 0 0 2px #fff' : 'none', // highlight if selected
+                transition: 'all 0.15s',
+              }}
+            onClick={() => {
+              setBaseToken(token);
+              fetchFundings({
+                page: 1,
+                baseTokenArg: token,
+                fromDateArg: fromDate,
+                toDateArg: toDate,
+                exchangeArg: exchange,
+                sortConfigArg: sortConfig,
+              });
             }}
+            title={`Filter by ${token}`}
           >
             {token}: {numeral(total).format('0,0.0000')}
           </Box>
