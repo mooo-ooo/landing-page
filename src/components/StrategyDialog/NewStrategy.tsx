@@ -58,6 +58,7 @@ function NewStrategyDialog(props: NewStrategyProps) {
     maxVolOfPosition: 0,
     minVolOfPosition: 0,
   });
+  const [token, setToken] = useState(baseToken);
   const balances = useSelector(selectBalances);
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -79,25 +80,38 @@ function NewStrategyDialog(props: NewStrategyProps) {
   };
 
   useEffect(() => {
-    if (baseToken) {
+    if (token) {
+      setStrategy((prev) => {
+        return {
+          ...prev,
+          sellSymbol: `${token}/USDT:USDT`.toUpperCase(),
+          buySymbol: `${token}/USDT:USDT`.toUpperCase(),
+        };
+      });
       api
-        .get(`${markPriceBaseUrl}${baseToken}USDT`)
+        .get(`${markPriceBaseUrl}${token}USDT`)
         .then(function ({ data: { price } }) {
           setMarkPrice(price);
           if (Number(price) > 50) {
-            setStrategy({
-              ...strategy,
-              precision: estimatePrecision(Number(price)),
+            setStrategy((prev) => {
+              return {
+                ...prev,
+                precision: estimatePrecision(Number(price)),
+                multiple: 0,
+              };
             });
           } else {
-            setStrategy({
-              ...strategy,
-              multiple: estimateMultiple(Number(price)),
+            setStrategy((prev) => {
+              return {
+                ...prev,
+                multiple: estimateMultiple(Number(price)),
+                precision: 0,
+              };
             });
           }
         });
     }
-  }, [baseToken]);
+  }, [token]);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -149,6 +163,28 @@ function NewStrategyDialog(props: NewStrategyProps) {
         }}
       >
         <Fragment>
+          {baseToken ? null : (
+            <Box display="flex" width="100%" flexDirection="column" mb={2}>
+              <Typography>Base Token</Typography>
+              <TextField
+                name="token"
+                fullWidth
+                size="small"
+                onChange={(e) => {
+                  setToken(e.target.value);
+                }}
+                type="string"
+                value={token}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                variant="outlined"
+              />
+              <Typography color="textSecondary" fontSize={12}>
+                Enter the base token
+              </Typography>
+            </Box>
+          )}
           <Box display="flex" width="100%" flexDirection="column">
             <Typography>Strategy name (unique):</Typography>
             <TextField
