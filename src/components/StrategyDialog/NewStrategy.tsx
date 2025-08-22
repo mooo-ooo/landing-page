@@ -20,6 +20,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   IconButton,
+  Alert,
 } from "@mui/material";
 import type { IStrategy } from "../../redux/strategy/strategySlice";
 import { useTheme } from "@mui/material/styles";
@@ -28,10 +29,10 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
-import axios from "axios";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { selectBalances } from "../../redux/balances/balancesSlice";
 import { useSelector } from "react-redux";
+import api from "../../lib/axios";
 
 export interface NewStrategyProps {
   baseToken?: string;
@@ -44,11 +45,25 @@ const markPriceBaseUrl =
 
 function NewStrategyDialog(props: NewStrategyProps) {
   const theme = useTheme();
-  const [strategy, setStrategy] = useState<Partial<IStrategy>>({});
+  const { baseToken, onClose, open } = props;
+  const [strategy, setStrategy] = useState<Partial<IStrategy>>({
+    strategyName: props.baseToken?.toUpperCase() || '',
+    requiredOrderVol: 30,
+    secondInSpread: -0.1,
+    bestOutSpread: 0,
+    secondOutSpread: -0.1,
+    isIncrease: true,
+    sellSymbol: `${baseToken}/USDT:USDT`.toUpperCase(),
+    buySymbol: `${baseToken}/USDT:USDT`.toUpperCase(),
+  });
   const balances = useSelector(selectBalances);
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
-  const { baseToken, onClose, open } = props;
+  
   // const [loading, setLoading] = useState(false);
+  const [alertMsg, setAlertMsg] = useState({
+    severity: "",
+    message: "",
+  });
   const [markPrice, setMarkPrice] = useState("");
   const exchanges = useMemo(() => {
     return Object.keys(balances);
@@ -62,32 +77,43 @@ function NewStrategyDialog(props: NewStrategyProps) {
   };
 
   useEffect(() => {
-    if (markPrice) {
-      if (Number(markPrice) > 50) {
-        setStrategy({
-          ...strategy,
-          precision: estimatePrecision(Number(markPrice)),
-        });
-      } else {
-        setStrategy({
-          ...strategy,
-          multiple: estimateMultiple(Number(markPrice)),
-        });
-      }
-    }
-  }, [markPrice]);
-
-  useEffect(() => {
     if (baseToken) {
-      axios
+      api
         .get(`${markPriceBaseUrl}${baseToken}USDT`)
-        .then(function ({ data }) {
-          setMarkPrice(data.price);
+        .then(function ({ data: { price } }) {
+          setMarkPrice(price);
+          if (Number(price) > 50) {
+            setStrategy({
+              ...strategy,
+              precision: estimatePrecision(Number(price)),
+            });
+          } else {
+            setStrategy({
+              ...strategy,
+              multiple: estimateMultiple(Number(price)),
+            });
+          }
         });
     }
   }, [baseToken]);
 
-  const handleBalance = async () => {};
+  const handleSubmit = async () => {
+    api
+      .post("/api/v1/strategies", strategy)
+      .then(() => {
+        setAlertMsg({
+          severity: "success",
+          message: "Strategy created successfully",
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+        setAlertMsg({
+          severity: "error",
+          message: err.response.data.message,
+        });
+      });
+  };
 
   const strategyInputs = Object.keys(strategy)
     .map((propName) => ({
@@ -148,7 +174,6 @@ function NewStrategyDialog(props: NewStrategyProps) {
                   setStrategy({
                     ...strategy,
                     [e.target.name]: e.target.value,
-                    sellSymbol: `${e.target.value}/USDT:USDT`.toUpperCase(),
                   });
                 }}
               >
@@ -177,7 +202,6 @@ function NewStrategyDialog(props: NewStrategyProps) {
                   setStrategy({
                     ...strategy,
                     [e.target.name]: e.target.value,
-                    buySymbol: `${e.target.value}/USDT:USDT`.toUpperCase(),
                   });
                 }}
               >
@@ -341,17 +365,21 @@ function NewStrategyDialog(props: NewStrategyProps) {
           width="100%"
           display="flex"
           alignItems="center"
-          justifyContent="flex-end"
+          justifyContent="space-between"
           py={1}
+          gap={16}
+          px="16px"
         >
-          {/* <Button autoFocus onClick={null}>
-            Run
-          </Button> */}
+          {alertMsg.message ? (
+            <Alert severity={alertMsg.severity === 'success' ? 'success' : 'error'}>
+              <Typography fontSize="14px">{alertMsg.message}</Typography>
+            </Alert>
+          ) : <Box />}
           <LoadingButton
             startIcon={<AddIcon />}
             variant="outlined"
             loading={false}
-            onClick={handleBalance}
+            onClick={handleSubmit}
           >
             Add
           </LoadingButton>
@@ -381,11 +409,11 @@ const strategyDetails: Record<string, { order: number; label: string }> = {
     label: "Buy symbol",
   },
   precision: {
-    order: 10,
+    order: 11,
     label: "precision",
   },
   multiple: {
-    order: 11,
+    order: 12,
     label: "multiple",
   },
   bestInSpread: {
@@ -408,17 +436,25 @@ const strategyDetails: Record<string, { order: number; label: string }> = {
     order: 8,
     label: "Max amount per order",
   },
-  maxVolOfPosition: {
+  requiredOrderVol: {
     order: 9,
+    label: "Required order vol",
+  },
+  maxVolOfPosition: {
+    order: 10,
     label: "Max volumn of this strategy",
   },
   isIncrease: {
-    order: 12,
+    order: 13,
     label: "Open",
   },
   isReduce: {
-    order: 13,
+    order: 14,
     label: "Close",
+  },
+  strategyName: {
+    order: -1,
+    label: "Strategy name",
   },
 };
 

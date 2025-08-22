@@ -33,6 +33,7 @@ import { styled } from "@mui/system";
 import api from "./lib/axios";
 import numeral from "numeral";
 import NewStrategyDialog from "./components/StrategyDialog/NewStrategy";
+import UpdateStrategy from "./components/StrategyDialog/UpdateStrategy";
 
 import { setUser, setError } from "./redux/slices/userSlice";
 import {
@@ -43,6 +44,8 @@ import {
 import {
   selectNewStrategy,
   setNewStrategy,
+  setUpdateStrategy,
+  selectUpdateStrategy
 } from "./redux/strategy/strategySlice";
 import {
   setPositions,
@@ -59,6 +62,7 @@ function Layout() {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const newStrategyProps = useSelector(selectNewStrategy);
+  const updateStrategyProps = useSelector(selectUpdateStrategy);
   const user = useSelector((state: RootState) => state.user.data);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [localError, setLocalError] = useState<string>();
@@ -337,8 +341,8 @@ function Layout() {
                 Dashboard
               </LinkStyled>
               <LinkStyled
-                to="/funding-arbitrage"
-                isActive={location.pathname === "/funding-arbitrage"}
+                to="/strategies"
+                isActive={location.pathname === "/strategies"}
               >
                 Funding Arbitrage
               </LinkStyled>
@@ -410,6 +414,12 @@ function Layout() {
         <NewStrategyDialog
           {...newStrategyProps}
           onClose={() => dispatch(setNewStrategy({ open: false }))}
+        />
+      ) : null}
+      {updateStrategyProps?.open ? (
+        <UpdateStrategy
+          {...updateStrategyProps}
+          onClose={() => dispatch(setUpdateStrategy({ open: false }))}
         />
       ) : null}
       <Snackbar

@@ -34,7 +34,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ViewQuiltIcon from "@mui/icons-material/ViewQuilt";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../../redux/store";
-import { setNewStrategy } from "../../redux/strategy/strategySlice";
+import { setUpdateStrategy } from "../../redux/strategy/strategySlice";
 import type { ISymbol } from "../../types";
 
 // Type declaration for custom gecko widget element
@@ -519,7 +519,7 @@ function Positions({
                             <IconButton
                               onClick={() =>
                                 dispatch(
-                                  setNewStrategy({ open: true, baseToken })
+                                  setUpdateStrategy({ open: true, baseToken })
                                 )
                               }
                             >

@@ -41,11 +41,19 @@ export interface StrategiesState {
     open: boolean;
     baseToken?: string;
   };
+  updateStrategy: {
+    open: boolean;
+    baseToken?: string;
+    id?: string
+  };
 }
 
 const initialState: StrategiesState = {
   data: [],
   newStrategy: {
+    open: false,
+  },
+  updateStrategy: {
     open: false,
   },
 };
@@ -66,13 +74,25 @@ export const StrategiesSlice = createSlice({
     ) => {
       state.newStrategy = action.payload;
     },
+    setUpdateStrategy: (
+      state,
+      action: PayloadAction<{
+        open: boolean;
+        baseToken?: string;
+        id?: string;
+      }>
+    ) => {
+      state.updateStrategy = action.payload;
+    },
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { setStrategies, setNewStrategy } = StrategiesSlice.actions;
+export const { setStrategies, setNewStrategy, setUpdateStrategy } = StrategiesSlice.actions;
 
 export const selectNewStrategy = (state: { strategies: StrategiesState }) =>
   state.strategies.newStrategy;
+export const selectUpdateStrategy = (state: { strategies: StrategiesState }) =>
+  state.strategies.updateStrategy;
 
 export default StrategiesSlice.reducer;
