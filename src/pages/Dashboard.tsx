@@ -7,19 +7,20 @@ import EquitiesChart from "../components/EquitiesChart";
 import { useNormalizedPositions, useFundingRates } from "../hooks";
 import { selectPositionsError } from "../redux/positions/positionsSlice";
 import { selectBalances } from "../redux/balances/balancesSlice";
+import type { IStrategy } from "../redux/strategy/strategySlice";
 import { useSelector } from "react-redux";
-import type { ISymbol } from '../types'
+import type { ISymbol } from "../types";
 import api from "../lib/axios";
 
-
 const Dashboard: FC = () => {
-  const [symbols, setSymbols] = useState<ISymbol[]>([])
+  const [symbols, setSymbols] = useState<ISymbol[]>([]);
   const positionsError = useSelector(selectPositionsError);
   const balances = useSelector(selectBalances);
   const dashboardRef = useRef<HTMLDivElement>(null);
   const exchangeMarginRef = useRef<HTMLDivElement>(null);
   const [dashboardWidth, setDashboardWidth] = useState<number>(0);
   const [exchangeMarginHeight, setExchangeMarginHeight] = useState<number>(0);
+  const [strategies, setStrategies] = useState<IStrategy[]>([]);
   const exchanges = useMemo(() => {
     return Object.keys(balances);
   }, [balances]);
@@ -27,13 +28,13 @@ const Dashboard: FC = () => {
   useEffect(() => {
     api
       .get("/api/v1/symbols")
-      .then(
-        ({
-          data,
-        }: {
-          data: ISymbol[];
-        }) => setSymbols(data)
-      );
+      .then(({ data }: { data: ISymbol[] }) => setSymbols(data));
+  }, []);
+
+  useEffect(() => {
+    api.get("/api/v1/strategies").then(({ data }) => {
+      setStrategies(data);
+    });
   }, []);
 
   const positions = useNormalizedPositions([]);
@@ -150,6 +151,7 @@ const Dashboard: FC = () => {
         </Grid>
       </Grid>
       <PositionsTable
+        strategies={strategies}
         symbols={symbols}
         positions={positionsWithFunding}
         loadingFundingRates={loadingFundingRates}

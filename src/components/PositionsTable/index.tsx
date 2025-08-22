@@ -34,7 +34,8 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ViewQuiltIcon from "@mui/icons-material/ViewQuilt";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../../redux/store";
-import { setUpdateStrategy } from "../../redux/strategy/strategySlice";
+import type { IStrategy } from "../../redux/strategy/strategySlice";
+import { setUpdateStrategy, setNewStrategy } from "../../redux/strategy/strategySlice";
 import type { ISymbol } from "../../types";
 
 // Type declaration for custom gecko widget element
@@ -65,7 +66,9 @@ function Positions({
   exchanges,
   error,
   symbols,
+  strategies
 }: {
+  strategies: IStrategy[]
   symbols: ISymbol[];
   error: string | null;
   exchanges: string[];
@@ -282,6 +285,10 @@ function Positions({
                 const coinId = symbols.find(
                   ({ symbol }) => symbol === baseToken
                 )?.id;
+
+                const foundStrategy = strategies.find(({ buySymbol, sellSymbol}) => {
+                  return buySymbol.includes(baseToken) && sellSymbol.includes(baseToken)
+                })
 
                 // const spreadSize = Math.abs(strip(String(totalSizeSell)) - strip(String(totalSizeBuy)))
                 return (
@@ -518,8 +525,10 @@ function Positions({
                           <Box sx={{ margin: 1 }}>
                             <IconButton
                               onClick={() =>
-                                dispatch(
+                                foundStrategy ? dispatch(
                                   setUpdateStrategy({ open: true, baseToken })
+                                ) : dispatch(
+                                  setNewStrategy({ open: true, baseToken })
                                 )
                               }
                             >

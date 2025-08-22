@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Fragment } from "react";
 
 import {
   Box,
@@ -11,7 +11,6 @@ import {
   FormControlLabel,
   RadioGroup,
   FormControl,
-  FormLabel,
   Select,
   MenuItem,
   Typography,
@@ -47,19 +46,22 @@ function NewStrategyDialog(props: NewStrategyProps) {
   const theme = useTheme();
   const { baseToken, onClose, open } = props;
   const [strategy, setStrategy] = useState<Partial<IStrategy>>({
-    strategyName: props.baseToken?.toUpperCase() || '',
+    strategyName: props.baseToken?.toUpperCase() || "",
     requiredOrderVol: 30,
-    secondInSpread: -0.1,
+    secondInSpread: 0,
     bestOutSpread: 0,
-    secondOutSpread: -0.1,
+    secondOutSpread: 0,
     isIncrease: true,
+    isReduce: false,
     sellSymbol: `${baseToken}/USDT:USDT`.toUpperCase(),
     buySymbol: `${baseToken}/USDT:USDT`.toUpperCase(),
+    maxVolOfPosition: 0,
+    minVolOfPosition: 0,
   });
   const balances = useSelector(selectBalances);
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
-  
-  // const [loading, setLoading] = useState(false);
+
+  const [loading, setLoading] = useState(false);
   const [alertMsg, setAlertMsg] = useState({
     severity: "",
     message: "",
@@ -98,6 +100,7 @@ function NewStrategyDialog(props: NewStrategyProps) {
   }, [baseToken]);
 
   const handleSubmit = async () => {
+    setLoading(true);
     api
       .post("/api/v1/strategies", strategy)
       .then(() => {
@@ -112,15 +115,10 @@ function NewStrategyDialog(props: NewStrategyProps) {
           severity: "error",
           message: err.response.data.message,
         });
-      });
+      })
+      .finally(() => setLoading(false));
   };
 
-  const strategyInputs = Object.keys(strategy)
-    .map((propName) => ({
-      ...strategyDetails[propName],
-      propName,
-    }))
-    .sort((a, b) => a.order - b.order);
   return (
     <Dialog
       fullScreen={fullScreen}
@@ -150,215 +148,392 @@ function NewStrategyDialog(props: NewStrategyProps) {
           paddingBottom: "32px",
         }}
       >
-        <Box
-          display="flex"
-          alignItems="flex-start"
-          justifyContent="space-between"
-          flexDirection="column"
-        >
+        <Fragment>
+          <Box display="flex" width="100%" flexDirection="column">
+            <Typography>Strategy name (unique):</Typography>
+            <TextField
+              fullWidth
+              size="small"
+              onChange={handleOnChangeStrategy}
+              type="string"
+              name="strategyName"
+              value={strategy.strategyName}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              variant="outlined"
+            />
+          </Box>
+          <Box height={16} />
           <Box
             display="flex"
-            width="100%"
+            alignItems="flex-start"
             justifyContent="space-between"
-            alignItems="center"
+            flexDirection="column"
           >
-            <Typography color="rgb(246, 70, 93)">Sell exchange:</Typography>
-            <FormControl sx={{ width: "150px" }}>
-              <Select
-                size="small"
-                displayEmpty
-                name="sellExchange"
-                inputProps={{ "aria-label": "Without label" }}
-                value={strategy.sellExchange}
-                onChange={(e) => {
-                  setStrategy({
-                    ...strategy,
-                    [e.target.name]: e.target.value,
-                  });
-                }}
-              >
-                {exchanges.map((exchange) => (
-                  <MenuItem value={exchange}>{exchange}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-          <Box height={4} />
-          <Box
-            display="flex"
-            width="100%"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Typography color="rgb(14, 203, 129)">Buy exchange:</Typography>
-            <FormControl sx={{ width: "150px" }}>
-              <Select
-                size="small"
-                displayEmpty
-                inputProps={{ "aria-label": "Without label" }}
-                value={strategy.buyExchange}
-                name="buyExchange"
-                onChange={(e) => {
-                  setStrategy({
-                    ...strategy,
-                    [e.target.name]: e.target.value,
-                  });
-                }}
-              >
-                {exchanges.map((exchange) => (
-                  <MenuItem value={exchange}>{exchange}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-        </Box>
-        <Box height={16} />
-        <FormControl
-          sx={{
-            flexDirection: "row",
-            alignItems: "center",
-            width: "100%",
-            justifyContent: "space-between",
-          }}
-        >
-          <FormLabel>Direction</FormLabel>
-          <RadioGroup
-            value={strategy.isReduce ? "close" : "open"}
-            row
-            onChange={(e) => {
-              if (e.target.value === "open") {
-                setStrategy({
-                  ...strategy,
-                  isReduce: false,
-                  isIncrease: true,
-                });
-              } else {
-                setStrategy({
-                  ...strategy,
-                  isReduce: true,
-                  isIncrease: false,
-                });
-              }
-            }}
-          >
-            <FormControlLabel value="open" control={<Radio />} label="Open" />
-            <FormControlLabel value="close" control={<Radio />} label="Close" />
-          </RadioGroup>
-        </FormControl>
-        <Box height={16} />
-        <Box display="flex" width="100%" flexDirection="column">
-          <Typography>Spread rate (%):</Typography>
-          <TextField
-            fullWidth
-            size="small"
-            onChange={handleOnChangeStrategy}
-            type="string"
-            name="bestInSpread"
-            value={strategy.bestInSpread}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            slotProps={{
-              input: {
-                endAdornment: <InputAdornment position="end">%</InputAdornment>,
-              },
-            }}
-            variant="outlined"
-          />
-          <Typography color="textSecondary" fontSize={14}>
-            Current spread rate 0.1%
-          </Typography>
-        </Box>
-        <Box height={32} />
-        <Box display="flex" width="100%" flexDirection="column">
-          <Typography>Max amount per order:</Typography>
-          <TextField
-            name="maxOrderVol"
-            fullWidth
-            size="small"
-            onChange={handleOnChangeStrategy}
-            type="string"
-            value={strategy.maxOrderVol}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">USDT</InputAdornment>
-                ),
-              },
-            }}
-            variant="outlined"
-          />
-          <Typography color="textSecondary" fontSize={14}>
-            Suggested max amount pre order 1000 USDT
-          </Typography>
-        </Box>
-        <Box height={32} />
-        <Box display="flex" width="100%" flexDirection="column">
-          <Typography>Max volume:</Typography>
-          <TextField
-            name="maxVolOfPosition"
-            fullWidth
-            size="small"
-            onChange={handleOnChangeStrategy}
-            type="string"
-            value={strategy.maxVolOfPosition}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">USDT</InputAdornment>
-                ),
-              },
-            }}
-            variant="outlined"
-          />
-        </Box>
-
-        <Box height={16} />
-        <Accordion>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1-content"
-            id="panel1-header"
-          >
-            <SettingsIcon />
-            <Typography component="span">Advanced settings</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            {strategyInputs.map(({ propName, label }) => {
-              return (
-                <Box
-                  key={propName}
-                  display="flex"
-                  width="100%"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  my={2}
+            <Box
+              display="flex"
+              width="100%"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Typography color="rgb(246, 70, 93)">Sell exchange:</Typography>
+              <FormControl sx={{ width: "150px" }}>
+                <Select
+                  size="small"
+                  displayEmpty
+                  name="sellExchange"
+                  inputProps={{ "aria-label": "Without label" }}
+                  value={strategy.sellExchange}
+                  onChange={(e) => {
+                    setStrategy({
+                      ...strategy,
+                      [e.target.name]: e.target.value,
+                    });
+                  }}
                 >
-                  <Typography>{label}:</Typography>
-                  <TextField
-                    // sx={{ width: "100px" }}
-                    name={propName}
-                    onChange={handleOnChangeStrategy}
-                    type="string"
-                    value={
-                      strategy[propName as unknown as keyof typeof strategy]
-                    }
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    variant="standard"
-                  />
+                  {exchanges.map((exchange) => (
+                    <MenuItem value={exchange}>{exchange}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <Box height={4} />
+            <Box
+              display="flex"
+              width="100%"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Typography color="rgb(14, 203, 129)">Buy exchange:</Typography>
+              <FormControl sx={{ width: "150px" }}>
+                <Select
+                  size="small"
+                  displayEmpty
+                  inputProps={{ "aria-label": "Without label" }}
+                  value={strategy.buyExchange}
+                  name="buyExchange"
+                  onChange={(e) => {
+                    setStrategy({
+                      ...strategy,
+                      [e.target.name]: e.target.value,
+                    });
+                  }}
+                >
+                  {exchanges.map((exchange) => (
+                    <MenuItem value={exchange}>{exchange}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          </Box>
+          <Box height={16} />
+          <Box
+            display="flex"
+            flexDirection="row"
+            sx={{
+              alignItems: "center",
+              width: "100%",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography>Direction</Typography>
+            <RadioGroup
+              value={strategy.isReduce ? "close" : "open"}
+              row
+              onChange={(e) => {
+                if (e.target.value === "open") {
+                  setStrategy((prev) => {
+                    return {
+                      ...prev,
+                      isReduce: false,
+                      isIncrease: true,
+                    };
+                  });
+                } else {
+                  setStrategy((prev) => {
+                    return {
+                      ...prev,
+                      isReduce: true,
+                      isIncrease: false,
+                    };
+                  });
+                }
+              }}
+            >
+              <FormControlLabel value="open" control={<Radio />} label="Open" />
+              <FormControlLabel
+                value="close"
+                control={<Radio />}
+                label="Close"
+              />
+            </RadioGroup>
+          </Box>
+          <Box height={16} />
+          <Box>
+            {strategy.isIncrease ? (
+              <Box
+                display="flex"
+                flexDirection="column"
+                padding={2}
+                sx={{ background: "rgb(14 203 129 / 10%)" }}
+              >
+                <Typography>Spread rate</Typography>
+                <Box display="flex" gap={1}>
+                  <Box display="flex" width="100%" flexDirection="column">
+                    <Typography fontSize={12} color="textSecondary">
+                      First:
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      onChange={handleOnChangeStrategy}
+                      type="string"
+                      name="bestInSpread"
+                      value={strategy.bestInSpread}
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      slotProps={{
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">%</InputAdornment>
+                          ),
+                        },
+                      }}
+                      variant="outlined"
+                    />
+                    <Typography color="textSecondary" fontSize={12}>
+                      Current spread rate 0.1%
+                    </Typography>
+                  </Box>
+                  <Box height={16} />
+                  <Box display="flex" width="100%" flexDirection="column">
+                    <Typography fontSize={12} color="textSecondary">
+                      Second:
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      onChange={handleOnChangeStrategy}
+                      type="string"
+                      name="secondInSpread"
+                      value={strategy.secondInSpread}
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      slotProps={{
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">%</InputAdornment>
+                          ),
+                        },
+                      }}
+                      variant="outlined"
+                    />
+                  </Box>
                 </Box>
-              );
-            })}
-          </AccordionDetails>
-        </Accordion>
+              </Box>
+            ) : (
+              <Box
+                display="flex"
+                flexDirection="column"
+                padding={2}
+                sx={{ background: "rgb(246 70 93 / 10%)" }}
+              >
+                <Typography>Spread rate</Typography>
+                <Box display="flex" gap={1}>
+                  <Box display="flex" width="100%" flexDirection="column">
+                    <Typography fontSize={12} color="textSecondary">
+                      First
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      onChange={handleOnChangeStrategy}
+                      type="string"
+                      name="bestOutSpread"
+                      value={strategy.bestOutSpread}
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      slotProps={{
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">%</InputAdornment>
+                          ),
+                        },
+                      }}
+                      variant="outlined"
+                    />
+                    <Typography fontSize={12} color="textSecondary">
+                      Current spread rate 0.1%
+                    </Typography>
+                  </Box>
+                  <Box height={16} />
+                  <Box display="flex" width="100%" flexDirection="column">
+                    <Typography fontSize={12} color="textSecondary">
+                      Second
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      onChange={handleOnChangeStrategy}
+                      type="string"
+                      name="secondOutSpread"
+                      value={strategy.secondOutSpread}
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      slotProps={{
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">%</InputAdornment>
+                          ),
+                        },
+                      }}
+                      variant="outlined"
+                    />
+                  </Box>
+                </Box>
+              </Box>
+            )}
+          </Box>
+
+          <Box height={16} />
+          <Box display="flex" width="100%" flexDirection="column">
+            <Typography>Max amount per order:</Typography>
+            <TextField
+              name="maxOrderVol"
+              fullWidth
+              size="small"
+              onChange={handleOnChangeStrategy}
+              type="string"
+              value={strategy.maxOrderVol}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">USDT</InputAdornment>
+                  ),
+                },
+              }}
+              variant="outlined"
+            />
+            <Typography color="textSecondary" fontSize={12}>
+              Suggested max amount pre order 1000 USDT
+            </Typography>
+          </Box>
+          <Box height={32} />
+          {strategy.isIncrease ? (
+            <Box display="flex" width="100%" flexDirection="column">
+              <Typography>Max volume:</Typography>
+              <TextField
+                name="maxVolOfPosition"
+                fullWidth
+                size="small"
+                onChange={handleOnChangeStrategy}
+                type="string"
+                value={strategy.maxVolOfPosition}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">USDT</InputAdornment>
+                    ),
+                  },
+                }}
+                variant="outlined"
+              />
+              <Typography color="textSecondary" fontSize={12}>
+                Volumn = tokenAmount * markPrice (buy + sell)
+              </Typography>
+            </Box>
+          ) : (
+            <Box display="flex" width="100%" flexDirection="column">
+              <Typography>Min volume:</Typography>
+              <TextField
+                name="minVolOfPosition"
+                fullWidth
+                size="small"
+                onChange={handleOnChangeStrategy}
+                type="string"
+                value={strategy.minVolOfPosition}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">USDT</InputAdornment>
+                    ),
+                  },
+                }}
+                variant="outlined"
+              />
+              <Typography color="textSecondary" fontSize={12}>
+                Volumn = tokenAmount * markPrice (buy + sell)
+              </Typography>
+            </Box>
+          )}
+          <Box height={16} />
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1-content"
+              id="panel1-header"
+            >
+              <SettingsIcon />
+              <Typography component="span">Advanced settings</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Box
+                display="flex"
+                width="100%"
+                justifyContent="space-between"
+                alignItems="center"
+                my={2}
+              >
+                <Typography>multiple:</Typography>
+                <TextField
+                  // sx={{ width: "100px" }}
+                  name="multiple"
+                  onChange={handleOnChangeStrategy}
+                  type="string"
+                  value={strategy.multiple}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="standard"
+                />
+              </Box>
+              <Box
+                display="flex"
+                width="100%"
+                justifyContent="space-between"
+                alignItems="center"
+                my={2}
+              >
+                <Typography>precision:</Typography>
+                <TextField
+                  // sx={{ width: "100px" }}
+                  name="precision"
+                  onChange={handleOnChangeStrategy}
+                  type="string"
+                  value={strategy.precision}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="standard"
+                />
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+        </Fragment>
       </DialogContent>
       <DialogActions sx={{ width: "100%", background: "#121212" }}>
         <Box
@@ -371,14 +546,18 @@ function NewStrategyDialog(props: NewStrategyProps) {
           px="16px"
         >
           {alertMsg.message ? (
-            <Alert severity={alertMsg.severity === 'success' ? 'success' : 'error'}>
+            <Alert
+              severity={alertMsg.severity === "success" ? "success" : "error"}
+            >
               <Typography fontSize="14px">{alertMsg.message}</Typography>
             </Alert>
-          ) : <Box />}
+          ) : (
+            <Box />
+          )}
           <LoadingButton
             startIcon={<AddIcon />}
-            variant="outlined"
-            loading={false}
+            variant="contained"
+            loading={loading}
             onClick={handleSubmit}
           >
             Add
@@ -390,73 +569,6 @@ function NewStrategyDialog(props: NewStrategyProps) {
 }
 
 export default NewStrategyDialog;
-
-const strategyDetails: Record<string, { order: number; label: string }> = {
-  sellExchange: {
-    order: 0,
-    label: "Sell exchange",
-  },
-  buyExchange: {
-    order: 1,
-    label: "Buy exchange",
-  },
-  sellSymbol: {
-    order: 2,
-    label: "Sell symbol",
-  },
-  buySymbol: {
-    order: 3,
-    label: "Buy symbol",
-  },
-  precision: {
-    order: 11,
-    label: "precision",
-  },
-  multiple: {
-    order: 12,
-    label: "multiple",
-  },
-  bestInSpread: {
-    order: 4,
-    label: "First Open Spread rate",
-  },
-  secondInSpread: {
-    order: 5,
-    label: "Second Open Spread rate",
-  },
-  bestOutSpread: {
-    order: 6,
-    label: "First Out Spread rate",
-  },
-  secondOutSpread: {
-    order: 7,
-    label: "Second Out Spread rate",
-  },
-  maxOrderVol: {
-    order: 8,
-    label: "Max amount per order",
-  },
-  requiredOrderVol: {
-    order: 9,
-    label: "Required order vol",
-  },
-  maxVolOfPosition: {
-    order: 10,
-    label: "Max volumn of this strategy",
-  },
-  isIncrease: {
-    order: 13,
-    label: "Open",
-  },
-  isReduce: {
-    order: 14,
-    label: "Close",
-  },
-  strategyName: {
-    order: -1,
-    label: "Strategy name",
-  },
-};
 
 const estimatePrecision = (price: number) => {
   if (price > 50000) {
