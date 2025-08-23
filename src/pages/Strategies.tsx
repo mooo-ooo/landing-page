@@ -12,9 +12,12 @@ import {
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
 import { useDispatch } from "react-redux";
+import numeral from "numeral";
 import type { AppDispatch } from "../redux/store";
+import { useSnackbar } from "notistack";
 import {
   setUpdateStrategy,
   setNewStrategy,
@@ -23,16 +26,27 @@ import {
 import api from "../lib/axios";
 
 const Strategies: FC = () => {
+  const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch<AppDispatch>();
   const [strategies, setStrategies] = useState<IStrategy[]>([]);
-  useEffect(() => {
+
+  const fetchStrategies = () => {
     api.get("/api/v1/strategies").then(({ data }) => {
       setStrategies(data);
     });
+  };
+  useEffect(() => {
+    fetchStrategies();
   }, []);
+  const handleRemoveStrategy = (id: string) => {
+    api.delete(`/api/v1/strategies?_id=${id}`).then(() => {
+      fetchStrategies();
+      enqueueSnackbar(`Removed successfully`, { variant: "success" });
+    });
+  };
   return (
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
-      <Box display="flex" alignItems='center'>
+      <Box display="flex" alignItems="center">
         <Typography>Your Strategies</Typography>
         <IconButton
           onClick={() =>
@@ -74,7 +88,6 @@ const Strategies: FC = () => {
               <TableCell align="left">Close Spread Rate</TableCell>
               <TableCell align="left">Max vol per order</TableCell>
               <TableCell align="left">Max vol</TableCell>
-              <TableCell align="left">Min vol</TableCell>
               <TableCell align="left">
                 <MoreVertIcon />
               </TableCell>
@@ -94,33 +107,35 @@ const Strategies: FC = () => {
                 bestOutSpread,
                 secondOutSpread,
                 maxOrderVol,
-                minVolOfPosition,
-                maxVolOfPosition
+                maxVolOfPosition,
               }) => {
                 const baseToken = sellSymbol.split("/")[0];
                 return (
                   <TableRow key={_id}>
                     <TableCell>{strategyName}</TableCell>
-                    <TableCell>
-                      {sellExchange} | {sellSymbol}
+                    <TableCell
+                      sx={{
+                        color: "rgb(246, 70, 93)",
+                      }}
+                    >
+                      [{sellExchange.toUpperCase()}] {sellSymbol}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        color: "rgb(14, 203, 129)",
+                      }}
+                    >
+                      [{buyExchange.toUpperCase()}] {buySymbol}
                     </TableCell>
                     <TableCell>
-                      {buyExchange} | {buySymbol}
+                      {bestInSpread}% | {secondInSpread}%
                     </TableCell>
                     <TableCell>
-                      {bestInSpread} | {secondInSpread}
+                      {bestOutSpread}% | {secondOutSpread}%
                     </TableCell>
+                    <TableCell>{maxOrderVol}</TableCell>
                     <TableCell>
-                      {bestOutSpread} | {secondOutSpread}
-                    </TableCell>
-                    <TableCell>
-                      {maxOrderVol}
-                    </TableCell>
-                    <TableCell>
-                      {maxVolOfPosition}
-                    </TableCell>
-                    <TableCell>
-                      {minVolOfPosition}
+                      {numeral(maxVolOfPosition).format("0,0.[000]")}
                     </TableCell>
                     <TableCell>
                       <IconButton
@@ -134,6 +149,16 @@ const Strategies: FC = () => {
                         }}
                       >
                         <DriveFileRenameOutlineIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleRemoveStrategy(_id)}
+                        size="small"
+                        sx={{
+                          color: "text.secondary",
+                          "&:hover": { color: "primary.main" },
+                        }}
+                      >
+                        <DeleteForeverIcon />
                       </IconButton>
                     </TableCell>
                   </TableRow>

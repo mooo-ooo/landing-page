@@ -98,7 +98,6 @@ const Dashboard: FC = () => {
 
   const handleResolveTransferPending = async () => {
     const { data } = await api.delete("/api/v1/wallets/transfer-pending");
-    console.log({ data });
     if (data) {
       setTransferPending(undefined);
       enqueueSnackbar(`You now can do transfer again`, { variant: "success" });
