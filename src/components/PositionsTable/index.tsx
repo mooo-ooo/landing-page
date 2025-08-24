@@ -33,23 +33,15 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ViewQuiltIcon from "@mui/icons-material/ViewQuilt";
 import { useDispatch } from "react-redux";
+import CandleChart from "./CandleChart";
 import type { AppDispatch } from "../../redux/store";
 import type { IStrategy } from "../../redux/strategy/strategySlice";
-import { setUpdateStrategy, setNewStrategy } from "../../redux/strategy/strategySlice";
+import {
+  setUpdateStrategy,
+  setNewStrategy,
+} from "../../redux/strategy/strategySlice";
 import type { ISymbol } from "../../types";
-
-// Type declaration for custom gecko widget element
-interface GeckoWidgetProps {
-  locale?: string;
-  "dark-mode"?: string;
-  "transparent-background"?: string;
-  "coin-id"?: string;
-  "initial-currency"?: string;
-}
-
-const GeckoWidget: React.FC<GeckoWidgetProps> = (props) => {
-  return React.createElement("gecko-coin-price-chart-widget", props);
-};
+import type { ExchangeName } from "../../types/exchange";
 
 // Services
 import numeral from "numeral";
@@ -66,9 +58,9 @@ function Positions({
   exchanges,
   error,
   symbols,
-  strategies
+  strategies,
 }: {
-  strategies: IStrategy[]
+  strategies: IStrategy[];
   symbols: ISymbol[];
   error: string | null;
   exchanges: string[];
@@ -286,9 +278,14 @@ function Positions({
                   ({ symbol }) => symbol === baseToken
                 )?.id;
 
-                const foundStrategy = strategies.find(({ buySymbol, sellSymbol}) => {
-                  return buySymbol.includes(baseToken) && sellSymbol.includes(baseToken)
-                })
+                const foundStrategy = strategies.find(
+                  ({ buySymbol, sellSymbol }) => {
+                    return (
+                      buySymbol.includes(baseToken) &&
+                      sellSymbol.includes(baseToken)
+                    );
+                  }
+                );
 
                 // const spreadSize = Math.abs(strip(String(totalSizeSell)) - strip(String(totalSizeBuy)))
                 return (
@@ -525,31 +522,31 @@ function Positions({
                           <Box sx={{ margin: 1 }}>
                             <IconButton
                               onClick={() =>
-                                foundStrategy ? dispatch(
-                                  setUpdateStrategy({ open: true, baseToken })
-                                ) : dispatch(
-                                  setNewStrategy({ open: true, baseToken })
-                                )
+                                foundStrategy
+                                  ? dispatch(
+                                      setUpdateStrategy({
+                                        open: true,
+                                        baseToken,
+                                      })
+                                    )
+                                  : dispatch(
+                                      setNewStrategy({ open: true, baseToken })
+                                    )
                               }
                             >
                               <ViewQuiltIcon />
                             </IconButton>
                           </Box>
                           <Box sx={{ margin: 1 }}>
-                            {coinId ? (
-                              <GeckoWidget
-                                locale="en"
-                                dark-mode="true"
-                                transparent-background="true"
-                                coin-id={coinId}
-                                initial-currency="usd"
-                              />
-                            ) : (
-                              <Typography>
-                                {baseToken} is not configured yet, please
-                                contact admin to update
-                              </Typography>
-                            )}
+                            <CandleChart
+                              baseToken={baseToken}
+                              sellExchanges={sells.map(
+                                (sell) => sell.exchange as ExchangeName
+                              )}
+                              buyExchanges={buys.map(
+                                (buy) => buy.exchange as ExchangeName
+                              )}
+                            />
                           </Box>
                         </Collapse>
                       </TableCell>
