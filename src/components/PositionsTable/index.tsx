@@ -1,4 +1,4 @@
-import React, { useState, useMemo, Fragment } from "react";
+import { useState, useMemo, Fragment } from "react";
 import {
   Box,
   Typography,
@@ -57,7 +57,7 @@ function Positions({
   loadingFundingRates,
   exchanges,
   error,
-  symbols,
+  // symbols,
   strategies,
 }: {
   strategies: IStrategy[];
@@ -274,9 +274,9 @@ function Positions({
                   { maxPnL: 0, exchange: "" }
                 ).exchange;
 
-                const coinId = symbols.find(
-                  ({ symbol }) => symbol === baseToken
-                )?.id;
+                // const coinId = symbols.find(
+                //   ({ symbol }) => symbol === baseToken
+                // )?.id;
 
                 const foundStrategy = strategies.find(
                   ({ buySymbol, sellSymbol }) => {

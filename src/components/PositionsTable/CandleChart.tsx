@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Box, Typography, Skeleton } from "@mui/material";
+import { Box } from "@mui/material";
 import { LinePlot, MarkPlot } from "@mui/x-charts/LineChart";
 import { ChartContainer } from "@mui/x-charts/ChartContainer";
 import { ChartsXAxis } from "@mui/x-charts/ChartsXAxis";
@@ -7,7 +7,7 @@ import { ChartsYAxis } from "@mui/x-charts/ChartsYAxis";
 import { ChartsTooltip } from "@mui/x-charts/ChartsTooltip";
 import { BarPlot } from "@mui/x-charts/BarChart";
 import { ChartsAxisHighlight } from "@mui/x-charts/ChartsAxisHighlight";
-import numeral from "numeral";
+// import numeral from "numeral";
 import dayjs from "dayjs";
 import { getCandleStick, type CandleStick } from "../../services/candlestick";
 import type { ExchangeName } from "../../types/exchange";
