@@ -1,16 +1,13 @@
 import { useState, useEffect } from "react";
-import { Box } from "@mui/material";
-import { LinePlot, MarkPlot } from "@mui/x-charts/LineChart";
-import { ChartContainer } from "@mui/x-charts/ChartContainer";
-import { ChartsXAxis } from "@mui/x-charts/ChartsXAxis";
-import { ChartsYAxis } from "@mui/x-charts/ChartsYAxis";
-import { ChartsTooltip } from "@mui/x-charts/ChartsTooltip";
-import { BarPlot } from "@mui/x-charts/BarChart";
-import { ChartsAxisHighlight } from "@mui/x-charts/ChartsAxisHighlight";
+import { Box, Typography } from "@mui/material";
+import * as Highcharts from "highcharts";
+import HighchartsReact from "highcharts-react-official";
 // import numeral from "numeral";
 import dayjs from "dayjs";
-import { getCandleStick, type CandleStick } from "../../services/candlestick";
+import { getCandleSticks, type CandleStick } from "../../services/candlestick";
+import { fundingRateHistory } from "../../services/fundingRateHistory";
 import type { ExchangeName } from "../../types/exchange";
+import numeral from "numeral";
 
 function CandleChart({
   baseToken,
@@ -21,60 +18,163 @@ function CandleChart({
   buyExchanges: ExchangeName[];
   baseToken: string;
 }) {
-  console.log({
-    baseToken,
-    sellExchanges,
-    buyExchanges,
-  });
   const [candleSticks, setCandleSticks] = useState<CandleStick[]>([]);
+  const [diffFundings, setDiffFundings] = useState<number[]>([]);
+
+  const calculateFundingRates = async () => {
+    const [sellFundingRates, buyFundingRates] = await Promise.all([
+      fundingRateHistory(sellExchanges[0], baseToken),
+      fundingRateHistory(buyExchanges[0], baseToken),
+    ]);
+    const diffFundings = () => {
+      // Create a Map for efficient lookups of sell funding rates
+      const sellFundingRatesMap = new Map(
+        sellFundingRates.map((rate) => [
+          rate.fundingTime.toString(),
+          rate.fundingRate,
+        ])
+      );
+
+      // Create a Map for efficient lookups of buy funding rates
+      const buyFundingRatesMap = new Map(
+        buyFundingRates.map((rate) => [
+          rate.fundingTime.toString(),
+          rate.fundingRate,
+        ])
+      );
+
+      return candleSticks.map(({ time }) => {
+        // Standardize the time format for lookup keys
+        const fundingTimeKey = dayjs(Number(time)).toDate().toString();
+
+        // Get rates from the maps, defaulting to 0 if not found
+        const sellFundingRate = sellFundingRatesMap.get(fundingTimeKey) || 0;
+        const buyFundingRate = buyFundingRatesMap.get(fundingTimeKey) || 0;
+
+        return sellFundingRate - buyFundingRate;
+      });
+    };
+
+    setDiffFundings(diffFundings);
+  };
 
   useEffect(() => {
-    getCandleStick(sellExchanges[0], baseToken).then(setCandleSticks);
+    getCandleSticks(sellExchanges[0], baseToken).then(setCandleSticks);
   }, []);
-  
-  console.log({ candleSticks });
+
+  useEffect(() => {
+    if (candleSticks.length) {
+      calculateFundingRates();
+    }
+  }, [candleSticks]);
+
+  const last2WeeksFundingRates = diffFundings.reduce(
+    (accumulator, currentValue) => accumulator + currentValue,
+    0
+  );
+
+  const options = {
+    title: {
+      text: null,
+    },
+    chart: {
+      polar: true,
+      type: "line",
+      backgroundColor: "none",
+    },
+    xAxis: {
+      categories: candleSticks.map(({ time }) => dayjs(time).format("DD MMM")),
+      crosshair: true,
+      tickInterval: 20,
+      lineColor: "rgb(81 81 81 / 50%)",
+      labels: {
+        style: {
+          color: "#FFF",
+        },
+      },
+    },
+    plotOptions: {
+      column: {
+        pointWidth: 5,
+        borderColor: "none", // Red border color
+        borderWidth: 0, // 2px border width
+        borderRadius: 2, // Sets a fixed width of 20 pixels for each column
+      },
+    },
+    yAxis: [
+      {
+        // Primary yAxis
+        gridLineWidth: 0,
+        labels: {
+          formatter: ({ value }: { value: number }) => {
+            return numeral(value).format("0,0.0");
+          },
+          style: {
+            color: "#FFF",
+          },
+        },
+        title: {
+          text: "Price",
+        },
+        lineColor: "rgb(81 81 81 / 50%)",
+        lineWidth: 1,
+      },
+      {
+        // Secondary yAxis
+        // gridLineWidth: 0,
+        gridLineColor: "rgb(81 81 81 / 50%)",
+        title: {
+          text: "Funding",
+        },
+        labels: {
+          format: "{value}%",
+          style: {
+            color: "#FFF",
+          },
+        },
+        lineWidth: 1,
+        lineColor: "rgb(81 81 81 / 50%)",
+        opposite: true,
+      },
+    ],
+    // tooltip: {
+    //   headerFormat: "<b>Diff funding rate</b><br/>",
+    //   pointFormat: "{point.y}%<br/>",
+    // },
+    series: [
+      {
+        name: "Funding rates changes",
+        type: "column",
+        color: "rgb(14, 203, 129)",
+        negativeColor: "rgb(246, 70, 93)",
+        data: diffFundings,
+        showInLegend: false,
+        yAxis: 1,
+      },
+      {
+        name: "Price",
+        type: "line",
+        yAxis: 0,
+        data: candleSticks.map(({ price }) => price),
+        showInLegend: false,
+        color: "rgb(240, 185, 11)",
+      },
+    ],
+  };
   return (
     <Box display="flex" flexDirection="column" gap="16px">
-      {candleSticks.length ? (
+      {candleSticks.length && diffFundings.length ? (
         <Box>
-          {/* <Box display='flex' alignItems='center' gap={1}>
-            <img height={30} src={`https://assets.coincap.io/assets/icons/${baseToken.toLowerCase()}@2x.png`} />
-            <Typography fontWeight='bold'>{baseToken}</Typography>
-          </Box> */}
-          <ChartContainer
-            xAxis={[
-              {
-                scaleType: "time",
-                valueFormatter: (time) => dayjs(time).format("HH:mm"),
-                data: candleSticks.map(({ time }) => time),
-              },
-            ]}
-            series={[
-              {
-                showMark: false,
-                type: "line",
-                // curve: "linear",
-                data: candleSticks.map(({ price }) => price),
-                color: "rgb(240, 185, 11)",
-              },
-              // {
-              //   data: rewardHistory.map(({ value }) => value),
-              //   type: "bar",
-              //   color: "rgb(14, 203, 129)",
-              // },
-            ]}
-            height={300}
-            // width={width}
-            margin={{ bottom: 10 }}
-          >
-            <BarPlot />
-            <ChartsAxisHighlight x="band" />
-            <LinePlot />
-            <MarkPlot />
-            <ChartsXAxis />
-            <ChartsYAxis />
-            <ChartsTooltip />
-          </ChartContainer>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Typography fontWeight="bold" mb={2}>
+              Last 2 weeks APR:{" "}
+              {numeral((last2WeeksFundingRates * (365 / (7 * 2))) / 2).format(
+                "0.000"
+              )}
+              %%
+            </Typography>
+          </Box>
+          <HighchartsReact highcharts={Highcharts} options={options} />
         </Box>
       ) : null}
     </Box>

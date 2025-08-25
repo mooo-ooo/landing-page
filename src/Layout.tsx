@@ -74,7 +74,6 @@ function Layout() {
   const balances = useSelector(selectBalances);
   const positionLoading = useSelector(selectPositionsLoading);
 
-  console.log({ newStrategyProps });
   const totalMargin = Object.values(balances).reduce(
     (tot, { total = 0 }) => tot + total,
     0
