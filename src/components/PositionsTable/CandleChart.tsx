@@ -99,6 +99,10 @@ function CandleChart({
         borderWidth: 0, // 2px border width
         borderRadius: 2, // Sets a fixed width of 20 pixels for each column
       },
+      line: {
+        // Applies to all line series
+        lineWidth: 1, // Sets line width to 3 pixels
+      },
     },
     yAxis: [
       {
@@ -122,7 +126,7 @@ function CandleChart({
       {
         // Secondary yAxis
         // gridLineWidth: 0,
-        gridLineColor: "rgb(81 81 81 / 50%)",
+        gridLineColor: "rgb(81 81 81 / 40%)",
         title: {
           text: "Funding",
         },
