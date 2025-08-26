@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import * as Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
-// import numeral from "numeral";
 import dayjs from "dayjs";
 import { getCandleSticks, type CandleStick } from "../../services/candlestick";
 import { fundingRateHistory } from "../../services/fundingRateHistory";
@@ -84,8 +83,8 @@ function CandleChart({
     },
     xAxis: {
       categories: candleSticks.map(({ time }) => dayjs(time).format("DD MMM")),
-      crosshair: true,
-      tickInterval: 20,
+      crosshair: false,
+      tickInterval: 24,
       lineColor: "rgb(81 81 81 / 50%)",
       labels: {
         style: {
@@ -118,32 +117,33 @@ function CandleChart({
         },
         lineColor: "rgb(81 81 81 / 50%)",
         lineWidth: 1,
+        opposite: true,
       },
       {
         // Secondary yAxis
         // gridLineWidth: 0,
-        gridLineColor: "rgb(81 81 81 / 50%)",
+        gridLineColor: "rgb(81 81 81 / 10%)",
         title: {
           text: "Funding",
         },
         labels: {
-          format: "{value}%",
+          formatter: ({ value }: { value: number }) => {
+            return numeral(value).format("0,0.[000]") + "%";
+          },
           style: {
             color: "#FFF",
           },
         },
         lineWidth: 1,
         lineColor: "rgb(81 81 81 / 50%)",
-        opposite: true,
       },
     ],
-    // tooltip: {
-    //   headerFormat: "<b>Diff funding rate</b><br/>",
-    //   pointFormat: "{point.y}%<br/>",
-    // },
+    tooltip: {
+      split: true,
+    },
     series: [
       {
-        name: "Funding rates changes",
+        name: "Funding rates",
         type: "column",
         color: "rgb(14, 203, 129)",
         negativeColor: "rgb(246, 70, 93)",
@@ -171,7 +171,7 @@ function CandleChart({
               {numeral((last2WeeksFundingRates * (365 / (7 * 2))) / 2).format(
                 "0.000"
               )}
-              %%
+              %
             </Typography>
           </Box>
           <HighchartsReact highcharts={Highcharts} options={options} />

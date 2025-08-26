@@ -59,7 +59,7 @@ export const fundingRateHistory = async (
         return data.map(({ t, r }: { t: number; r: string }) => {
           return {
             fundingRate: Number(r) * 100,
-            fundingTime: t * 1000,
+            fundingTime: dayjs(t * 1000).startOf('hour').toDate(),
           };
         });
       }
