@@ -122,7 +122,7 @@ function CandleChart({
       {
         // Secondary yAxis
         // gridLineWidth: 0,
-        gridLineColor: "rgb(81 81 81 / 10%)",
+        gridLineColor: "rgb(81 81 81 / 50%)",
         title: {
           text: "Funding",
         },
