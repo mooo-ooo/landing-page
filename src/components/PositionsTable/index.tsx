@@ -21,6 +21,9 @@ import {
   Alert,
   AlertTitle,
 } from "@mui/material";
+import LinearProgress, {
+  linearProgressClasses,
+} from "@mui/material/LinearProgress";
 import type { AccordionProps } from "@mui/material";
 import { styled } from "@mui/system";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -287,6 +290,15 @@ function Positions({
                   }
                 );
 
+                const distToLiqBuy = Math.max(100 - Math.abs(percentageChange(
+                  buys[0].markPrice,
+                  buys[0].liqPrice || 0
+                )), 0);
+                const distToLiqSell = Math.max(100 - Math.abs(percentageChange(
+                  sells[0].markPrice,
+                  sells[0].liqPrice || 0
+                )), 0);
+
                 // const spreadSize = Math.abs(strip(String(totalSizeSell)) - strip(String(totalSizeBuy)))
                 return (
                   <Fragment key={baseToken}>
@@ -401,19 +413,31 @@ function Positions({
                             gap={1}
                             alignItems="space-between"
                           >
-                            <ArrowUpwardIcon
+                            {/* <ArrowUpwardIcon
                               sx={{ color: "rgb(14 203 129 / 40%)" }}
-                            />
+                            /> */}
                             {sells.length ? (
-                              <Typography fontSize="14px">
-                                {numeral(
-                                  percentageChange(
-                                    sells[0].markPrice,
-                                    sells[0].liqPrice || 0
-                                  )
-                                ).format("0")}
-                                %
-                              </Typography>
+                              <Box>
+                                <Box
+                                  display="flex"
+                                  justifyContent="space-between"
+                                >
+                                  <Typography fontSize="10px">
+                                    {numeral(distToLiqSell).format("0,0")}%
+                                  </Typography>
+                                  <Typography fontSize="10px">
+                                    {numeral(sells[0].liqPrice).format(
+                                      precisionMap[baseToken] || "0,0.[0000]"
+                                    )}$
+                                  </Typography>
+                                </Box>
+
+                                <BorderLinearProgress
+                                  sx={{ width: 124 }}
+                                  variant="determinate"
+                                  value={distToLiqSell}
+                                />
+                              </Box>
                             ) : (
                               <Skeleton animation="wave" />
                             )}
@@ -423,19 +447,30 @@ function Positions({
                             gap={1}
                             alignItems="space-between"
                           >
-                            <ArrowDownwardIcon
+                            {/* <ArrowDownwardIcon
                               sx={{ color: "rgb(246 70 93 / 40%)" }}
-                            />
+                            /> */}
                             {buys.length ? (
-                              <Typography fontSize="14px">
-                                {numeral(
-                                  percentageChange(
-                                    buys[0].markPrice,
-                                    buys[0].liqPrice || 0
-                                  )
-                                ).format("0")}
-                                %
-                              </Typography>
+                              <Box>
+                                <Box
+                                  display="flex"
+                                  justifyContent="space-between"
+                                >
+                                  <Typography fontSize="10px">
+                                    {numeral(distToLiqBuy).format("0,0")}%
+                                  </Typography>
+                                  <Typography fontSize="10px">
+                                    {numeral(buys[0].liqPrice).format(
+                                      precisionMap[baseToken] || "0,0.[0000]"
+                                    )}$
+                                  </Typography>
+                                </Box>
+                                <BorderLinearProgress
+                                  sx={{ width: 124 }}
+                                  variant="determinate"
+                                  value={distToLiqBuy}
+                                />
+                              </Box>
                             ) : (
                               <Skeleton animation="wave" />
                             )}
@@ -569,6 +604,9 @@ const precisionMap: Record<string, string> = {
   AVAX: "0,0.00",
   ETC: "0.000",
   SUI: "0,0.000",
+  BTC: "0,0",
+  LTC: "0,0",
+  XRP: "0,0.00",
 };
 
 export default Positions;
@@ -618,7 +656,7 @@ const getHeadCells = (numberOfToken: number): readonly HeadCell[] => [
     id: "liqPrice",
     numeric: true,
     disablePadding: false,
-    label: "Liq.Price %",
+    label: "Dist. to liq",
     sortable: true,
   },
 
@@ -756,5 +794,23 @@ const Accordion = styled((props: AccordionProps) => (
   },
   "&::before": {
     display: "none",
+  },
+}));
+
+const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
+  height: 4,
+  borderRadius: 2,
+  [`&.${linearProgressClasses.colorPrimary}`]: {
+    backgroundColor: "red",
+    ...theme.applyStyles("dark", {
+      backgroundColor: theme.palette.grey[800],
+    }),
+  },
+  [`& .${linearProgressClasses.bar}`]: {
+    borderRadius: 5,
+    backgroundColor: "rgb(246, 70, 93)",
+    ...theme.applyStyles("dark", {
+      backgroundColor: "rgb(246, 70, 93)",
+    }),
   },
 }));

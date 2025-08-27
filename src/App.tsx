@@ -31,7 +31,7 @@ const darkTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Kraken Plex Mono", monospace',
+    fontFamily: 'IBM Plex Mono, monospace',
     fontSize: 14,
   },
 })
