@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Skeleton } from "@mui/material";
 import * as Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import dayjs from "dayjs";
@@ -170,7 +170,7 @@ function CandleChart({
       {candleSticks.length && diffFundings.length ? (
         <Box>
           <Box display="flex" alignItems="center" gap={1}>
-            <Typography fontWeight="bold" mb={2}>
+            <Typography mb={2}>
               Last 2 weeks APR:{" "}
               {numeral((last2WeeksFundingRates * (365 / (7 * 2))) / 2).format(
                 "0.000"
@@ -180,7 +180,13 @@ function CandleChart({
           </Box>
           <HighchartsReact highcharts={Highcharts} options={options} />
         </Box>
-      ) : null}
+      ) : (
+        <Box sx={{ width: "100%" }}>
+          <Skeleton height={64} />
+          <Skeleton animation="wave" height={64} />
+          <Skeleton animation={false} height={64} />
+        </Box>
+      )}
     </Box>
   );
 }

@@ -20,6 +20,7 @@ import {
   Collapse,
   Alert,
   AlertTitle,
+  Tooltip,
 } from "@mui/material";
 import LinearProgress, {
   linearProgressClasses,
@@ -199,13 +200,10 @@ function Positions({
         <Table>
           <TableHead
             sx={{
-              position: "sticky",
-              top: 0,
-              zIndex: 1,
-              backgroundColor: "#010409",
+              backgroundColor: "rgba(255, 255, 255, 0.08)",
             }}
           >
-            <TableRow sx={{ height: "64px" }}>
+            <TableRow sx={{ height: "56px" }}>
               {headCells.map((headCell) => (
                 <TableCell
                   key={headCell.id}
@@ -223,7 +221,9 @@ function Positions({
                         : undefined
                     }
                   >
-                    <Typography>{headCell.label}</Typography>
+                    <Typography color="textSecondary">
+                      {headCell.label}
+                    </Typography>
                     {headCell.sortable && orderBy === headCell.id ? (
                       <Box component="span">
                         {order !== "desc" ? (
@@ -290,14 +290,23 @@ function Positions({
                   }
                 );
 
-                const distToLiqBuy = Math.max(100 - Math.abs(percentageChange(
-                  buys[0].markPrice,
-                  buys[0].liqPrice || 0
-                )), 0);
-                const distToLiqSell = Math.max(100 - Math.abs(percentageChange(
-                  sells[0].markPrice,
-                  sells[0].liqPrice || 0
-                )), 0);
+                const distToLiqBuy = Math.max(
+                  100 -
+                    Math.abs(
+                      percentageChange(buys[0].markPrice, buys[0].liqPrice || 0)
+                    ),
+                  0
+                );
+                const distToLiqSell = Math.max(
+                  100 -
+                    Math.abs(
+                      percentageChange(
+                        sells[0].markPrice,
+                        sells[0].liqPrice || 0
+                      )
+                    ),
+                  0
+                );
 
                 // const spreadSize = Math.abs(strip(String(totalSizeSell)) - strip(String(totalSizeBuy)))
                 return (
@@ -311,7 +320,7 @@ function Positions({
                             width={20}
                             height={20}
                           />
-                          <Typography fontWeight="bold">{baseToken}</Typography>
+                          <Typography>{baseToken}</Typography>
                         </Box>
                       </TableCell>
                       <TableCell align="left">
@@ -394,7 +403,7 @@ function Positions({
                         <Typography>
                           {sells.length ? (
                             numeral(sells[0].markPrice).format(
-                              precisionMap[baseToken] || "0,0.[0000]"
+                              precisionMap[baseToken] || "0,0.[000]"
                             )
                           ) : (
                             <Skeleton animation="wave" />
@@ -427,8 +436,9 @@ function Positions({
                                   </Typography>
                                   <Typography fontSize="10px">
                                     {numeral(sells[0].liqPrice).format(
-                                      precisionMap[baseToken] || "0,0.[0000]"
-                                    )}$
+                                      precisionMap[baseToken] || "0,0.[000]"
+                                    )}
+                                    $
                                   </Typography>
                                 </Box>
 
@@ -462,7 +472,8 @@ function Positions({
                                   <Typography fontSize="10px">
                                     {numeral(buys[0].liqPrice).format(
                                       precisionMap[baseToken] || "0,0.[0000]"
-                                    )}$
+                                    )}
+                                    $
                                   </Typography>
                                 </Box>
                                 <BorderLinearProgress
@@ -484,12 +495,24 @@ function Positions({
                         !buys.length ? (
                           <Skeleton animation="wave" />
                         ) : (
-                          <Typography>
-                            {numeral(
-                              100 * (sells[0].fundingRate - buys[0].fundingRate)
-                            ).format("0,0.[00]")}
-                            %
-                          </Typography>
+                          <Box>
+                            <Tooltip
+                              placement="top-start"
+                              title={`${numeral(
+                                100 * sells[0].fundingRate
+                              ).format("0,0.[000]")} - ${numeral(
+                                100 * buys[0].fundingRate
+                              ).format("0,0.[000]")}`}
+                            >
+                              <Typography>
+                                {numeral(
+                                  100 *
+                                    (sells[0].fundingRate - buys[0].fundingRate)
+                                ).format("0,0.[000]")}
+                                %
+                              </Typography>
+                            </Tooltip>
+                          </Box>
                         )}
                       </TableCell>
 
@@ -782,7 +805,7 @@ interface Data extends IPosition {
 }
 
 const TableCell = styled(TableCellMui)(() => ({
-  padding: "8px 16px",
+  padding: "6px 16px",
 }));
 
 const Accordion = styled((props: AccordionProps) => (
@@ -798,7 +821,7 @@ const Accordion = styled((props: AccordionProps) => (
 }));
 
 const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
-  height: 4,
+  height: 2,
   borderRadius: 2,
   [`&.${linearProgressClasses.colorPrimary}`]: {
     backgroundColor: "red",

@@ -32,7 +32,7 @@ const darkTheme = createTheme({
   },
   typography: {
     fontFamily: 'IBM Plex Mono, monospace',
-    fontSize: 14,
+    fontSize: 12,
   },
 })
 

@@ -5,7 +5,7 @@ import {
   Table,
   TableHead,
   TableRow,
-  TableCell,
+  TableCell as TableCellMui,
   TableBody,
   Typography,
   Tooltip,
@@ -22,6 +22,7 @@ import type {
   IPosition,
 } from "../redux/positions/positionsSlice";
 import { selectPositions } from "../redux/positions/positionsSlice";
+import { styled } from "@mui/system";
 import {
   selectBalances,
   selectBalancesError,
@@ -106,7 +107,7 @@ function ExchangeMargin() {
               position: "sticky",
               top: 0,
               zIndex: 1,
-              backgroundColor: "#010409",
+              backgroundColor: "rgba(255, 255, 255, 0.08)",
             }}
           >
             <TableRow sx={{ height: "48px" }}>
@@ -271,3 +272,7 @@ function ExchangeMargin() {
 }
 
 export default ExchangeMargin;
+
+const TableCell = styled(TableCellMui)(() => ({
+  padding: "12px 16px",
+}));
