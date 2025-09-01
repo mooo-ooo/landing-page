@@ -10,7 +10,6 @@ import {
   IconButton,
   TableCell as TableCellMui,
   Card,
-  LinearProgress,
 } from "@mui/material";
 import { styled } from "@mui/system";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -188,17 +187,6 @@ const BotItem = ({
       <Box height={6} />
       <Typography>Strategy: {strategy?.strategyName}</Typography>
       <Box height={6} />
-      {/* <Box sx={{ width: "100%" }}>
-        <LinearProgress
-          sx={{
-            height: 2,
-            backgroundColor: "rgb(6 84 53)",
-            "& .MuiLinearProgress-bar": {
-              backgroundColor: "rgb(14, 203, 129)",
-            },
-          }}
-        />
-      </Box> */}
     </Card>
   );
 };
@@ -256,6 +244,8 @@ const StrategyRow = ({
     <TableRow key={_id} sx={{ opacity }}>
       <TableCell>
         <div
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           ref={drag}
           style={{ cursor: "move", textAlign: "center", lineHeight: "36px" }}
         >
