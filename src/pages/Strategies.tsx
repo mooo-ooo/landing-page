@@ -10,7 +10,13 @@ import {
   IconButton,
   TableCell as TableCellMui,
   Card,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Button,
+  DialogActions,
 } from "@mui/material";
+import ReplayOutlinedIcon from '@mui/icons-material/ReplayOutlined';
 import { styled } from "@mui/system";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
@@ -72,7 +78,7 @@ const Strategies: FC = () => {
               const strategy = strategies.find((strategy) => {
                 return strategy._id === bot.strategyId;
               });
-              return <BotItem strategy={strategy} bot={bot} />;
+              return <BotItem key={bot._id} strategy={strategy} bot={bot} />;
             })}
           </Box>
         </Box>
@@ -140,6 +146,7 @@ const Strategies: FC = () => {
               {strategies.map((strategy) => (
                 <StrategyRow
                   strategy={strategy}
+                  key={strategy._id}
                   handleRemoveStrategy={handleRemoveStrategy}
                   fetchStrategies={fetchStrategies}
                 />
@@ -175,17 +182,31 @@ const BotItem = ({
     // @ts-ignore
     <Card
       ref={drop}
+      key={bot._id}
       sx={{
         p: 2,
         width: "30%",
-        border: isActive
-          ? "1px solid #ffa726"
-          : "1px solid #121212",
+        // border: isActive ? "1px solid #ffa726" : "1px solid #121212",
+        backgroundImage: isActive
+          ? `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='1' ry='1' stroke='grey' stroke-width='7' stroke-dasharray='18%2c 14%2c 18%2c 22' stroke-dashoffset='28' stroke-linecap='square'/%3e%3c/svg%3e");
+border-radius: 1px;`
+          : null,
       }}
     >
-      <Typography color="textSecondary">Id: {bot._id}</Typography>
-      <Box height={6} />
-      <Typography>Strategy: {strategy?.strategyName}</Typography>
+      <Box display="flex" justifyContent="space-between" flexDirection="row">
+        <Box>
+          <Typography color="textSecondary">Id: {bot._id}</Typography>
+          <Box height={6} />
+          <Typography>Strategy: {strategy?.strategyName}</Typography>
+        </Box>
+        <Box>
+          <ReplayOutlinedIcon
+            sx={{ fontSize: 36, fill: 'rgb(14, 203, 129)' }}
+            className="loaderIcon"
+          />
+        </Box>
+      </Box>
+
       <Box height={6} />
     </Card>
   );
@@ -200,6 +221,11 @@ const StrategyRow = ({
   handleRemoveStrategy: (id: string) => void;
   fetchStrategies: () => void;
 }) => {
+  const [open, setOpen] = useState(false);
+  const [updatedRequest, setUpdatedRequest] = useState<{
+    _id: string;
+    strategyId: string;
+  }>();
   const {
     strategyName,
     sellExchange,
@@ -213,22 +239,23 @@ const StrategyRow = ({
     secondOutSpread,
     maxOrderVol,
     maxVolOfPosition,
+    isIncrease,
+    isReduce,
+    requiredOrderVol,
   } = strategy;
 
+  const isStopped = !isIncrease && !isReduce;
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemTypes.BOX,
     item: { _id },
     end: (item, monitor) => {
       const dropResult = monitor.getDropResult<DropResult>();
       if (item && dropResult) {
-        api
-          .put("/api/v1/botorders", {
-            _id: dropResult.id,
-            strategyId: item._id,
-          })
-          .then(async () => {
-            fetchStrategies();
-          });
+        setOpen(true);
+        setUpdatedRequest({
+          _id: dropResult.id,
+          strategyId: item._id,
+        });
       }
     },
     collect: (monitor) => ({
@@ -238,6 +265,13 @@ const StrategyRow = ({
   }));
   const baseToken = sellSymbol.split("/")[0];
   const dispatch = useDispatch<AppDispatch>();
+
+  const handleOk = () => {
+    api.put("/api/v1/botorders", updatedRequest).then(async () => {
+      fetchStrategies();
+      setOpen(false);
+    });
+  };
 
   const opacity = isDragging ? 0.4 : 1;
   return (
@@ -296,6 +330,124 @@ const StrategyRow = ({
           <DeleteForeverIcon />
         </IconButton>
       </TableCell>
+      <Dialog
+        sx={{ "& .MuiDialog-paper": { width: "80%", maxHeight: 435 } }}
+        maxWidth="xs"
+        open={open}
+      >
+        <DialogTitle>Confirmation Strategy</DialogTitle>
+        <DialogContent dividers>
+          <Box
+            display="flex"
+            flexDirection="row"
+            sx={{
+              alignItems: "center",
+              width: "100%",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography>Strategy name</Typography>
+            <Typography>{strategyName}</Typography>
+          </Box>
+          <Box height={16} />
+          {isReduce ? (
+            <Box
+              display="flex"
+              flexDirection="row"
+              sx={{
+                alignItems: "center",
+                width: "100%",
+                justifyContent: "space-between",
+                padding: 2,
+                background: "rgb(246 70 93 / 10%)",
+              }}
+            >
+              <Typography>Close</Typography>
+              <Typography>
+                [{bestOutSpread} | {secondOutSpread}]
+              </Typography>
+            </Box>
+          ) : null}
+          {isStopped ? (
+            <Typography
+              sx={{
+                alignItems: "center",
+                width: "100%",
+                justifyContent: "space-between",
+                padding: 2,
+                background: "rgb(246 70 93 / 10%)",
+              }}
+            >
+              Stop this strategy
+            </Typography>
+          ) : null}
+          {isIncrease ? (
+            <Box
+              display="flex"
+              flexDirection="row"
+              sx={{
+                alignItems: "center",
+                width: "100%",
+                justifyContent: "space-between",
+                padding: 2,
+                background: "rgb(14 203 129 / 10%)",
+              }}
+            >
+              <Typography>Open</Typography>
+              <Typography>
+                [{bestInSpread} | {secondInSpread}]
+              </Typography>
+            </Box>
+          ) : null}
+          <Box height={16} />
+          <Box
+            display="flex"
+            flexDirection="row"
+            sx={{
+              alignItems: "center",
+              width: "100%",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography>Max vol of strategy (USDT)</Typography>
+            <Typography>
+              {numeral(maxVolOfPosition).format("0,0.[000]")}
+            </Typography>
+          </Box>
+          <Box height={16} />
+          <Box
+            display="flex"
+            flexDirection="row"
+            sx={{
+              alignItems: "center",
+              width: "100%",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography>Max vol per order (USDT)</Typography>
+            <Typography>{maxOrderVol}</Typography>
+          </Box>
+          <Box height={16} />
+          <Box
+            display="flex"
+            flexDirection="row"
+            sx={{
+              alignItems: "center",
+              width: "100%",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography>Required vol per order (USDT)</Typography>
+            <Typography>{requiredOrderVol}</Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleOk}>Ok</Button>
+        </DialogActions>
+      </Dialog>
     </TableRow>
   );
 };

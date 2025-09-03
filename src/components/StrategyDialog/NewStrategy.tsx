@@ -462,7 +462,30 @@ function NewStrategyDialog(props: NewStrategyProps) {
               Suggested max amount pre order 1000 USDT
             </Typography>
           </Box>
-          <Box height={32} />
+          <Box height={16} />
+            <Box display="flex" width="100%" flexDirection="column">
+              <Typography>Required vol per order:</Typography>
+              <TextField
+                name="requiredOrderVol"
+                fullWidth
+                size="small"
+                onChange={handleOnChangeStrategy}
+                type="string"
+                value={strategy.requiredOrderVol}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">USDT</InputAdornment>
+                    ),
+                  },
+                }}
+                variant="outlined"
+              />
+            </Box>
+          <Box height={16} />
           {strategy.isIncrease ? (
             <Box display="flex" width="100%" flexDirection="column">
               <Typography>Max volume:</Typography>
