@@ -52,7 +52,7 @@ import numeral from "numeral";
 
 // Store
 import type { IPosition } from "../../redux/positions/positionsSlice";
-import { percentageChange } from "../../helpers";
+import { percentageChange, strip } from "../../helpers";
 
 export const DEFAULT_PERCENT_CHANGE_TO_SL = 35;
 
@@ -267,6 +267,10 @@ function Positions({
                   (tot, { size }) => size + tot,
                   0
                 );
+                const totalSizeBuy = buys.reduce(
+                  (tot, { size }) => size + tot,
+                  0
+                );
                 const biggestPnLExchange = [...sells, ...buys].reduce(
                   (maxExchange, position) => {
                     const maxPnL = position.unrealizedPnl || 0;
@@ -308,7 +312,9 @@ function Positions({
                   0
                 );
 
-                // const spreadSize = Math.abs(strip(String(totalSizeSell)) - strip(String(totalSizeBuy)))
+                const spreadSize = Math.abs(
+                  strip(String(totalSizeSell)) - strip(String(totalSizeBuy))
+                );
                 return (
                   <Fragment key={baseToken}>
                     <TableRow>
@@ -321,6 +327,21 @@ function Positions({
                             height={20}
                           />
                           <Typography>{baseToken}</Typography>
+                          {spreadSize ? (
+                            <IconButton
+                              aria-label="expand row"
+                              size="small"
+                              onClick={() => {
+                                if (openTokenDetails === baseToken) {
+                                  setOpenTokenDetails("");
+                                } else {
+                                  setOpenTokenDetails(baseToken);
+                                }
+                              }}
+                            >
+                              <Typography color="rgb(246, 70, 93)">{numeral(spreadSize * sells[0].markPrice).format("0,0")}</Typography>
+                            </IconButton>
+                          ) : null}
                         </Box>
                       </TableCell>
                       <TableCell align="left">
@@ -569,7 +590,11 @@ function Positions({
                     </TableRow>
                     <TableRow>
                       <TableCell
-                        style={{ paddingBottom: 0, paddingTop: 0, border: 'none' }}
+                        style={{
+                          paddingBottom: 0,
+                          paddingTop: 0,
+                          border: "none",
+                        }}
                         colSpan={headCells.length + 1}
                       >
                         <Collapse
