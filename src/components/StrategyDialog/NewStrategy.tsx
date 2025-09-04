@@ -30,7 +30,11 @@ import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { selectBalances } from "../../redux/balances/balancesSlice";
-import { useSelector } from "react-redux";
+import {
+  fetchStrategies,
+} from "../../redux/strategy/strategySlice";
+import type { AppDispatch } from "../../redux/store";
+import { useSelector, useDispatch } from "react-redux";
 import api from "../../lib/axios";
 
 export interface NewStrategyProps {
@@ -44,6 +48,7 @@ const markPriceBaseUrl =
 
 function NewStrategyDialog(props: NewStrategyProps) {
   const theme = useTheme();
+  const dispatch = useDispatch<AppDispatch>();
   const { baseToken, onClose, open } = props;
   const [strategy, setStrategy] = useState<Partial<IStrategy>>({
     strategyName: props.baseToken?.toUpperCase() || "",
@@ -122,6 +127,10 @@ function NewStrategyDialog(props: NewStrategyProps) {
           severity: "success",
           message: "Strategy created successfully",
         });
+        setTimeout(() => {
+          onClose()
+        }, 3000);
+        dispatch(fetchStrategies());
       })
       .catch((err) => {
         console.log(err);

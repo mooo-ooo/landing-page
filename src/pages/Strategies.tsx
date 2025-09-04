@@ -64,9 +64,8 @@ const Strategies: FC = () => {
     });
   };
   useEffect(() => {
-    
-    fetchBots()
-  }, [strategies])
+    fetchBots();
+  }, [strategies]);
   useEffect(() => {
     dispatch(fetchStrategies());
     fetchBots();
@@ -139,13 +138,13 @@ const Strategies: FC = () => {
                   </Typography>
                 </TableCell>
                 <TableCell align="left">
-                  <Typography color="textSecondary">
-                    Max vol (order)
-                  </Typography>
+                  <Typography color="textSecondary">Max vol (order)</Typography>
                 </TableCell>
 
                 <TableCell align="left">
-                  <Typography color="textSecondary">Max vol (strategy)</Typography>
+                  <Typography color="textSecondary">
+                    Max vol (strategy)
+                  </Typography>
                 </TableCell>
                 <TableCell align="left">
                   <Typography color="textSecondary">Direction</Typography>
@@ -161,7 +160,6 @@ const Strategies: FC = () => {
                   strategy={strategy}
                   key={strategy._id}
                   handleRemoveStrategy={handleRemoveStrategy}
-                  fetchStrategies={fetchStrategies}
                 />
               ))}
             </TableBody>
@@ -212,15 +210,22 @@ border-radius: 1px;`
           <Typography color="textSecondary">Id: {bot._id}</Typography>
           <Box height={6} />
           <Box display="flex" gap={2}>
-            
             {isStopped ? (
-              <PausePresentationIcon sx={{ color: "rgb(246, 70, 93)", fontSize: 24 }} />
+              <PausePresentationIcon
+                sx={{ color: "rgb(246, 70, 93)", fontSize: 24 }}
+              />
             ) : isIncrease ? (
-              <TrendingUpIcon sx={{ color: "rgb(14, 203, 129)", fontSize: 24 }} />
+              <TrendingUpIcon
+                sx={{ color: "rgb(14, 203, 129)", fontSize: 24 }}
+              />
             ) : (
-              <TrendingDownIcon sx={{ color: "rgb(246, 70, 93)", fontSize: 24 }} />
+              <TrendingDownIcon
+                sx={{ color: "rgb(246, 70, 93)", fontSize: 24 }}
+              />
             )}
-            <Typography fontSize={16} fontWeight="bold">{strategy?.strategyName}</Typography>
+            <Typography fontSize={16} fontWeight="bold">
+              {strategy?.strategyName}
+            </Typography>
           </Box>
         </Box>
         <Box>
@@ -239,11 +244,9 @@ border-radius: 1px;`
 const StrategyRow = ({
   strategy,
   handleRemoveStrategy,
-  fetchStrategies,
 }: {
   strategy: IStrategy;
   handleRemoveStrategy: (id: string) => void;
-  fetchStrategies: () => void;
 }) => {
   const [open, setOpen] = useState(false);
   const [updatedRequest, setUpdatedRequest] = useState<{
@@ -292,7 +295,7 @@ const StrategyRow = ({
 
   const handleOk = () => {
     api.put("/api/v1/botorders", updatedRequest).then(async () => {
-      fetchStrategies();
+      dispatch(fetchStrategies());
       setOpen(false);
     });
   };
@@ -305,7 +308,11 @@ const StrategyRow = ({
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           ref={drag}
-          style={{ cursor: "move", textAlign: "center", lineHeight: "36px" }}
+          style={{
+            cursor: "move",
+            textAlign: "center",
+            lineHeight: "36px",
+          }}
         >
           {strategyName}
         </div>
