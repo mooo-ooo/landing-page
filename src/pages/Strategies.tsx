@@ -16,15 +16,22 @@ import {
   Button,
   DialogActions,
 } from "@mui/material";
-import ReplayOutlinedIcon from '@mui/icons-material/ReplayOutlined';
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import TrendingDownIcon from "@mui/icons-material/TrendingDown";
+import PausePresentationIcon from "@mui/icons-material/PausePresentation";
+import SlowMotionVideoIcon from "@mui/icons-material/SlowMotionVideo";
 import { styled } from "@mui/system";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import numeral from "numeral";
 import type { AppDispatch } from "../redux/store";
+import {
+  fetchStrategies,
+  selectStrategies,
+} from "../redux/strategy/strategySlice";
 import { useSnackbar } from "notistack";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -47,24 +54,26 @@ interface DropResult {
 const Strategies: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch<AppDispatch>();
-  const [strategies, setStrategies] = useState<IStrategy[]>([]);
+  const strategies = useSelector(selectStrategies);
+
   const [bots, setBots] = useState<{ _id: string; strategyId: string }[]>([]);
 
-  const fetchStrategies = () => {
-    api.get("/api/v1/strategies").then(({ data }) => {
-      setStrategies(data);
-    });
-
+  const fetchBots = () => {
     api.get("/api/v1/botorders").then(async ({ data }) => {
       setBots(data);
     });
   };
   useEffect(() => {
-    fetchStrategies();
+    
+    fetchBots()
+  }, [strategies])
+  useEffect(() => {
+    dispatch(fetchStrategies());
+    fetchBots();
   }, []);
   const handleRemoveStrategy = (id: string) => {
     api.delete(`/api/v1/strategies?_id=${id}`).then(() => {
-      fetchStrategies();
+      dispatch(fetchStrategies());
       enqueueSnackbar(`Removed successfully`, { variant: "success" });
     });
   };
@@ -114,10 +123,10 @@ const Strategies: FC = () => {
                   <Typography color="textSecondary">Name</Typography>
                 </TableCell>
                 <TableCell align="left">
-                  <Typography color="textSecondary">Sell Exchange</Typography>
+                  <Typography color="textSecondary">Exchanges</Typography>
                 </TableCell>
                 <TableCell align="left">
-                  <Typography color="textSecondary">Buy Exchange</Typography>
+                  <Typography color="textSecondary">Symbol</Typography>
                 </TableCell>
                 <TableCell align="left">
                   <Typography color="textSecondary">
@@ -131,11 +140,15 @@ const Strategies: FC = () => {
                 </TableCell>
                 <TableCell align="left">
                   <Typography color="textSecondary">
-                    Max vol per order
+                    Max vol (order)
                   </Typography>
                 </TableCell>
+
                 <TableCell align="left">
-                  <Typography color="textSecondary">Max vol</Typography>
+                  <Typography color="textSecondary">Max vol (strategy)</Typography>
+                </TableCell>
+                <TableCell align="left">
+                  <Typography color="textSecondary">Direction</Typography>
                 </TableCell>
                 <TableCell align="left">
                   <MoreVertIcon />
@@ -168,6 +181,8 @@ const BotItem = ({
   bot: { _id: string; strategyId: string };
   strategy?: IStrategy;
 }) => {
+  const { isIncrease, isReduce } = strategy || {};
+  const isStopped = !isIncrease && !isReduce;
   const [{ canDrop, isOver }, drop] = useDrop(() => ({
     accept: ItemTypes.BOX,
     drop: () => ({ id: bot._id }),
@@ -186,7 +201,6 @@ const BotItem = ({
       sx={{
         p: 2,
         width: "30%",
-        // border: isActive ? "1px solid #ffa726" : "1px solid #121212",
         backgroundImage: isActive
           ? `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='1' ry='1' stroke='grey' stroke-width='7' stroke-dasharray='18%2c 14%2c 18%2c 22' stroke-dashoffset='28' stroke-linecap='square'/%3e%3c/svg%3e");
 border-radius: 1px;`
@@ -197,12 +211,22 @@ border-radius: 1px;`
         <Box>
           <Typography color="textSecondary">Id: {bot._id}</Typography>
           <Box height={6} />
-          <Typography>Strategy: {strategy?.strategyName}</Typography>
+          <Box display="flex" gap={2}>
+            
+            {isStopped ? (
+              <PausePresentationIcon sx={{ color: "rgb(246, 70, 93)", fontSize: 24 }} />
+            ) : isIncrease ? (
+              <TrendingUpIcon sx={{ color: "rgb(14, 203, 129)", fontSize: 24 }} />
+            ) : (
+              <TrendingDownIcon sx={{ color: "rgb(246, 70, 93)", fontSize: 24 }} />
+            )}
+            <Typography fontSize={16} fontWeight="bold">{strategy?.strategyName}</Typography>
+          </Box>
         </Box>
         <Box>
-          <ReplayOutlinedIcon
-            sx={{ fontSize: 36, fill: 'rgb(14, 203, 129)' }}
-            className="loaderIcon"
+          <SlowMotionVideoIcon
+            sx={{ fontSize: 36, fill: "rgb(14, 203, 129)" }}
+            className="blinking-icon"
           />
         </Box>
       </Box>
@@ -286,19 +310,24 @@ const StrategyRow = ({
           {strategyName}
         </div>
       </TableCell>
-      <TableCell
-        sx={{
-          color: "rgb(246, 70, 93)",
-        }}
-      >
-        [{sellExchange.toUpperCase()}] {sellSymbol}
+      <TableCell>
+        <Typography
+          sx={{
+            color: "rgb(246, 70, 93)",
+          }}
+        >
+          {sellExchange}
+        </Typography>
+        <Typography
+          sx={{
+            color: "rgb(14, 203, 129)",
+          }}
+        >
+          {buyExchange}
+        </Typography>
       </TableCell>
-      <TableCell
-        sx={{
-          color: "rgb(14, 203, 129)",
-        }}
-      >
-        [{buyExchange.toUpperCase()}] {buySymbol}
+      <TableCell>
+        {buySymbol === sellSymbol ? buySymbol : `${sellSymbol}/${buySymbol}`}
       </TableCell>
       <TableCell>
         {bestInSpread}% | {secondInSpread}%
@@ -307,7 +336,17 @@ const StrategyRow = ({
         {bestOutSpread}% | {secondOutSpread}%
       </TableCell>
       <TableCell>{maxOrderVol}</TableCell>
+
       <TableCell>{numeral(maxVolOfPosition).format("0,0.[000]")}</TableCell>
+      <TableCell>
+        {isStopped ? (
+          <PausePresentationIcon sx={{ color: "rgb(246, 70, 93)" }} />
+        ) : isIncrease ? (
+          <TrendingUpIcon sx={{ color: "rgb(14, 203, 129)" }} />
+        ) : (
+          <TrendingDownIcon sx={{ color: "rgb(246, 70, 93)" }} />
+        )}
+      </TableCell>
       <TableCell>
         <IconButton
           onClick={() => dispatch(setUpdateStrategy({ open: true, baseToken }))}

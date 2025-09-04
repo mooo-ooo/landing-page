@@ -7,28 +7,31 @@ import EquitiesChart from "../components/EquitiesChart";
 import { useNormalizedPositions, useFundingRates } from "../hooks";
 import { selectPositionsError } from "../redux/positions/positionsSlice";
 import { selectBalances } from "../redux/balances/balancesSlice";
-import type { IStrategy } from "../redux/strategy/strategySlice";
-import { useSelector } from "react-redux";
+import { fetchStrategies, selectStrategies } from "../redux/strategy/strategySlice";
+import type { AppDispatch } from "../redux/store";
+import { useSelector, useDispatch } from "react-redux";
 import type { ISymbol } from "../types";
 import api from "../lib/axios";
 
 const Dashboard: FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const [symbols, setSymbols] = useState<ISymbol[]>([]);
   const positionsError = useSelector(selectPositionsError);
   const balances = useSelector(selectBalances);
+  const strategies = useSelector(selectStrategies)
+
   const dashboardRef = useRef<HTMLDivElement>(null);
   const exchangeMarginRef = useRef<HTMLDivElement>(null);
   const [dashboardWidth, setDashboardWidth] = useState<number>(0);
   const [exchangeMarginHeight, setExchangeMarginHeight] = useState<number>(0);
-  const [strategies, setStrategies] = useState<IStrategy[]>([]);
+
   const exchanges = useMemo(() => {
     return Object.keys(balances);
   }, [balances]);
 
   useEffect(() => {
-    api.get("/api/v1/strategies").then(({ data }) => {
-      setStrategies(data);
-    });
+    dispatch(fetchStrategies())
+
     api
       .get("/api/v1/symbols")
       .then(({ data }: { data: ISymbol[] }) => setSymbols(data));

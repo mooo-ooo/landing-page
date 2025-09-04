@@ -569,7 +569,7 @@ function Positions({
                     </TableRow>
                     <TableRow>
                       <TableCell
-                        style={{ paddingBottom: 0, paddingTop: 0 }}
+                        style={{ paddingBottom: 0, paddingTop: 0, border: 'none' }}
                         colSpan={headCells.length + 1}
                       >
                         <Collapse

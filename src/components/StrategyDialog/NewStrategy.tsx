@@ -509,7 +509,7 @@ function NewStrategyDialog(props: NewStrategyProps) {
                 variant="outlined"
               />
               <Typography color="textSecondary" fontSize={12}>
-                Volumn = tokenAmount * markPrice (buy + sell)
+                Volumn per side
               </Typography>
             </Box>
           ) : (

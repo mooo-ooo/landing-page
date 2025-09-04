@@ -22,15 +22,20 @@ import {
   Alert,
 } from "@mui/material";
 import type { IStrategy } from "../../redux/strategy/strategySlice";
+import {
+  fetchStrategies,
+  selectStrategies,
+} from "../../redux/strategy/strategySlice";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import SettingsIcon from "@mui/icons-material/Settings";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CloseIcon from "@mui/icons-material/Close";
-import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
+import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { selectBalances } from "../../redux/balances/balancesSlice";
-import { useSelector } from "react-redux";
+import type { AppDispatch } from "../../redux/store";
+import { useSelector, useDispatch } from "react-redux";
 import api from "../../lib/axios";
 
 export interface UpdateStrategyProps {
@@ -45,8 +50,10 @@ const markPriceBaseUrl =
 
 function UpdateStrategyDialog(props: UpdateStrategyProps) {
   const theme = useTheme();
+  const dispatch = useDispatch<AppDispatch>();
   const [strategy, setStrategy] = useState<Partial<IStrategy>>({});
   const balances = useSelector(selectBalances);
+  const strategies = useSelector(selectStrategies);
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   const { onClose, open, baseToken } = props;
   const [loading, setLoading] = useState(false);
@@ -69,41 +76,41 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
   };
 
   useEffect(() => {
-    if (baseToken) {
-      api.get("/api/v1/strategies").then(({ data }) => {
-        const found = data.find(({ sellSymbol, buySymbol }: IStrategy) => {
-          return (
-            sellSymbol.includes(baseToken?.toUpperCase()) &&
-            buySymbol.includes(baseToken?.toUpperCase())
-          );
-        });
-        setStrategy(found);
+    if (baseToken && strategies.length) {
+      const found = strategies.find(({ sellSymbol, buySymbol }: IStrategy) => {
+        return (
+          sellSymbol.includes(baseToken?.toUpperCase()) &&
+          buySymbol.includes(baseToken?.toUpperCase())
+        );
       });
-      api
-        .get(`${markPriceBaseUrl}${baseToken}USDT`)
-        .then(function ({ data: { price } }) {
-          setMarkPrice(price);
-          if (Number(price) > 50) {
-            setStrategy((prev) => {
-              return {
-                ...prev,
-                precision: estimatePrecision(Number(price)),
-              };
-            });
-          } else {
-            setStrategy((prev) => {
-              return {
-                ...prev,
-                multiple: estimateMultiple(Number(price)),
-              };
-            });
-          }
-        });
+      if (found) {
+        setStrategy(found);
+        api
+          .get(`${markPriceBaseUrl}${baseToken}USDT`)
+          .then(function ({ data: { price } }) {
+            setMarkPrice(price);
+            if (Number(price) > 50) {
+              setStrategy((prev) => {
+                return {
+                  ...prev,
+                  precision: estimatePrecision(Number(price)),
+                };
+              });
+            } else {
+              setStrategy((prev) => {
+                return {
+                  ...prev,
+                  multiple: estimateMultiple(Number(price)),
+                };
+              });
+            }
+          });
+      }
     }
-  }, []);
+  }, [strategies, baseToken]);
 
   const handleSubmit = async () => {
-    setLoading(true)
+    setLoading(true);
     api
       .put("/api/v1/strategies", strategy)
       .then(() => {
@@ -111,13 +118,18 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
           severity: "success",
           message: "Strategy updated successfully",
         });
+        setTimeout(() => {
+          onClose()
+        }, 3000);
+        dispatch(fetchStrategies());
       })
       .catch((err) => {
         setAlertMsg({
           severity: "error",
           message: err.response.data.message,
         });
-      }).finally(() => setLoading(false))
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -456,55 +468,59 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
               />
             </Box>
             <Box height={16} />
-            {strategy.isIncrease ? <Box display="flex" width="100%" flexDirection="column">
-              <Typography>Max volume:</Typography>
-              <TextField
-                name="maxVolOfPosition"
-                fullWidth
-                size="small"
-                onChange={handleOnChangeStrategy}
-                type="string"
-                value={strategy.maxVolOfPosition}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">USDT</InputAdornment>
-                    ),
-                  },
-                }}
-                variant="outlined"
-              />
-              <Typography color="textSecondary" fontSize={12}>
-                Volumn = tokenAmount * markPrice (buy + sell)
-              </Typography>
-            </Box> : <Box display="flex" width="100%" flexDirection="column">
-              <Typography>Min volume:</Typography>
-              <TextField
-                name="minVolOfPosition"
-                fullWidth
-                size="small"
-                onChange={handleOnChangeStrategy}
-                type="string"
-                value={strategy.minVolOfPosition}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">USDT</InputAdornment>
-                    ),
-                  },
-                }}
-                variant="outlined"
-              />
-              <Typography color="textSecondary" fontSize={12}>
-                Volumn = tokenAmount * markPrice (buy + sell)
-              </Typography>
-            </Box>}
+            {strategy.isIncrease ? (
+              <Box display="flex" width="100%" flexDirection="column">
+                <Typography>Max volume:</Typography>
+                <TextField
+                  name="maxVolOfPosition"
+                  fullWidth
+                  size="small"
+                  onChange={handleOnChangeStrategy}
+                  type="string"
+                  value={strategy.maxVolOfPosition}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">USDT</InputAdornment>
+                      ),
+                    },
+                  }}
+                  variant="outlined"
+                />
+                <Typography color="textSecondary" fontSize={12}>
+                  Volumn per side
+                </Typography>
+              </Box>
+            ) : (
+              <Box display="flex" width="100%" flexDirection="column">
+                <Typography>Min volume:</Typography>
+                <TextField
+                  name="minVolOfPosition"
+                  fullWidth
+                  size="small"
+                  onChange={handleOnChangeStrategy}
+                  type="string"
+                  value={strategy.minVolOfPosition}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">USDT</InputAdornment>
+                      ),
+                    },
+                  }}
+                  variant="outlined"
+                />
+                <Typography color="textSecondary" fontSize={12}>
+                  Volumn = tokenAmount * markPrice (buy + sell)
+                </Typography>
+              </Box>
+            )}
             <Box height={16} />
             <Accordion>
               <AccordionSummary

@@ -1,8 +1,9 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
+import api from "../../lib/axios";
 
 export interface IStrategy {
-  _id: string
+  _id: string;
   strategyName: string; // Unique for display and seeking
   // Exchanges name
   sellExchange: string;
@@ -45,9 +46,19 @@ export interface StrategiesState {
   updateStrategy: {
     open: boolean;
     baseToken?: string;
-    id?: string
+    id?: string;
   };
+  loading: boolean;
+  error?: string;
 }
+
+export const fetchStrategies = createAsyncThunk(
+  "strategies/fetchStrategies",
+  async () => {
+    const { data } = await api.get("/api/v1/strategies");
+    return data;
+  }
+);
 
 const initialState: StrategiesState = {
   data: [],
@@ -57,6 +68,8 @@ const initialState: StrategiesState = {
   updateStrategy: {
     open: false,
   },
+  loading: false,
+  error: undefined,
 };
 
 export const StrategiesSlice = createSlice({
@@ -86,14 +99,33 @@ export const StrategiesSlice = createSlice({
       state.updateStrategy = action.payload;
     },
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchStrategies.pending, (state) => {
+        state.loading = true;
+        state.error = undefined;
+      })
+      .addCase(fetchStrategies.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload;
+      })
+      .addCase(fetchStrategies.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to fetch Strategies";
+      });
+  },
 });
 
 // Action creators are generated for each case reducer function
-export const { setStrategies, setNewStrategy, setUpdateStrategy } = StrategiesSlice.actions;
+export const { setStrategies, setNewStrategy, setUpdateStrategy } =
+  StrategiesSlice.actions;
 
 export const selectNewStrategy = (state: { strategies: StrategiesState }) =>
   state.strategies.newStrategy;
 export const selectUpdateStrategy = (state: { strategies: StrategiesState }) =>
   state.strategies.updateStrategy;
+
+export const selectStrategies = (state: { strategies: StrategiesState }) =>
+  state.strategies.data;
 
 export default StrategiesSlice.reducer;

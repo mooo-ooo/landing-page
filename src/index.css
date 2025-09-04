@@ -29,3 +29,13 @@ body {
     transform: scale(1) rotate(-360deg);
   }
 }
+
+.blinking-icon {
+  animation: blink 3s infinite; /* Adjust duration and iteration count as needed */
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
