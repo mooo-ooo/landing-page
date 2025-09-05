@@ -568,7 +568,7 @@ function Positions({
                                 360 *
                                 3) /
                                 2
-                            ).format("0,0")}
+                            ).format("0,0.[0]")}
                             %
                           </Typography>
                         )}

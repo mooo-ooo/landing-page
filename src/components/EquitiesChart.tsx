@@ -43,7 +43,7 @@ const EquitiesChart: FC<EquitiesChartProps> = ({
   return (
     <Box>
       <Typography>
-        Index Fund: ~{numeral(totalMargin).format("0,0.0")} USDT
+        Equity: ~{numeral(totalMargin).format("0,0.0")} USDT
       </Typography>
       <PieChart
         series={[

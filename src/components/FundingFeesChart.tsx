@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import api from "../lib/axios";
 import { Typography, Box, Skeleton } from "@mui/material";
 import numeral from "numeral";
+import { useSelector } from "react-redux";
+import { selectBalances } from "../redux/balances/balancesSlice";
 import { LinePlot, MarkPlot } from "@mui/x-charts/LineChart";
 import { ChartContainer } from "@mui/x-charts/ChartContainer";
 import { ChartsXAxis } from "@mui/x-charts/ChartsXAxis";
@@ -26,6 +28,11 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
   width,
   loadingFundingRates,
 }) => {
+  const balances = useSelector(selectBalances);
+  const totalMargin = Object.values(balances).reduce(
+    (tot, { total = 0 }) => tot + total,
+    0
+  );
   const [rewardHistory, setRewardHistory] = useState<
     { date: string; value: number }[]
   >([]);
@@ -83,9 +90,19 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
       {loadingFundingRates ? (
         <Skeleton animation="wave" />
       ) : (
-        <Typography>
-          Estimated funding: ${numeral(estimatedFundingFee).format("0,0")} USDT
-        </Typography>
+        <Box display="flex" justifyContent="space-between">
+          <Typography>
+            Estimated funding: ${numeral(estimatedFundingFee).format("0,0")}{" "}
+            USDT
+          </Typography>
+          <Typography>
+            APR:{" "}
+            {numeral(
+              (estimatedFundingFee / totalMargin) * 3 * 365 * 100
+            ).format("0,0")}
+            %
+          </Typography>
+        </Box>
       )}
       {rewardHistory.length ? (
         <ChartContainer
