@@ -11,6 +11,7 @@ import { ChartsXAxis } from "@mui/x-charts/ChartsXAxis";
 import { ChartsYAxis } from "@mui/x-charts/ChartsYAxis";
 import { ChartsTooltip } from "@mui/x-charts/ChartsTooltip";
 import { BarPlot } from "@mui/x-charts/BarChart";
+import Marquee from "react-fast-marquee";
 import { ChartsAxisHighlight } from "@mui/x-charts/ChartsAxisHighlight";
 
 interface FundingFeesChartProps {
@@ -85,6 +86,8 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
       });
   }, []);
 
+  const apr = (estimatedFundingFee / totalMargin) * 3 * 365;
+  const apy = convertAprToApy(apr, 12);
   return (
     <Box>
       {loadingFundingRates ? (
@@ -95,13 +98,12 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
             Estimated funding: ${numeral(estimatedFundingFee).format("0,0")}{" "}
             USDT
           </Typography>
-          <Typography>
-            APR:{" "}
-            {numeral(
-              (estimatedFundingFee / totalMargin) * 3 * 365 * 100
-            ).format("0,0")}
-            %
-          </Typography>
+          <Box width={120}>
+            <Marquee speed={20} delay={100}>
+              <Typography mr={6}>APR: {numeral(apr * 100).format("0,0")}%</Typography>
+              <Typography mr={6}>APY: {numeral(apy * 100).format("0,0")}%</Typography>
+            </Marquee>
+          </Box>
         </Box>
       )}
       {rewardHistory.length ? (
@@ -160,3 +162,13 @@ const getAccumulatedArray = (arr: number[]): number[] => {
     return runningSum;
   });
 };
+
+export function convertAprToApy(
+  apr: number,
+  compoundingPeriods: number
+): number {
+  if (compoundingPeriods <= 0) {
+    throw new Error("compoundingPeriods must be greater than 0");
+  }
+  return Math.pow(1 + apr / compoundingPeriods, compoundingPeriods) - 1;
+}

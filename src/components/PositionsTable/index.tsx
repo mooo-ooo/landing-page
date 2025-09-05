@@ -27,6 +27,7 @@ import LinearProgress, {
 } from "@mui/material/LinearProgress";
 import type { AccordionProps } from "@mui/material";
 import { styled } from "@mui/system";
+import ConstructionIcon from '@mui/icons-material/Construction';
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -36,10 +37,12 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ViewQuiltIcon from "@mui/icons-material/ViewQuilt";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import CandleChart from "./CandleChart";
 import type { AppDispatch } from "../../redux/store";
 import type { IStrategy } from "../../redux/strategy/strategySlice";
+import { selectBalances } from "../../redux/balances/balancesSlice";
+import { useBalances } from '../../redux/selector'
 import {
   setUpdateStrategy,
   setNewStrategy,
@@ -76,6 +79,12 @@ function Positions({
   }[];
 }) {
   const dispatch = useDispatch<AppDispatch>();
+  const balances = useSelector(selectBalances);
+    const equity = Object.values(balances).reduce(
+      (tot, { total = 0 }) => tot + total,
+      0
+    );
+  const { totalVol } = useBalances()
   const [searchToken, setSearchToken] = useState("");
   const [openTokenDetails, setOpenTokenDetails] = useState("");
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
@@ -285,10 +294,12 @@ function Positions({
                 //   ({ symbol }) => symbol === baseToken
                 // )?.id;
 
-                const sellCreatedAts = sells.map(({ createdAt }) => createdAt)
-                const buyCreatedAts = buys.map(({ createdAt }) => createdAt)
+                const sellCreatedAts = sells.map(({ createdAt }) => createdAt);
+                const buyCreatedAts = buys.map(({ createdAt }) => createdAt);
 
-                const createdAt = Math.min(...[...sellCreatedAts, ...buyCreatedAts])
+                const createdAt = Math.min(
+                  ...[...sellCreatedAts, ...buyCreatedAts]
+                );
 
                 const foundStrategy = strategies.find(
                   ({ buySymbol, sellSymbol }) => {
@@ -317,6 +328,12 @@ function Positions({
                   0
                 );
 
+                const volOfStrategy = (totalSizeSell + totalSizeBuy) * sells[0].markPrice
+
+                const capitalAllocated = equity * (volOfStrategy / totalVol)
+
+                const apr = (estimatedFee / capitalAllocated) * 3 * 365 * 100
+
                 const spreadSize = Math.abs(
                   strip(String(totalSizeSell)) - strip(String(totalSizeBuy))
                 );
@@ -324,18 +341,32 @@ function Positions({
                   <Fragment key={baseToken}>
                     <TableRow>
                       <TableCell>
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <img
-                            src={`https://assets.coincap.io/assets/icons/${baseToken.toLowerCase()}@2x.png`}
-                            alt={baseToken}
-                            width={20}
-                            height={20}
-                          />
-                          <Typography>{baseToken}</Typography>
+                        <Box
+                          display="flex"
+                          flexDirection="column"
+                          alignItems="center"
+                          gap={1}
+                        >
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <img
+                              src={`https://assets.coincap.io/assets/icons/${baseToken.toLowerCase()}@2x.png`}
+                              alt={baseToken}
+                              width={20}
+                              height={20}
+                            />
+                            <Typography>{baseToken}</Typography>
+                          </Box>
+
                           {spreadSize ? (
-                            <IconButton
-                              aria-label="expand row"
-                              size="small"
+                            <Box
+                              display="flex"
+                              alignItems='center'
+                              sx={{
+                                border: "1px solid rgb(246, 70, 93)",
+                                padding: "0 4px",
+                                borderRadius: "2px",
+                                cursor: 'pointer'
+                              }}
                               onClick={() => {
                                 if (openTokenDetails === baseToken) {
                                   setOpenTokenDetails("");
@@ -344,8 +375,13 @@ function Positions({
                                 }
                               }}
                             >
-                              <Typography color="rgb(246, 70, 93)">{numeral(spreadSize * sells[0].markPrice).format("0,0")}</Typography>
-                            </IconButton>
+                              <ConstructionIcon sx={{ fill: "rgb(246, 70, 93)", fontSize: 16 }} />
+                              <Typography color="rgb(246, 70, 93)" ml={1}>
+                                {numeral(
+                                  spreadSize * sells[0].markPrice
+                                ).format("0,0")}$
+                              </Typography>
+                            </Box>
                           ) : null}
                         </Box>
                       </TableCell>
@@ -448,9 +484,6 @@ function Positions({
                             gap={1}
                             alignItems="space-between"
                           >
-                            {/* <ArrowUpwardIcon
-                              sx={{ color: "rgb(14 203 129 / 40%)" }}
-                            /> */}
                             {sells.length ? (
                               <Box>
                                 <Box
@@ -483,9 +516,6 @@ function Positions({
                             gap={1}
                             alignItems="space-between"
                           >
-                            {/* <ArrowDownwardIcon
-                              sx={{ color: "rgb(246 70 93 / 40%)" }}
-                            /> */}
                             {buys.length ? (
                               <Box>
                                 <Box
@@ -562,14 +592,13 @@ function Positions({
                           <Skeleton animation="wave" />
                         ) : (
                           <Typography>
-                            {numeral(
-                              (100 *
+                            {/* {numeral(
+                              100 *
                                 (sells[0].fundingRate - buys[0].fundingRate) *
                                 360 *
-                                3) /
-                                2
-                            ).format("0,0.[0]")}
-                            %
+                                3
+                            ).format("0,0.[0]")} */}
+                            {numeral(apr).format("0,0.[0]")}%
                           </Typography>
                         )}
                       </TableCell>
@@ -842,7 +871,7 @@ interface Data extends IPosition {
   volume: number;
   apr: number;
   premium: string;
-  age: number
+  age: number;
 }
 
 const TableCell = styled(TableCellMui)(() => ({
@@ -881,7 +910,8 @@ const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
 
 function calculateDaysBack(timestamp: number | string): number {
   // Ensure the timestamp is a number.
-  const inputTimestampMs = typeof timestamp === 'string' ? Number(timestamp) : timestamp;
+  const inputTimestampMs =
+    typeof timestamp === "string" ? Number(timestamp) : timestamp;
 
   // Check for invalid input.
   if (isNaN(inputTimestampMs) || inputTimestampMs <= 0) {
