@@ -99,7 +99,7 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
             USDT
           </Typography>
           <Box width={120}>
-            <Marquee speed={20} delay={100}>
+            <Marquee speed={20}>
               <Typography mr={6}>APR: {numeral(apr * 100).format("0,0")}%</Typography>
               <Typography mr={6}>APY: {numeral(apy * 100).format("0,0")}%</Typography>
             </Marquee>
