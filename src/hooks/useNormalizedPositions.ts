@@ -22,6 +22,7 @@ export const useNormalizedPositions = (selectedExchanges: string[] = []) => {
       markPrice: 0,
       fundingRate: 0,
       liqPriceRatio: Number.NaN,
+      createdAt: (new Date).getTime()
     }));
   }, [balances]);
 
