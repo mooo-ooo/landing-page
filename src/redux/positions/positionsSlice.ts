@@ -15,6 +15,7 @@ export interface IPosition {
   slPrice?: number,
   tpPrice?: number
   unrealizedPnl?: number
+  createdAt: number
 }
 export interface PostitionsState {
   gate: IPosition[],

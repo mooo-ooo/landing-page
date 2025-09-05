@@ -285,6 +285,11 @@ function Positions({
                 //   ({ symbol }) => symbol === baseToken
                 // )?.id;
 
+                const sellCreatedAts = sells.map(({ createdAt }) => createdAt)
+                const buyCreatedAts = buys.map(({ createdAt }) => createdAt)
+
+                const createdAt = Math.min(...[...sellCreatedAts, ...buyCreatedAts])
+
                 const foundStrategy = strategies.find(
                   ({ buySymbol, sellSymbol }) => {
                     return (
@@ -568,6 +573,9 @@ function Positions({
                           </Typography>
                         )}
                       </TableCell>
+                      <TableCell align="left">
+                        {calculateDaysBack(createdAt)} days
+                      </TableCell>
                       <TableCell>
                         <IconButton
                           aria-label="expand row"
@@ -729,6 +737,13 @@ const getHeadCells = (numberOfToken: number): readonly HeadCell[] => [
     label: "APR",
     sortable: true,
   },
+  {
+    id: "age",
+    numeric: false,
+    disablePadding: false,
+    label: "Age",
+    sortable: false,
+  },
 ];
 
 function descendingComparator<T>(
@@ -827,6 +842,7 @@ interface Data extends IPosition {
   volume: number;
   apr: number;
   premium: string;
+  age: number
 }
 
 const TableCell = styled(TableCellMui)(() => ({
@@ -862,3 +878,30 @@ const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
     }),
   },
 }));
+
+function calculateDaysBack(timestamp: number | string): number {
+  // Ensure the timestamp is a number.
+  const inputTimestampMs = typeof timestamp === 'string' ? Number(timestamp) : timestamp;
+
+  // Check for invalid input.
+  if (isNaN(inputTimestampMs) || inputTimestampMs <= 0) {
+    console.error("Invalid timestamp provided.");
+    return 0;
+  }
+
+  const now = Date.now();
+  const oneDayInMs = 1000 * 60 * 60 * 24;
+
+  // Calculate the difference in milliseconds.
+  const timeDifferenceMs = now - inputTimestampMs;
+
+  // If the timestamp is in the future, return 0.
+  if (timeDifferenceMs < 0) {
+    return 0;
+  }
+
+  // Convert the difference to days and round down to the nearest whole number.
+  const daysBack = Math.floor(timeDifferenceMs / oneDayInMs);
+
+  return daysBack;
+}
