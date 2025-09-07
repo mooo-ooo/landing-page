@@ -8,7 +8,6 @@ import {
   TableCell as TableCellMui,
   TableHead,
   TableRow,
-  Skeleton,
   Accordion as MuiAccordion,
   AccordionSummary,
   AccordionDetails,
@@ -20,42 +19,34 @@ import {
   Collapse,
   Alert,
   AlertTitle,
-  Tooltip,
 } from "@mui/material";
-import LinearProgress, {
-  linearProgressClasses,
-} from "@mui/material/LinearProgress";
 import type { AccordionProps } from "@mui/material";
 import { styled } from "@mui/system";
-import ConstructionIcon from '@mui/icons-material/Construction';
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SearchIcon from "@mui/icons-material/Search";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ViewQuiltIcon from "@mui/icons-material/ViewQuilt";
 import { useDispatch, useSelector } from "react-redux";
 import CandleChart from "./CandleChart";
+import { createPositionsTable } from "./helpers";
 import type { AppDispatch } from "../../redux/store";
 import type { IStrategy } from "../../redux/strategy/strategySlice";
 import { selectBalances } from "../../redux/balances/balancesSlice";
-import { useBalances } from '../../redux/selector'
+import { useBalances } from "../../redux/selector";
 import {
   setUpdateStrategy,
   setNewStrategy,
 } from "../../redux/strategy/strategySlice";
 import type { ISymbol } from "../../types";
 import type { ExchangeName } from "../../types/exchange";
+import sort from "lodash/orderBy";
 
-// Services
-import numeral from "numeral";
 
 // Store
 import type { IPosition } from "../../redux/positions/positionsSlice";
-import { percentageChange, strip } from "../../helpers";
 
 export const DEFAULT_PERCENT_CHANGE_TO_SL = 35;
 
@@ -64,7 +55,6 @@ function Positions({
   loadingFundingRates,
   exchanges,
   error,
-  // symbols,
   strategies,
 }: {
   strategies: IStrategy[];
@@ -80,11 +70,11 @@ function Positions({
 }) {
   const dispatch = useDispatch<AppDispatch>();
   const balances = useSelector(selectBalances);
-    const equity = Object.values(balances).reduce(
-      (tot, { total = 0 }) => tot + total,
-      0
-    );
-  const { totalVol } = useBalances()
+  const equity = Object.values(balances).reduce(
+    (tot, { total = 0 }) => tot + total,
+    0
+  );
+  const { totalVol } = useBalances();
   const [searchToken, setSearchToken] = useState("");
   const [openTokenDetails, setOpenTokenDetails] = useState("");
   const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
@@ -112,13 +102,8 @@ function Positions({
     }
   };
 
-  const visibleRows = useMemo(
-    () => [...positions].sort(getComparator(order, orderBy)),
-    [order, orderBy, positions]
-  );
-
   const filteredPositions = useMemo(() => {
-    return visibleRows
+    return positions
       .filter(({ buys, sells }) => {
         if (!selectedExchanges?.length) {
           return true;
@@ -134,9 +119,26 @@ function Positions({
         }
         return searchToken.toLowerCase().includes(baseToken.toLowerCase());
       });
-  }, [selectedExchanges, visibleRows, searchToken]);
+  }, [selectedExchanges, positions, searchToken]);
 
   const headCells = getHeadCells(filteredPositions.length);
+
+  const sortedTableWithCells = useMemo(() => {
+    const result = createPositionsTable({
+    positions: filteredPositions,
+    loadingFundingRates,
+    equity,
+    totalVol,
+    openTokenDetails,
+    setOpenTokenDetails,
+  })
+  return sort(result, result => {
+    const found = result.cells.find(({ id }) => id === orderBy)
+    return found?.value
+  }, order)
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [loadingFundingRates, filteredPositions, orderBy, order, equity, totalVol, openTokenDetails]);
+
   return (
     <Box display="flex" flexDirection="column" gap={2}>
       <Paper
@@ -213,7 +215,15 @@ function Positions({
             }}
           >
             <TableRow sx={{ height: "56px" }}>
-              {headCells.map((headCell) => (
+              {sort(
+                headCells.map((cell) => {
+                  return {
+                    ...cell,
+                    order: cellsOrder[cell.id],
+                  };
+                }),
+                ["order"]
+              ).map((headCell) => (
                 <TableCell
                   key={headCell.id}
                   align="left"
@@ -262,45 +272,7 @@ function Positions({
                 </TableCell>
               </TableRow>
             ) : (
-              filteredPositions.map(({ sells, buys, baseToken }) => {
-                const estimatedFee = [...sells, ...buys].reduce((tot, cur) => {
-                  return (
-                    tot +
-                    cur.markPrice *
-                      cur.size *
-                      cur.fundingRate *
-                      (cur.side === "sell" ? 1 : -1)
-                  );
-                }, 0);
-                const totalSizeSell = sells.reduce(
-                  (tot, { size }) => size + tot,
-                  0
-                );
-                const totalSizeBuy = buys.reduce(
-                  (tot, { size }) => size + tot,
-                  0
-                );
-                const biggestPnLExchange = [...sells, ...buys].reduce(
-                  (maxExchange, position) => {
-                    const maxPnL = position.unrealizedPnl || 0;
-                    return maxPnL > maxExchange.maxPnL
-                      ? { maxPnL, exchange: position.exchange }
-                      : maxExchange;
-                  },
-                  { maxPnL: 0, exchange: "" }
-                ).exchange;
-
-                // const coinId = symbols.find(
-                //   ({ symbol }) => symbol === baseToken
-                // )?.id;
-
-                const sellCreatedAts = sells.map(({ createdAt }) => createdAt);
-                const buyCreatedAts = buys.map(({ createdAt }) => createdAt);
-
-                const createdAt = Math.min(
-                  ...[...sellCreatedAts, ...buyCreatedAts]
-                );
-
+              sortedTableWithCells.map(({ cells, baseToken, buys, sells }) => {
                 const foundStrategy = strategies.find(
                   ({ buySymbol, sellSymbol }) => {
                     return (
@@ -309,328 +281,28 @@ function Positions({
                     );
                   }
                 );
-
-                const distToLiqBuy = Math.max(
-                  100 -
-                    Math.abs(
-                      percentageChange(buys[0].markPrice, buys[0].liqPrice || 0)
-                    ),
-                  0
-                );
-                const distToLiqSell = Math.max(
-                  100 -
-                    Math.abs(
-                      percentageChange(
-                        sells[0].markPrice,
-                        sells[0].liqPrice || 0
-                      )
-                    ),
-                  0
-                );
-
-                const volOfStrategy = (totalSizeSell + totalSizeBuy) * sells[0].markPrice
-
-                const capitalAllocated = equity * (volOfStrategy / totalVol)
-
-                const apr = (estimatedFee / capitalAllocated) * 3 * 365 * 100
-
-                const spreadSize = Math.abs(
-                  strip(String(totalSizeSell)) - strip(String(totalSizeBuy))
-                );
                 return (
                   <Fragment key={baseToken}>
                     <TableRow>
-                      <TableCell>
-                        <Box
-                          display="flex"
-                          flexDirection="column"
-                          alignItems="center"
-                          gap={1}
-                        >
-                          <Box display="flex" alignItems="center" gap={1}>
-                            <img
-                              src={`https://assets.coincap.io/assets/icons/${baseToken.toLowerCase()}@2x.png`}
-                              alt={baseToken}
-                              width={20}
-                              height={20}
-                            />
-                            <Typography>{baseToken}</Typography>
-                          </Box>
-
-                          {spreadSize ? (
-                            <Box
-                              display="flex"
-                              alignItems='center'
-                              sx={{
-                                border: "1px solid rgb(246, 70, 93)",
-                                padding: "0 4px",
-                                borderRadius: "2px",
-                                cursor: 'pointer'
-                              }}
-                              onClick={() => {
-                                if (openTokenDetails === baseToken) {
-                                  setOpenTokenDetails("");
-                                } else {
-                                  setOpenTokenDetails(baseToken);
-                                }
-                              }}
-                            >
-                              <ConstructionIcon sx={{ fill: "rgb(246, 70, 93)", fontSize: 16 }} />
-                              <Typography color="rgb(246, 70, 93)" ml={1}>
-                                {numeral(
-                                  spreadSize * sells[0].markPrice
-                                ).format("0,0")}$
-                              </Typography>
-                            </Box>
-                          ) : null}
-                        </Box>
-                      </TableCell>
-                      <TableCell align="left">
-                        <Box display="flex" flexDirection="column" gap={1}>
-                          <Typography
-                            sx={{
-                              color: "rgb(246, 70, 93)",
-                              mr: 1,
-                            }}
-                          >
-                            {sells.map((s) => s.exchange).join("-")}
-                          </Typography>
-
-                          <Typography
-                            sx={{
-                              color: "rgb(14, 203, 129)",
-                              mr: 1,
-                            }}
-                          >
-                            {buys.map((s) => s.exchange).join("-")}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-
-                      <TableCell align="left">
-                        {sells.length ? (
-                          <Typography>
-                            {numeral(
-                              sells[0].markPrice * totalSizeSell * 2
-                            ).format("0,0]")}
-                          </Typography>
-                        ) : (
-                          <Skeleton animation="wave" />
-                        )}
-                      </TableCell>
-                      <TableCell align="left">
-                        {sells.length && buys.length ? (
-                          <Typography>
-                            {numeral(
-                              percentageChange(
-                                buys[0]?.avgPrice,
-                                sells[0]?.avgPrice
-                              )
-                            ).format("0.[000]")}
-                            %
-                          </Typography>
-                        ) : (
-                          <Skeleton animation="wave" />
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Box
-                          my="12px"
-                          display="flex"
-                          width="100%"
-                          alignItems="center"
-                          gap={1}
-                        >
-                          <img
-                            style={{
-                              borderRadius: "50%",
-                            }}
-                            src={`/${biggestPnLExchange}.png`}
-                            alt="USDT"
-                            width={20}
-                            height={20}
-                          />
-                          <Typography>
-                            {numeral(
-                              Math.max(
-                                ...[...sells, ...buys].map(
-                                  (pos) => pos.unrealizedPnl || 0
-                                )
-                              )
-                            ).format("0,0")}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell align="left">
-                        <Typography>
-                          {sells.length ? (
-                            numeral(sells[0].markPrice).format(
-                              precisionMap[baseToken] || "0,0.[000]"
-                            )
-                          ) : (
-                            <Skeleton animation="wave" />
-                          )}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Box
-                          display="flex"
-                          flexDirection="column"
-                          alignItems="left"
-                          gap={1}
-                        >
-                          <Box
-                            display="flex"
-                            gap={1}
-                            alignItems="space-between"
-                          >
-                            {sells.length ? (
-                              <Box>
-                                <Box
-                                  display="flex"
-                                  justifyContent="space-between"
-                                >
-                                  <Typography fontSize="10px">
-                                    {numeral(distToLiqSell).format("0,0")}%
-                                  </Typography>
-                                  <Typography fontSize="10px">
-                                    {numeral(sells[0].liqPrice).format(
-                                      precisionMap[baseToken] || "0,0.[000]"
-                                    )}
-                                    $
-                                  </Typography>
-                                </Box>
-
-                                <BorderLinearProgress
-                                  sx={{ width: 124 }}
-                                  variant="determinate"
-                                  value={distToLiqSell}
-                                />
-                              </Box>
-                            ) : (
-                              <Skeleton animation="wave" />
-                            )}
-                          </Box>
-                          <Box
-                            display="flex"
-                            gap={1}
-                            alignItems="space-between"
-                          >
-                            {buys.length ? (
-                              <Box>
-                                <Box
-                                  display="flex"
-                                  justifyContent="space-between"
-                                >
-                                  <Typography fontSize="10px">
-                                    {numeral(distToLiqBuy).format("0,0")}%
-                                  </Typography>
-                                  <Typography fontSize="10px">
-                                    {numeral(buys[0].liqPrice).format(
-                                      precisionMap[baseToken] || "0,0.[0000]"
-                                    )}
-                                    $
-                                  </Typography>
-                                </Box>
-                                <BorderLinearProgress
-                                  sx={{ width: 124 }}
-                                  variant="determinate"
-                                  value={distToLiqBuy}
-                                />
-                              </Box>
-                            ) : (
-                              <Skeleton animation="wave" />
-                            )}
-                          </Box>
-                        </Box>
-                      </TableCell>
-
-                      <TableCell align="left">
-                        {loadingFundingRates ||
-                        !sells.length ||
-                        !buys.length ? (
-                          <Skeleton animation="wave" />
-                        ) : (
-                          <Box>
-                            <Tooltip
-                              placement="top-start"
-                              title={`${numeral(
-                                100 * sells[0].fundingRate
-                              ).format("0,0.[000]")} - ${numeral(
-                                100 * buys[0].fundingRate
-                              ).format("0,0.[000]")}`}
-                            >
-                              <Typography>
-                                {numeral(
-                                  100 *
-                                    (sells[0].fundingRate - buys[0].fundingRate)
-                                ).format("0,0.[000]")}
-                                %
-                              </Typography>
-                            </Tooltip>
-                          </Box>
-                        )}
-                      </TableCell>
-
-                      <TableCell align="left">
-                        <Typography
-                          sx={{
-                            color:
-                              estimatedFee > 0
-                                ? "rgb(14 203 129)"
-                                : "rgb(246 70 93)",
-                          }}
-                          fontWeight="bold"
-                        >
-                          {numeral(estimatedFee).format("0,0.[00]")}$
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="left">
-                        {loadingFundingRates ||
-                        !sells.length ||
-                        !buys.length ? (
-                          <Skeleton animation="wave" />
-                        ) : (
-                          <Typography>
-                            {/* {numeral(
-                              100 *
-                                (sells[0].fundingRate - buys[0].fundingRate) *
-                                360 *
-                                3
-                            ).format("0,0.[0]")} */}
-                            {numeral(apr).format("0,0.[0]")}%
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell align="left">
-                        {calculateDaysBack(createdAt)} days
-                      </TableCell>
-                      <TableCell>
-                        <IconButton
-                          aria-label="expand row"
-                          size="small"
-                          onClick={() => {
-                            if (openTokenDetails === baseToken) {
-                              setOpenTokenDetails("");
-                            } else {
-                              setOpenTokenDetails(baseToken);
-                            }
-                          }}
-                        >
-                          {openTokenDetails === baseToken ? (
-                            <KeyboardArrowUpIcon />
-                          ) : (
-                            <KeyboardArrowDownIcon />
-                          )}
-                        </IconButton>
-                      </TableCell>
+                      {sort(
+                        cells.map((cell) => {
+                          return {
+                            ...cell,
+                            order: cellsOrder[cell.id],
+                          };
+                        }),
+                        ["order"]
+                      ).map(({ component, id }) => {
+                        return <TableCell key={id}>{component}</TableCell>;
+                      })}
                     </TableRow>
                     <TableRow>
                       <TableCell
                         style={{
                           paddingBottom: 0,
                           paddingTop: 0,
-                          border: "none",
+                          // border: openTokenDetails === baseToken ? 'unset' :"none",
+                          borderBottom: openTokenDetails === baseToken ? '1px solid rgba(81, 81, 81, 1)' : 'none'
                         }}
                         colSpan={headCells.length + 1}
                       >
@@ -682,185 +354,85 @@ function Positions({
   );
 }
 
-const precisionMap: Record<string, string> = {
-  SHIB: "0.0000e+0",
-  DOGE: "0,0.0[0000]",
-  BONK: "0,0.0[0000]",
-  AVAX: "0,0.00",
-  ETC: "0.000",
-  SUI: "0,0.000",
-  BTC: "0,0",
-  LTC: "0,0",
-  XRP: "0,0.00",
-};
-
 export default Positions;
 
 const getHeadCells = (numberOfToken: number): readonly HeadCell[] => [
   {
     id: "baseToken",
-    numeric: false,
-    disablePadding: true,
     label: `Token (${numberOfToken})`,
   },
   {
     id: "exchanges",
-    numeric: true,
-    disablePadding: false,
     label: "Exchanges",
   },
 
   {
     id: "volume",
-    numeric: true,
-    disablePadding: false,
     label: "Volume",
     sortable: true,
   },
   {
-    id: "premium",
-    numeric: true,
-    disablePadding: false,
+    id: "spreadRate",
     label: "Spread rate",
   },
   {
     id: "unrealizedPnl",
-    numeric: true,
-    disablePadding: false,
     label: "Unrealized.Pnl",
     sortable: true,
   },
   {
     id: "markPrice",
-    numeric: true,
-    disablePadding: false,
     label: "Mark Price",
     sortable: false,
   },
   {
     id: "liqPrice",
-    numeric: true,
-    disablePadding: false,
     label: "Dist. to liq",
     sortable: true,
   },
 
   {
     id: "fundingRate",
-    numeric: true,
-    disablePadding: false,
     label: "Funding Rate",
-    sortable: false,
+    sortable: true,
   },
   {
     id: "estimatedFee",
-    numeric: true,
-    disablePadding: false,
     label: "Est.Reward",
     sortable: true,
   },
   {
     id: "apr",
-    numeric: true,
-    disablePadding: false,
     label: "APR",
     sortable: true,
   },
   {
     id: "age",
-    numeric: false,
-    disablePadding: false,
     label: "Age",
-    sortable: false,
+    sortable: true,
   },
 ];
 
-function descendingComparator<T>(
-  a: IPositionWithBuysAndSells,
-  b: IPositionWithBuysAndSells,
-  orderBy: keyof T
-) {
-  if (orderBy === "baseToken") {
-    return a.baseToken.localeCompare(b.baseToken);
-  }
-  if (orderBy === "apr") {
-    if (
-      !a.sells.length ||
-      !a.buys.length ||
-      !b.sells.length ||
-      !b.buys.length
-    ) {
-      return 0;
-    }
-    const aprA = a.sells[0].fundingRate - a.buys[0].fundingRate;
-    const aprB = b.sells[0].fundingRate - b.buys[0].fundingRate;
-    return aprB - aprA;
-  }
-  if (orderBy === "volume") {
-    const totalVolumeA = a.sells.reduce(
-      (acc, sell) => acc + sell.markPrice * sell.size * 2,
-      0
-    );
-    const totalVolumeB = b.sells.reduce(
-      (acc, sell) => acc + sell.markPrice * sell.size * 2,
-      0
-    );
-    return totalVolumeB - totalVolumeA;
-  }
-  if (orderBy === "estimatedFee") {
-    const estimatedFeeA = [...a.sells, ...a.buys].reduce(
-      (acc, pos) =>
-        acc +
-        pos.markPrice *
-          pos.size *
-          pos.fundingRate *
-          (pos.side === "sell" ? 1 : -1),
-      0
-    );
-    const estimatedFeeB = [...b.sells, ...b.buys].reduce(
-      (acc, pos) =>
-        acc +
-        pos.markPrice *
-          pos.size *
-          pos.fundingRate *
-          (pos.side === "sell" ? 1 : -1),
-      0
-    );
-    return estimatedFeeB - estimatedFeeA;
-  }
-  if (orderBy === "unrealizedPnl") {
-    const maxUnrealizedPnlA = Math.max(
-      ...[...a.sells, ...a.buys].map((pos) => pos.unrealizedPnl || 0)
-    );
-    const maxUnrealizedPnlB = Math.max(
-      ...[...b.sells, ...b.buys].map((pos) => pos.unrealizedPnl || 0)
-    );
-    return maxUnrealizedPnlB - maxUnrealizedPnlA;
-  }
-  return 0;
-}
+const cellsOrder: Record<string, number> = {
+  baseToken: 1,
+  exchanges: 2,
+  volume: 3,
+  spreadRate: 4,
+  unrealizedPnl: 5,
+  markPrice: 6,
+  liqPrice: 7,
+  fundingRate: 8,
+  estimatedFee: 9,
+  apr: 10,
+  age: 11,
+  actions: 12
+};
 
 type Order = "asc" | "desc";
 
-function getComparator(
-  order: Order,
-  orderBy: keyof Data
-): (a: IPositionWithBuysAndSells, b: IPositionWithBuysAndSells) => number {
-  return order === "desc"
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-interface IPositionWithBuysAndSells {
-  buys: IPosition[];
-  sells: IPosition[];
-  baseToken: string;
-}
 interface HeadCell {
-  disablePadding: boolean;
   id: keyof Data;
   label: string;
-  numeric: boolean;
   sortable?: boolean;
 }
 
@@ -870,7 +442,7 @@ interface Data extends IPosition {
   estimatedFee: number;
   volume: number;
   apr: number;
-  premium: string;
+  spreadRate: number;
   age: number;
 }
 
@@ -889,49 +461,3 @@ const Accordion = styled((props: AccordionProps) => (
     display: "none",
   },
 }));
-
-const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
-  height: 2,
-  borderRadius: 2,
-  [`&.${linearProgressClasses.colorPrimary}`]: {
-    backgroundColor: "red",
-    ...theme.applyStyles("dark", {
-      backgroundColor: theme.palette.grey[800],
-    }),
-  },
-  [`& .${linearProgressClasses.bar}`]: {
-    borderRadius: 5,
-    backgroundColor: "rgb(246, 70, 93)",
-    ...theme.applyStyles("dark", {
-      backgroundColor: "rgb(246, 70, 93)",
-    }),
-  },
-}));
-
-function calculateDaysBack(timestamp: number | string): number {
-  // Ensure the timestamp is a number.
-  const inputTimestampMs =
-    typeof timestamp === "string" ? Number(timestamp) : timestamp;
-
-  // Check for invalid input.
-  if (isNaN(inputTimestampMs) || inputTimestampMs <= 0) {
-    console.error("Invalid timestamp provided.");
-    return 0;
-  }
-
-  const now = Date.now();
-  const oneDayInMs = 1000 * 60 * 60 * 24;
-
-  // Calculate the difference in milliseconds.
-  const timeDifferenceMs = now - inputTimestampMs;
-
-  // If the timestamp is in the future, return 0.
-  if (timeDifferenceMs < 0) {
-    return 0;
-  }
-
-  // Convert the difference to days and round down to the nearest whole number.
-  const daysBack = Math.floor(timeDifferenceMs / oneDayInMs);
-
-  return daysBack;
-}

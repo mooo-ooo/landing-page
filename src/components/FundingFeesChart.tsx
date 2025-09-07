@@ -11,7 +11,6 @@ import { ChartsXAxis } from "@mui/x-charts/ChartsXAxis";
 import { ChartsYAxis } from "@mui/x-charts/ChartsYAxis";
 import { ChartsTooltip } from "@mui/x-charts/ChartsTooltip";
 import { BarPlot } from "@mui/x-charts/BarChart";
-import Marquee from "react-fast-marquee";
 import { ChartsAxisHighlight } from "@mui/x-charts/ChartsAxisHighlight";
 
 interface FundingFeesChartProps {
@@ -95,15 +94,10 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
       ) : (
         <Box display="flex" justifyContent="space-between">
           <Typography>
-            Estimated funding: ${numeral(estimatedFundingFee).format("0,0")}{" "}
+            Est.funding: ${numeral(estimatedFundingFee).format("0,0")}{" "}
             USDT
           </Typography>
-          <Box width={120}>
-            <Marquee speed={20}>
-              <Typography mr={6}>APR: {numeral(apr * 100).format("0,0")}%</Typography>
-              <Typography mr={6}>APY: {numeral(apy * 100).format("0,0")}%</Typography>
-            </Marquee>
-          </Box>
+          <Typography>APY: {numeral(apy * 100).format("0,0")}%</Typography>
         </Box>
       )}
       {rewardHistory.length ? (
