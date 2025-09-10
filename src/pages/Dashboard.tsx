@@ -136,7 +136,6 @@ const Dashboard: FC = () => {
           {dashboardWidth && exchangeMarginHeight ? (
             <FundingFeesChart
               loadingFundingRates={loadingFundingRates}
-              period={7}
               width={dashboardWidth / (12 / 3.5) || 250}
               height={fixedHeight}
               estimatedFundingFee={estimatedFundingFee}
