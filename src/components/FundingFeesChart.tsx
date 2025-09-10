@@ -38,7 +38,7 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
   >([]);
   useEffect(() => {
     api
-      .get(`/api/v1/account/funding-fees/last-7-days?period=${period}`)
+      .get(`/api/v1/account/funding-fees/last-7-days?fromDate=${Date.now()}`)
       .then((result: { data: { fundingByDay: Record<string, number> } }) => {
         if (
           result.data?.fundingByDay &&
