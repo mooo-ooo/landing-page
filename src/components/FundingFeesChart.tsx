@@ -15,14 +15,12 @@ import { ChartsAxisHighlight } from "@mui/x-charts/ChartsAxisHighlight";
 
 interface FundingFeesChartProps {
   loadingFundingRates: boolean;
-  period?: number;
   width?: number;
   height?: number;
   estimatedFundingFee: number;
 }
 
 const FundingFeesChart: FC<FundingFeesChartProps> = ({
-  period = 7,
   estimatedFundingFee,
   height,
   width,
