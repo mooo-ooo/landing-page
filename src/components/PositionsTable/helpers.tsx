@@ -42,6 +42,7 @@ export const createPositionsTable = ({
   totalVol,
   openTokenDetails,
   setOpenTokenDetails,
+  setShownBalanceOrderConfirmationDialog
 }: {
   positions: {
     buys: IPosition[];
@@ -52,6 +53,7 @@ export const createPositionsTable = ({
   equity: number;
   totalVol: number;
   openTokenDetails: string;
+  setShownBalanceOrderConfirmationDialog: (token: string) => void;
   setOpenTokenDetails: (token: string) => void;
 }) => {
   return positions.map(({ baseToken, sells, buys }) => {
@@ -128,7 +130,7 @@ export const createPositionsTable = ({
     const buyCreatedAts = buys.map(({ createdAt }) => createdAt);
 
     const createdAt = Math.min(...[...sellCreatedAts, ...buyCreatedAts]);
-
+    
     const cells = [
       {
         id: "baseToken",
@@ -173,9 +175,7 @@ export const createPositionsTable = ({
         id: "volume",
         component: (
           <Box>
-            <Typography>
-              {numeral(volOfStrategy).format("0,0]")}
-            </Typography>
+            <Typography>{numeral(volOfStrategy).format("0,0]")}</Typography>
             {spreadSize ? (
               <Box
                 display="flex"
@@ -185,14 +185,9 @@ export const createPositionsTable = ({
                   padding: "0 4px",
                   borderRadius: "2px",
                   cursor: "pointer",
+                  width: "fit-content",
                 }}
-                onClick={() => {
-                  if (openTokenDetails === baseToken) {
-                    setOpenTokenDetails("");
-                  } else {
-                    setOpenTokenDetails(baseToken);
-                  }
-                }}
+                onClick={() => setShownBalanceOrderConfirmationDialog(baseToken)}
               >
                 <ConstructionIcon
                   sx={{ fill: "rgb(246, 70, 93)", fontSize: 16 }}
@@ -208,16 +203,17 @@ export const createPositionsTable = ({
       {
         id: "spreadRate",
         value: spreadRate,
-        component: spreadRate ? (
-          <Typography>{numeral(spreadRate).format("0.[000]")}%</Typography>
-        ) : (
-          <Skeleton animation="wave" />
-        ),
+        component:
+          spreadRate !== null ? (
+            <Typography>{numeral(spreadRate).format("0.[000]")}%</Typography>
+          ) : (
+            <Skeleton animation="wave" />
+          ),
       },
       {
         id: "unrealizedPnl",
         value: biggestPnL.maxPnL,
-        component: (
+        component: biggestPnL?.maxPnL > 0 ? (
           <Box
             my="12px"
             display="flex"
@@ -236,6 +232,8 @@ export const createPositionsTable = ({
             />
             <Typography>{numeral(biggestPnL.maxPnL).format("0,0")}</Typography>
           </Box>
+        ) : (
+          <Skeleton animation="wave" />
         ),
       },
       {
@@ -313,22 +311,23 @@ export const createPositionsTable = ({
       {
         id: "fundingRate",
         value: diffFundingRate,
-        component: diffFundingRate !== null ? (
-          <Box>
-            <Tooltip
-              placement="top-start"
-              title={`${numeral(100 * sellFundingRate).format(
-                "0,0.[000]"
-              )} - ${numeral(100 * buyFundingRate).format("0,0.[000]")}`}
-            >
-              <Typography>
-                {numeral(100 * diffFundingRate).format("0,0.[000]")}%
-              </Typography>
-            </Tooltip>
-          </Box>
-        ) : (
-          <Skeleton animation="wave" />
-        ),
+        component:
+          diffFundingRate !== null ? (
+            <Box>
+              <Tooltip
+                placement="top-start"
+                title={`${numeral(100 * sellFundingRate).format(
+                  "0,0.[000]"
+                )} - ${numeral(100 * buyFundingRate).format("0,0.[000]")}`}
+              >
+                <Typography>
+                  {numeral(100 * diffFundingRate).format("0,0.[000]")}%
+                </Typography>
+              </Tooltip>
+            </Box>
+          ) : (
+            <Skeleton animation="wave" />
+          ),
       },
       {
         id: "estimatedFee",
@@ -347,11 +346,12 @@ export const createPositionsTable = ({
       {
         id: "apr",
         value: apr,
-        component: apr === null ? (
-          <Skeleton animation="wave" />
-        ) : (
-          <Typography>{numeral(apr).format("0,0.[0]")}%</Typography>
-        ),
+        component:
+          apr === null ? (
+            <Skeleton animation="wave" />
+          ) : (
+            <Typography>{numeral(apr).format("0,0.[0]")}%</Typography>
+          ),
       },
       {
         id: "age",

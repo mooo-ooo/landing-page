@@ -139,7 +139,7 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
       maxWidth="xl"
       open={open}
     >
-      <DialogTitle sx={{ fontSize: 16 }}>
+      <DialogTitle sx={{ fontSize: 16, background: "#1e2026" }}>
         Update Strategy: {baseToken} - mark price: {markPrice} USDT
       </DialogTitle>
       <IconButton
@@ -157,7 +157,7 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
       <DialogContent
         dividers
         sx={{
-          background: "#121212",
+          background: "#1e2026",
           paddingBottom: "32px",
         }}
       >
@@ -579,7 +579,7 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
           "loading"
         )}
       </DialogContent>
-      <DialogActions sx={{ width: "100%", background: "#121212" }}>
+      <DialogActions sx={{ width: "100%", background: "#1e2026" }}>
         <Box
           width="100%"
           display="flex"

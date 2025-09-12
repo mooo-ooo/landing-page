@@ -43,8 +43,8 @@ import {
 import type { ISymbol } from "../../types";
 import type { ExchangeName } from "../../types/exchange";
 import sort from "lodash/orderBy";
-
-
+import BalanceOrderConfirmationDialog from "./BalanceOrderConfirmationDialog";
+import { strip } from "../../helpers";
 // Store
 import type { IPosition } from "../../redux/positions/positionsSlice";
 
@@ -84,6 +84,11 @@ function Positions({
   const [orderBy, setOrderBy] = useState<keyof Data>(
     localOrderBy as keyof Data
   );
+
+  const [
+    shownBalanceOrderConfirmationDialog,
+    setShownBalanceOrderConfirmationDialog,
+  ] = useState("");
 
   const createSortHandler = (property: keyof Data) => () => {
     const isAsc = orderBy === property && order === "asc";
@@ -125,19 +130,32 @@ function Positions({
 
   const sortedTableWithCells = useMemo(() => {
     const result = createPositionsTable({
-    positions: filteredPositions,
+      positions: filteredPositions,
+      loadingFundingRates,
+      equity,
+      totalVol,
+      openTokenDetails,
+      setOpenTokenDetails,
+      setShownBalanceOrderConfirmationDialog,
+    });
+    return sort(
+      result,
+      (result) => {
+        const found = result.cells.find(({ id }) => id === orderBy);
+        return found?.value;
+      },
+      order
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
     loadingFundingRates,
+    filteredPositions,
+    orderBy,
+    order,
     equity,
     totalVol,
     openTokenDetails,
-    setOpenTokenDetails,
-  })
-  return sort(result, result => {
-    const found = result.cells.find(({ id }) => id === orderBy)
-    return found?.value
-  }, order)
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, [loadingFundingRates, filteredPositions, orderBy, order, equity, totalVol, openTokenDetails]);
+  ]);
 
   return (
     <Box display="flex" flexDirection="column" gap={2}>
@@ -281,6 +299,23 @@ function Positions({
                     );
                   }
                 );
+                const totalSizeSell = sells.reduce(
+                  (tot, { size }) => size + tot,
+                  0
+                );
+                const totalSizeBuy = buys.reduce(
+                  (tot, { size }) => size + tot,
+                  0
+                );
+
+                const spreadSize = Math.abs(
+                  strip(String(totalSizeSell)) - strip(String(totalSizeBuy))
+                );
+
+                const sideToBalance =
+                  Math.abs(totalSizeSell) < Math.abs(totalSizeBuy)
+                    ? "sell"
+                    : "buy";
                 return (
                   <Fragment key={baseToken}>
                     <TableRow>
@@ -302,10 +337,29 @@ function Positions({
                           paddingBottom: 0,
                           paddingTop: 0,
                           // border: openTokenDetails === baseToken ? 'unset' :"none",
-                          borderBottom: openTokenDetails === baseToken ? '1px solid rgba(81, 81, 81, 1)' : 'none'
+                          borderBottom:
+                            openTokenDetails === baseToken
+                              ? "1px solid rgba(81, 81, 81, 1)"
+                              : "none",
                         }}
                         colSpan={headCells.length + 1}
                       >
+                        {shownBalanceOrderConfirmationDialog === baseToken ? (
+                          <BalanceOrderConfirmationDialog
+                            id="ringtone-menu"
+                            side={sideToBalance}
+                            buyExchange={buys[0]?.exchange}
+                            sellExchange={sells[0]?.exchange}
+                            open={
+                              shownBalanceOrderConfirmationDialog === baseToken
+                            }
+                            token={baseToken}
+                            amount={spreadSize}
+                            onClose={() =>
+                              setShownBalanceOrderConfirmationDialog("")
+                            }
+                          />
+                        ) : null}
                         <Collapse
                           in={openTokenDetails === baseToken}
                           timeout="auto"
@@ -425,7 +479,7 @@ const cellsOrder: Record<string, number> = {
   estimatedFee: 9,
   apr: 10,
   age: 11,
-  actions: 12
+  actions: 12,
 };
 
 type Order = "asc" | "desc";

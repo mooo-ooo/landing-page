@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from "react";
 
 import {
   Box,
@@ -12,83 +12,83 @@ import {
   RadioGroup,
   FormControlLabel,
   TextField,
-} from '@mui/material'
-import FormControl from '@mui/material/FormControl'
-import axios from 'axios'
-import LoadingButton from '@mui/lab/LoadingButton'
-import { useSnackbar } from 'notistack'
-import type { SIDE } from '../../types'
+} from "@mui/material";
+import FormControl from "@mui/material/FormControl";
+import axios from "axios";
+import LoadingButton from "@mui/lab/LoadingButton";
+import { useSnackbar } from "notistack";
+import type { SIDE } from "../../types";
 
 export interface ConfirmationDialogRawProps {
-  id: string
-  sideBalance: SIDE
-  keepMounted: boolean
-  open: boolean
-  token: string
-  buyExchange: string
-  sellExchange: string
-  amount: number
-  onClose: (value?: string) => void
+  id: string;
+  side: SIDE;
+  open: boolean;
+  token: string;
+  buyExchange: string;
+  sellExchange: string;
+  amount: number;
+  onClose: (value?: string) => void;
 }
 
 function BalanceOrderConfirmationDialog(props: ConfirmationDialogRawProps) {
-  const { amount, token, sellExchange, buyExchange, sideBalance } = props
-  const { onClose, open, ...other } = props
-  const { enqueueSnackbar } = useSnackbar()
-  const [loading, setLoading] = useState(false)
-  const [direction, setDirection] = useState('increase')
-  const [password, setPassword] = useState('')
+  const { amount, token, sellExchange, buyExchange, side } = props;
+  const { onClose, open } = props;
+  const { enqueueSnackbar } = useSnackbar();
+  const [loading, setLoading] = useState(false);
+  const [direction, setDirection] = useState("increase");
+  const [password, setPassword] = useState("");
 
   const handleCancel = () => {
-    onClose()
-  }
+    onClose();
+  };
 
   const handleBalance = async () => {
-    setLoading(true)
-    const exchange = direction === 'reduce' ? reduceExchange : increaseExchange
+    setLoading(true);
+    const exchange = direction === "reduce" ? reduceExchange : increaseExchange;
     axios
-      .post('/positions/imbalance', {
+      .post("/positions/imbalance", {
         exchange,
         quantity: amount,
-        side: sideBalance,
+        side,
         symbol: `${token}/USDT:USDT`,
-        password
+        password,
       })
       .then(() =>
         enqueueSnackbar(
-          `Placed market order: ${sideBalance} ${amount} ${token} [${exchange}]`,
-          { variant: 'success' }
+          `Placed market order: ${side} ${amount} ${token} [${exchange}]`,
+          { variant: "success" }
         )
       )
       .catch((err) => {
-        console.log(err)
+        console.log(err);
         enqueueSnackbar(err.response?.data?.error || err.message, {
-          variant: 'error',
-        })
+          variant: "error",
+        });
         return {
           data: undefined,
-        }
+        };
       })
-      .finally(() => setLoading(false))
-  }
+      .finally(() => setLoading(false));
+  };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDirection((event.target as HTMLInputElement).value)
-  }
+    setDirection((event.target as HTMLInputElement).value);
+  };
 
-  const increaseExchange = sideBalance === 'sell' ? sellExchange : buyExchange
-  const reduceExchange = sideBalance !== 'sell' ? sellExchange : buyExchange
+  const increaseExchange = side === "sell" ? sellExchange : buyExchange;
+  const reduceExchange = side !== "sell" ? sellExchange : buyExchange;
 
   return (
     <Dialog
-      fullScreen
-      // sx={{ '& .MuiDialog-paper': { width: '80%', maxHeight: 435 } }}
+      sx={{
+        "& .MuiDialog-paper": { width: "650px" },
+      }}
+      keepMounted={false}
       maxWidth="xl"
       open={open}
-      {...other}
     >
-      <DialogTitle sx={{ fontSize: 16 }}>Balance positions</DialogTitle>
-      <DialogContent dividers sx={{ padding: '16px 12px' }}>
+      <DialogTitle sx={{ fontSize: 16, background: "#1e2026" }}>Balance positions</DialogTitle>
+      <DialogContent dividers sx={{ padding: "16px 12px", background: "#1e2026" }}>
         <Box
           display="flex"
           alignItems="flex-start"
@@ -96,7 +96,7 @@ function BalanceOrderConfirmationDialog(props: ConfirmationDialogRawProps) {
           flexDirection="column"
         >
           <FormControl>
-            <FormLabel id="demo-radio-buttons-group-label">
+            <FormLabel color="info">
               {amount} {token}
             </FormLabel>
             <RadioGroup
@@ -109,15 +109,15 @@ function BalanceOrderConfirmationDialog(props: ConfirmationDialogRawProps) {
               {increaseExchange ? (
                 <FormControlLabel
                   value="increase"
-                  control={<Radio />}
-                  label={`${sideBalance} ${increaseExchange} (Increase)`}
+                  control={<Radio color="info" />}
+                  label={`${side} ${increaseExchange} (Increase)`}
                 />
               ) : null}
               {reduceExchange ? (
                 <FormControlLabel
                   value="reduce"
-                  control={<Radio />}
-                  label={`${sideBalance} ${reduceExchange} (Reduce)`}
+                  control={<Radio color="info" />}
+                  label={`${side} ${reduceExchange} (Reduce)`}
                 />
               ) : null}
             </RadioGroup>
@@ -137,7 +137,7 @@ function BalanceOrderConfirmationDialog(props: ConfirmationDialogRawProps) {
           />
         </Box>
       </DialogContent>
-      <DialogActions sx={{ width: '100%' }}>
+      <DialogActions sx={{ width: "100%", background: "#1e2026" }}>
         <Box
           width="100%"
           display="flex"
@@ -145,7 +145,7 @@ function BalanceOrderConfirmationDialog(props: ConfirmationDialogRawProps) {
           justifyContent="space-between"
           py={1}
         >
-          <Button autoFocus onClick={handleCancel}>
+          <Button autoFocus onClick={handleCancel} color="error">
             Cancel
           </Button>
           <LoadingButton
@@ -158,10 +158,7 @@ function BalanceOrderConfirmationDialog(props: ConfirmationDialogRawProps) {
         </Box>
       </DialogActions>
     </Dialog>
-  )
+  );
 }
 
-export default BalanceOrderConfirmationDialog
-
-export const capitalize = (s: string) =>
-  (s && s[0].toUpperCase() + s.slice(1)) || ''
+export default BalanceOrderConfirmationDialog;

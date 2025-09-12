@@ -149,7 +149,7 @@ function NewStrategyDialog(props: NewStrategyProps) {
       maxWidth="xl"
       open={open}
     >
-      <DialogTitle sx={{ fontSize: 16 }}>
+      <DialogTitle sx={{ fontSize: 16, background: "#1e2026" }}>
         New Strategy: {baseToken} - mark price: {markPrice} USDT
       </DialogTitle>
       <IconButton
@@ -167,7 +167,7 @@ function NewStrategyDialog(props: NewStrategyProps) {
       <DialogContent
         dividers
         sx={{
-          background: "#121212",
+          background: "#1e2026",
           paddingBottom: "32px",
         }}
       >
@@ -603,7 +603,7 @@ function NewStrategyDialog(props: NewStrategyProps) {
           </Accordion>
         </Fragment>
       </DialogContent>
-      <DialogActions sx={{ width: "100%", background: "#121212" }}>
+      <DialogActions sx={{ width: "100%", background: "#1e2026" }}>
         <Box
           width="100%"
           display="flex"
