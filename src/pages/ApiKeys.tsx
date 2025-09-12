@@ -28,14 +28,6 @@ import {
 } from '@mui/material';
 import { Visibility, VisibilityOff, Edit as EditIcon } from '@mui/icons-material';
 
-interface ExchangeKey {
-  id: number;
-  exchange: string;
-  api_key: string;
-  secret_key: string;
-  passphrase?: string;
-}
-
 const ALL_EXCHANGES = [
   { value: 'binance', label: 'Binance' },
   { value: 'okx', label: 'OKX' },
@@ -52,8 +44,8 @@ function ApiKeys() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSecretKey, setShowSecretKey] = useState(false);
   const [showPassphrase, setShowPassphrase] = useState(false);
-  const [exchangeKeys, setExchangeKeys] = useState<ExchangeKey[]>([]);
-  const [editingKey, setEditingKey] = useState<ExchangeKey | null>(null);
+  const [exchangeKeys, setExchangeKeys] = useState<string[]>([]);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     exchange: '',
@@ -64,18 +56,18 @@ function ApiKeys() {
   });
 
   const getExchangeKey = (exchange: string) => {
-    return exchangeKeys?.find(key => key.exchange === exchange);
+    return exchangeKeys?.find(exchangeKey => exchangeKey === exchange);
   };
 
   const fetchExchangeKeys = async () => {
     try {
-      const response = await api.get('/api/v1/exchange/keys', {
+      const response = await api.get('/api/v1/exchange/configured', {
         headers: {
           'x-group-id': '1'
         }
       });
       if (response.data) {
-        setExchangeKeys(response.data.exchangeKeys);
+        setExchangeKeys(response.data);
       }
     } catch (err) {
       if (err instanceof AxiosError) {
@@ -137,13 +129,13 @@ function ApiKeys() {
     }
   };
 
-  const handleEdit = (key: ExchangeKey) => {
-    setEditingKey(key);
+  const handleEdit = (exchange: string) => {
+    setEditingKey(exchange);
     setFormData({
-      exchange: key.exchange,
-      key: key.api_key,
-      secret: key.secret_key,
-      passphrase: key.passphrase || '',
+      exchange: exchange,
+      key: '',
+      secret: '',
+      passphrase: '',
       token: '',
     });
     setIsDialogOpen(true);
@@ -207,6 +199,7 @@ function ApiKeys() {
           </TableHead>
           <TableBody>
             {ALL_EXCHANGES.map((exchange) => {
+              console.log({exchange})
               const existingKey = getExchangeKey(exchange.value);
               return (
                 <TableRow key={exchange.value}>
