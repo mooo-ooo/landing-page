@@ -64,7 +64,7 @@ function ApiKeys() {
   });
 
   const getExchangeKey = (exchange: string) => {
-    return exchangeKeys.find(key => key.exchange === exchange);
+    return exchangeKeys?.find(key => key.exchange === exchange);
   };
 
   const fetchExchangeKeys = async () => {
@@ -75,7 +75,7 @@ function ApiKeys() {
         }
       });
       if (response.data) {
-        setExchangeKeys(response.data);
+        setExchangeKeys(response.data.exchangeKeys);
       }
     } catch (err) {
       if (err instanceof AxiosError) {
