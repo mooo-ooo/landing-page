@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
-import { AxiosError } from 'axios';
-import api from '../lib/axios';
+import { useState, useEffect } from "react";
+import { AxiosError } from "axios";
+import api from "../lib/axios";
 import {
-  Container,
   TextField,
   Button,
   Typography,
@@ -25,18 +24,24 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-} from '@mui/material';
-import { Visibility, VisibilityOff, Edit as EditIcon } from '@mui/icons-material';
+} from "@mui/material";
+import {
+  Visibility,
+  VisibilityOff,
+  Edit as EditIcon,
+} from "@mui/icons-material";
 
 const ALL_EXCHANGES = [
-  { value: 'binance', label: 'Binance' },
-  { value: 'okx', label: 'OKX' },
-  { value: 'bybit', label: 'Bybit' },
-  { value: 'coinex', label: 'Coinex' },
-  { value: 'huobi', label: 'Huobi' },
-  { value: 'gate', label: 'Gate.io' },
-  { value: 'bitget', label: 'Bitget' },
+  { value: "binance", label: "Binance" },
+  { value: "okx", label: "OKX" },
+  { value: "bybit", label: "Bybit" },
+  { value: "coinex", label: "Coinex" },
+  { value: "huobi", label: "Huobi" },
+  { value: "gate", label: "Gate.io" },
+  { value: "bitget", label: "Bitget" },
 ];
+
+const exchangesWithPassphrase: string[] = ["bitget", "okx"];
 
 function ApiKeys() {
   const [error, setError] = useState<string>();
@@ -48,32 +53,32 @@ function ApiKeys() {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
-    exchange: '',
-    key: '',
-    secret: '',
-    passphrase: '',
-    token: '',
+    exchange: "",
+    key: "",
+    secret: "",
+    passphrase: "",
+    token: "",
   });
 
   const getExchangeKey = (exchange: string) => {
-    return exchangeKeys?.find(exchangeKey => exchangeKey === exchange);
+    return exchangeKeys?.find((exchangeKey) => exchangeKey === exchange);
   };
 
   const fetchExchangeKeys = async () => {
     try {
-      const response = await api.get('/api/v1/exchange/configured', {
+      const response = await api.get("/api/v1/exchange/configured", {
         headers: {
-          'x-group-id': '1'
-        }
+          "x-group-id": "1",
+        },
       });
       if (response.data) {
         setExchangeKeys(response.data);
       }
     } catch (err) {
       if (err instanceof AxiosError) {
-        setError(err.response?.data?.message || 'Failed to fetch API keys');
+        setError(err.response?.data?.message || "Failed to fetch API keys");
       } else {
-        setError('An unexpected error occurred while fetching API keys');
+        setError("An unexpected error occurred while fetching API keys");
       }
     }
   };
@@ -82,9 +87,13 @@ function ApiKeys() {
     fetchExchangeKeys();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement> | { target: { name: string; value: unknown } }) => {
+  const handleChange = (
+    e:
+      | React.ChangeEvent<HTMLInputElement>
+      | { target: { name: string; value: unknown } }
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -105,24 +114,24 @@ function ApiKeys() {
         token: formData.token,
       };
 
-      await api.post('/api/v1/exchange/keys', payload);
-      setSuccess('API keys saved successfully');
+      await api.post("/api/v1/exchange/keys", payload);
+      setSuccess("API keys saved successfully");
 
       setFormData({
-        exchange: '',
-        key: '',
-        secret: '',
-        passphrase: '',
-        token: '',
+        exchange: "",
+        key: "",
+        secret: "",
+        passphrase: "",
+        token: "",
       });
       setEditingKey(null);
       setIsDialogOpen(false);
       fetchExchangeKeys();
     } catch (err) {
       if (err instanceof AxiosError) {
-        setError(err.response?.data?.message || 'Failed to save API keys');
+        setError(err.response?.data?.message || "Failed to save API keys");
       } else {
-        setError('An unexpected error occurred');
+        setError("An unexpected error occurred");
       }
     } finally {
       setIsLoading(false);
@@ -133,10 +142,10 @@ function ApiKeys() {
     setEditingKey(exchange);
     setFormData({
       exchange: exchange,
-      key: '',
-      secret: '',
-      passphrase: '',
-      token: '',
+      key: "",
+      secret: "",
+      passphrase: "",
+      token: "",
     });
     setIsDialogOpen(true);
   };
@@ -145,10 +154,10 @@ function ApiKeys() {
     setEditingKey(null);
     setFormData({
       exchange,
-      key: '',
-      secret: '',
-      passphrase: '',
-      token: '',
+      key: "",
+      secret: "",
+      passphrase: "",
+      token: "",
     });
     setIsDialogOpen(true);
   };
@@ -157,16 +166,22 @@ function ApiKeys() {
     setIsDialogOpen(false);
     setEditingKey(null);
     setFormData({
-      exchange: '',
-      key: '',
-      secret: '',
-      passphrase: '',
-      token: '',
+      exchange: "",
+      key: "",
+      secret: "",
+      passphrase: "",
+      token: "",
     });
   };
 
   return (
-    <Container maxWidth="lg">
+    <Box
+      maxWidth="lg"
+      display="flex"
+      flexDirection="column"
+      gap="12px"
+      py="16px"
+    >
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Exchange API Keys
@@ -199,7 +214,7 @@ function ApiKeys() {
           </TableHead>
           <TableBody>
             {ALL_EXCHANGES.map((exchange) => {
-              console.log({exchange})
+              console.log({ exchange });
               const existingKey = getExchangeKey(exchange.value);
               return (
                 <TableRow key={exchange.value}>
@@ -208,7 +223,9 @@ function ApiKeys() {
                     {existingKey ? (
                       <Typography color="success.main">Configured</Typography>
                     ) : (
-                      <Typography color="text.secondary">Not configured</Typography>
+                      <Typography color="text.secondary">
+                        Not configured
+                      </Typography>
                     )}
                   </TableCell>
                   <TableCell>
@@ -238,17 +255,20 @@ function ApiKeys() {
         </Table>
       </TableContainer>
 
-      <Dialog 
-        open={isDialogOpen} 
+      <Dialog
+        open={isDialogOpen}
         onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
+        sx={{ "& .MuiDialog-paper": { width: "650px" } }}
+      maxWidth="xl"
       >
-        <DialogTitle>
-          {editingKey ? 'Update API Keys' : 'Add New API Keys'}
+        <DialogTitle sx={{ fontSize: 16, background: "#1e2026" }}>
+          {editingKey ? "Update API Keys" : "Add New API Keys"}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
-          <DialogContent>
+          <DialogContent sx={{
+          background: "#1e2026",
+          paddingBottom: "32px",
+        }}>
             <FormControl fullWidth sx={{ mb: 2 }}>
               <InputLabel id="exchange-label">Exchange</InputLabel>
               <Select
@@ -258,6 +278,7 @@ function ApiKeys() {
                 label="Exchange"
                 onChange={handleChange}
                 required
+                disabled={Boolean(editingKey)}
               >
                 {ALL_EXCHANGES.map((exchange) => (
                   <MenuItem key={exchange.value} value={exchange.value}>
@@ -273,7 +294,9 @@ function ApiKeys() {
               name="key"
               value={formData.key}
               onChange={handleChange}
-              required
+              InputProps={{
+                autoComplete: 'off',
+              }}
               sx={{ mb: 2 }}
             />
 
@@ -281,12 +304,12 @@ function ApiKeys() {
               fullWidth
               label="Secret Key"
               name="secret"
-              type={showSecretKey ? 'text' : 'password'}
+              type="password"
               value={formData.secret}
               onChange={handleChange}
-              required
               sx={{ mb: 2 }}
               InputProps={{
+                autoComplete: 'off',
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
@@ -300,27 +323,29 @@ function ApiKeys() {
               }}
             />
 
-            <TextField
-              fullWidth
-              label="Passphrase (Optional)"
-              name="passphrase"
-              type={showPassphrase ? 'text' : 'password'}
-              value={formData.passphrase}
-              onChange={handleChange}
-              sx={{ mb: 2 }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassphrase(!showPassphrase)}
-                      edge="end"
-                    >
-                      {showPassphrase ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
+            {exchangesWithPassphrase.includes(formData.exchange) ? (
+              <TextField
+                fullWidth
+                label="Passphrase (Optional)"
+                name="passphrase"
+                type={showPassphrase ? "text" : "password"}
+                value={formData.passphrase}
+                onChange={handleChange}
+                sx={{ mb: 2 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassphrase(!showPassphrase)}
+                        edge="end"
+                      >
+                        {showPassphrase ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            ) : null}
 
             <TextField
               fullWidth
@@ -333,27 +358,25 @@ function ApiKeys() {
               placeholder="Enter code from your authenticator app"
               inputProps={{
                 maxLength: 6,
-                pattern: '[0-9]*',
-                inputMode: 'numeric',
+                pattern: "[0-9]*",
+                inputMode: "numeric",
               }}
             />
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Saving...' : editingKey ? 'Update Keys' : 'Save Keys'}
+          <DialogActions sx={{ width: "100%", background: "#1e2026" }}>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button type="submit" variant="contained" disabled={isLoading}>
+              {isLoading
+                ? "Saving..."
+                : editingKey
+                ? "Update Keys"
+                : "Save Keys"}
             </Button>
           </DialogActions>
         </form>
       </Dialog>
-    </Container>
+    </Box>
   );
 }
 
-export default ApiKeys; 
+export default ApiKeys;

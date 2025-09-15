@@ -104,16 +104,16 @@ export const createPositionsTable = ({
 
     const distToLiqBuy = Math.max(
       100 -
-        Math.abs(percentageChange(buys[0].markPrice, buys[0].liqPrice || 0)),
+        Math.abs(percentageChange(buys[0]?.markPrice, buys[0]?.liqPrice || 0)),
       0
     );
     const distToLiqSell = Math.max(
       100 -
-        Math.abs(percentageChange(sells[0].markPrice, sells[0].liqPrice || 0)),
+        Math.abs(percentageChange(sells[0]?.markPrice, sells[0]?.liqPrice || 0)),
       0
     );
 
-    const volOfStrategy = (totalSizeSell + totalSizeBuy) * sells[0].markPrice;
+    const volOfStrategy = (totalSizeSell + totalSizeBuy) * sells[0]?.markPrice;
 
     const capitalAllocated = equity * (volOfStrategy / totalVol);
 
@@ -193,7 +193,7 @@ export const createPositionsTable = ({
                   sx={{ fill: "rgb(246, 70, 93)", fontSize: 16 }}
                 />
                 <Typography color="rgb(246, 70, 93)" ml={1}>
-                  {numeral(spreadSize * sells[0].markPrice).format("0,0")}$
+                  {numeral(spreadSize * sells[0]?.markPrice).format("0,0")}$
                 </Typography>
               </Box>
             ) : null}
@@ -239,10 +239,10 @@ export const createPositionsTable = ({
       {
         id: "markPrice",
         component: (
-          <Tooltip title={sells[0].exchange}>
+          <Tooltip title={sells[0]?.exchange}>
             <Typography>
               {sells.length ? (
-                numeral(sells[0].markPrice).format(
+                numeral(sells[0]?.markPrice).format(
                   precisionMap[baseToken] || "0,0.[000]"
                 )
               ) : (
@@ -264,7 +264,7 @@ export const createPositionsTable = ({
                       {numeral(distToLiqSell).format("0,0")}%
                     </Typography>
                     <Typography fontSize="10px">
-                      {numeral(sells[0].liqPrice).format(
+                      {numeral(sells[0]?.liqPrice).format(
                         precisionMap[baseToken] || "0,0.[000]"
                       )}
                       $
@@ -289,7 +289,7 @@ export const createPositionsTable = ({
                       {numeral(distToLiqBuy).format("0,0")}%
                     </Typography>
                     <Typography fontSize="10px">
-                      {numeral(buys[0].liqPrice).format(
+                      {numeral(buys[0]?.liqPrice).format(
                         precisionMap[baseToken] || "0,0.[0000]"
                       )}
                       $

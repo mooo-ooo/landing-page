@@ -12,7 +12,7 @@ export const useNormalizedPositions = (selectedExchanges: string[] = []) => {
   const balances = useSelector(selectBalances);
 
   const spotPositions: IPosition[] = useMemo(() => {
-    return balances.gate.spot.map(({ coin, amount }) => ({
+    return balances?.gate ? balances?.gate?.spot.map(({ coin, amount }) => ({
       exchange: "gate",
       side: "spot",
       size: amount,
@@ -23,7 +23,7 @@ export const useNormalizedPositions = (selectedExchanges: string[] = []) => {
       fundingRate: 0,
       liqPriceRatio: Number.NaN,
       createdAt: (new Date).getTime()
-    }));
+    })) : [];
   }, [balances]);
 
   const normalizedPositions = useMemo(() => {
