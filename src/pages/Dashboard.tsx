@@ -3,11 +3,14 @@ import { Grid, Box } from "@mui/material";
 import PositionsTable from "../components/PositionsTable";
 import ExchangeMargin from "../components/ExchangeMargin";
 import FundingFeesChart from "../components/FundingFeesChart";
-import EquitiesChart from "../components/EquitiesChart";
+import EquitiesChart from "../components/VolumeChart";
 import { useNormalizedPositions, useFundingRates } from "../hooks";
 import { selectPositionsError } from "../redux/positions/positionsSlice";
 import { selectBalances } from "../redux/balances/balancesSlice";
-import { fetchStrategies, selectStrategies } from "../redux/strategy/strategySlice";
+import {
+  fetchStrategies,
+  selectStrategies,
+} from "../redux/strategy/strategySlice";
 import type { AppDispatch } from "../redux/store";
 import { useSelector, useDispatch } from "react-redux";
 import type { ISymbol } from "../types";
@@ -18,7 +21,7 @@ const Dashboard: FC = () => {
   const [symbols, setSymbols] = useState<ISymbol[]>([]);
   const positionsError = useSelector(selectPositionsError);
   const balances = useSelector(selectBalances);
-  const strategies = useSelector(selectStrategies)
+  const strategies = useSelector(selectStrategies);
 
   const dashboardRef = useRef<HTMLDivElement>(null);
   const exchangeMarginRef = useRef<HTMLDivElement>(null);
@@ -30,8 +33,7 @@ const Dashboard: FC = () => {
   }, [balances]);
 
   useEffect(() => {
-    dispatch(fetchStrategies())
-
+    dispatch(fetchStrategies());
     api
       .get("/api/v1/symbols")
       .then(({ data }: { data: ISymbol[] }) => setSymbols(data));

@@ -175,7 +175,7 @@ export const createPositionsTable = ({
         id: "volume",
         component: (
           <Box>
-            <Typography>{numeral(volOfStrategy).format("0,0]")}</Typography>
+            <Typography>{numeral(volOfStrategy).format("0,0]")}$</Typography>
             {spreadSize ? (
               <Box
                 display="flex"
@@ -230,7 +230,7 @@ export const createPositionsTable = ({
               width={20}
               height={20}
             />
-            <Typography>{numeral(biggestPnL.maxPnL).format("0,0")}</Typography>
+            <Typography>{numeral(biggestPnL.maxPnL).format("0,0")}$</Typography>
           </Box>
         ) : (
           <Skeleton animation="wave" />
