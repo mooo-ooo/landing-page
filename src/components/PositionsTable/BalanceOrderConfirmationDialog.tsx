@@ -12,6 +12,7 @@ import {
   RadioGroup,
   FormControlLabel,
   TextField,
+  Typography,
 } from "@mui/material";
 import FormControl from "@mui/material/FormControl";
 import LoadingButton from "@mui/lab/LoadingButton";
@@ -60,8 +61,7 @@ function BalanceOrderConfirmationDialog(props: ConfirmationDialogRawProps) {
         )
       )
       .catch((err) => {
-        console.log(err);
-        enqueueSnackbar(err.response?.data?.error || err.message, {
+        enqueueSnackbar(err.response?.data?.message || err.message, {
           variant: "error",
         });
         return {
@@ -87,8 +87,15 @@ function BalanceOrderConfirmationDialog(props: ConfirmationDialogRawProps) {
       maxWidth="xl"
       open={open}
     >
-      <DialogTitle sx={{ fontSize: 16, background: "#1e2026" }}>Balance positions</DialogTitle>
-      <DialogContent dividers sx={{ padding: "16px 12px", background: "#1e2026" }}>
+      <DialogTitle sx={{ fontSize: 16, background: "#1e2026" }}>
+        <Typography fontWeight="bold">
+        Balance positions [{amount} {token}]
+        </Typography>
+      </DialogTitle>
+      <DialogContent
+        dividers
+        sx={{ padding: "16px 12px", background: "#1e2026" }}
+      >
         <Box
           display="flex"
           alignItems="flex-start"
@@ -96,9 +103,6 @@ function BalanceOrderConfirmationDialog(props: ConfirmationDialogRawProps) {
           flexDirection="column"
         >
           <FormControl>
-            <FormLabel color="info">
-              {amount} {token}
-            </FormLabel>
             <RadioGroup
               value={direction}
               aria-labelledby="demo-radio-buttons-group-label"
