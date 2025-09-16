@@ -14,10 +14,10 @@ import {
   TextField,
 } from "@mui/material";
 import FormControl from "@mui/material/FormControl";
-import axios from "axios";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { useSnackbar } from "notistack";
 import type { SIDE } from "../../types";
+import api from "../../lib/axios";
 
 export interface ConfirmationDialogRawProps {
   id: string;
@@ -45,8 +45,8 @@ function BalanceOrderConfirmationDialog(props: ConfirmationDialogRawProps) {
   const handleBalance = async () => {
     setLoading(true);
     const exchange = direction === "reduce" ? reduceExchange : increaseExchange;
-    axios
-      .post("/positions/imbalance", {
+    api
+      .post("/api/v1/orders/imbalance", {
         exchange,
         quantity: amount,
         side,
