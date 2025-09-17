@@ -91,10 +91,13 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
         <Skeleton animation="wave" />
       ) : (
         <Box display="flex" justifyContent="space-between">
-          <Typography>
-            Est.funding: ${numeral(estimatedFundingFee).format("0,0")}{" "}
-            USDT
-          </Typography>
+          <Box display="flex" alignItems="center">
+            <Typography mr={1}>Est.funding:</Typography>
+            <img height={16} src="/usdt.png" />
+            <Typography ml={0.5}>
+              {numeral(estimatedFundingFee).format("0,0")}
+            </Typography>
+          </Box>
           <Typography>APY: {numeral(apy * 100).format("0,0")}%</Typography>
         </Box>
       )}

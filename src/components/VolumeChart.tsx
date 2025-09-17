@@ -36,14 +36,17 @@ const VolumeChart: FC<VolumeChartProps> = ({ width = 250, height = 250 }) => {
   }, [positions]);
 
   const totalVol = Object.values(volumes).reduce((tot, { value }) => {
-      return tot + value
-    }, 0)
+    return tot + value;
+  }, 0);
 
   return (
     <Box>
-      <Typography>
-        Total volume: ~{numeral(totalVol).format("0,0.0")} USDT
-      </Typography>
+      <Box display='flex' alignItems='center'>
+        <Typography mr={1}>Total volume:</Typography>
+        <img height={16} src="/usdt.png" />
+        <Typography ml={0.5}>{numeral(totalVol).format("0,0")}</Typography>
+      </Box>
+
       <PieChart
         series={[
           {
@@ -53,7 +56,7 @@ const VolumeChart: FC<VolumeChartProps> = ({ width = 250, height = 250 }) => {
             paddingAngle: 1,
             cornerRadius: 3,
             startAngle: -45,
-            arcLabel: (item) => `${numeral(item.value).format("0,0")}%`,
+            arcLabel: (item) => `${numeral(item.value).format("0,0")}$`,
             arcLabelMinAngle: 35,
             arcLabelRadius: "60%",
           },

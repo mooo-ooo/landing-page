@@ -101,11 +101,11 @@ function ExchangeMargin() {
   }, [positions]);
 
   return (
-    <Box display="flex" flexDirection="column" gap="16px">
+    <Box display="flex" flexDirection="column" gap="16px" maxHeight="400px">
       <Paper
         sx={{
           width: "100%",
-          overflow: "hidden",
+          overflow: "auto",
           mb: 2,
           backgroundColor: "#010409",
           border: "1px solid #30363d",
@@ -116,7 +116,7 @@ function ExchangeMargin() {
             sx={{
               position: "sticky",
               top: 0,
-              zIndex: 1,
+              zIndex: 10,
               backgroundColor: "rgba(255, 255, 255, 0.08)",
             }}
           >
