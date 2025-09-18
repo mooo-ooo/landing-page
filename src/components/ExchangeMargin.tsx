@@ -15,6 +15,7 @@ import {
   Collapse,
   Button
 } from "@mui/material";
+import { useSnackbar } from "notistack";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -37,14 +38,25 @@ import {
   selectBalancesError,
 } from "../redux/balances/balancesSlice";
 import { percentageChange } from "../helpers";
+import api from "../lib/axios";
 
 const WARNING_LEV = 7.5;
 function ExchangeMargin() {
+  const { enqueueSnackbar } = useSnackbar();
   const error = useSelector(selectBalancesError);
   const balances = useSelector(selectBalances);
   const positions = useSelector(selectPositions);
   const { leverage } = useBalances();
   const [selectedExchange, setSelectedExchange] = useState("");
+
+  const handleSubmit = async (exchange: string) => {
+    api
+      .post("/api/v1/account/wait-for-deposit", {exchange, amount: 3})
+      .then(({ data }) => {
+        enqueueSnackbar(`Transfered ${data?.amount || 'all'} USDT to USD-M account`, { variant: "success" });
+        
+      })
+  };
 
   const nearestLiqEchange = useMemo(() => {
     const result: Record<
@@ -321,7 +333,7 @@ function ExchangeMargin() {
                           <Box>
                             <Box display='flex' justifyContent='space-between' my={1}>
                               <Typography color="textSecondary" my={1}>Spot assets</Typography>
-                              <Button size="small" variant="outlined" color="info">USD-M</Button>
+                              <Button onClick={() => handleSubmit(exchangeName.toLowerCase())} size="small" variant="outlined" color="info">USD-M</Button>
                             </Box>
                             
                             {spot.filter(({ amount }) => amount > 0).map(({ amount, coin }) => {

@@ -103,7 +103,6 @@ const Dashboard: FC = () => {
       enqueueSnackbar(`You now can do transfer again`, { variant: "success" });
     }
   };
-  console.log({ transferPending });
 
   const fetchTransferPending = () => {
     api.get("/api/v1/wallets/transfer-pending").then(function ({ data }) {
