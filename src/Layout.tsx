@@ -52,7 +52,7 @@ import {
   setPositionsLoading,
   selectPositionsLoading,
 } from "./redux/positions/positionsSlice";
-// import { setStrategies } from './redux/strategy/strategySlice'
+
 
 function Layout() {
   const didRun = useRef(false);
@@ -269,12 +269,12 @@ function Layout() {
       <MenuItem
         onClick={() => {
           handleMenuClose();
-          navigate("/api-keys");
+          navigate("/settings");
         }}
         sx={{ py: 1.5 }}
       >
         <VpnKey sx={{ mr: 2, fontSize: 20 }} />
-        API Keys
+        Settings
       </MenuItem>
       <MenuItem
         onClick={() => {
@@ -351,7 +351,7 @@ function Layout() {
                 Signal
               </LinkStyled>
               <LinkStyled
-                to="/tools"
+                to="/orderbooks"
                 isActive={location.pathname === "/orderbooks"}
               >
                 Orderbooks

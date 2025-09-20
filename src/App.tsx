@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+import { Suspense, lazy } from 'react'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { Routes, Route, BrowserRouter } from 'react-router-dom'
 import { SnackbarProvider } from 'notistack'
@@ -18,6 +18,8 @@ import Strategies from './pages/Strategies'
 import TwoFactorAuth from './pages/TwoFactorAuth'
 import TwoFactorVerify from './pages/TwoFactorVerify'
 import ApiKeys from './pages/ApiKeys'
+const Orderbooks = lazy(() => import('./pages/Orderbooks/Container'))
+const Settings = lazy(() => import('./pages/Settings'))
 
 // Store
 import { Provider } from 'react-redux'
@@ -54,9 +56,11 @@ function App() {
                   <Route path="/2fa" element={<TwoFactorAuth />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/wallets" element={<Wallets />} />
+                  <Route path="/settings" element={<Settings />} />
                   <Route path="/strategies" element={<Strategies />} />
                   <Route path="/fundings" element={<Fundings />} />
                   <Route path="/api-keys" element={<ApiKeys />} />
+                  <Route path="orderbooks" element={<Orderbooks />} />
                   <Route path="*" element={<Home />} />
                 </Route>
               </Routes>
