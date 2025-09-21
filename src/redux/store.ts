@@ -3,6 +3,7 @@ import balancesReducer from './balances/balancesSlice'
 import userReducer from './slices/userSlice'
 import positionsReducer from './positions/positionsSlice'
 import strategiesReducer from './strategy/strategySlice'
+import groupReducer from './group/groupSlice'
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     user: userReducer,
     positions: positionsReducer,
     strategies: strategiesReducer,
+    group: groupReducer
   },
 })
 

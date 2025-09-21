@@ -46,6 +46,7 @@ import {
   setUpdateStrategy,
   selectUpdateStrategy
 } from "./redux/strategy/strategySlice";
+import { fetchGroup } from "./redux/group/groupSlice";
 import {
   setPositions,
   setPositionsError,
@@ -121,6 +122,7 @@ function Layout() {
               groupCode: userData.groupCode,
             })
           );
+          dispatch(fetchGroup())
           // Store groupId in localStorage for axios interceptor
           if (userData.groupId) {
             localStorage.setItem("groupId", userData.groupId.toString());

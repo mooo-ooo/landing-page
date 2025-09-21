@@ -8,19 +8,26 @@ import {
   Grid,
   Divider,
 } from "@mui/material";
+import { useSelector } from "react-redux";
+import { selectGroup } from "../../redux/group/groupSlice";
 import ApiKeys from "./ApiKeys";
+import Telegram from "./Telegram";
+import { useSearchParams } from "react-router-dom";
+import { yellow } from "../../constants/colors";
 
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import TelegramIcon from "@mui/icons-material/Telegram";
+
+const API_KEYS_ROUTE = "api-keys";
+const TELE_ROUTE = "telegram";
+
 function Settings() {
+  const groupStore = useSelector(selectGroup);
+  console.log(groupStore)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = searchParams.get("q") || API_KEYS_ROUTE;
   return (
-    <Box
-      maxWidth="lg"
-      display="flex"
-      flexDirection="column"
-      gap="12px"
-      py="16px"
-    >
+    <Box display="flex" flexDirection="column" gap="12px" py="16px">
       <Grid container>
         <Grid
           size={3}
@@ -31,7 +38,13 @@ function Settings() {
         >
           <List>
             <ListItem disablePadding>
-              <ListItemButton component="a" href="/api-keys">
+              <ListItemButton
+                onClick={() => setSearchParams({ q: API_KEYS_ROUTE })}
+                sx={{
+                  borderLeft:
+                    page === API_KEYS_ROUTE ? `2px solid ${yellow}` : "",
+                }}
+              >
                 <ListItemIcon>
                   <VpnKeyIcon />
                 </ListItemIcon>
@@ -40,7 +53,12 @@ function Settings() {
             </ListItem>
             <Divider />
             <ListItem disablePadding>
-              <ListItemButton component="a" href="telegram">
+              <ListItemButton
+                onClick={() => setSearchParams({ q: TELE_ROUTE })}
+                sx={{
+                  borderLeft: page === TELE_ROUTE ? `2px solid ${yellow}` : "",
+                }}
+              >
                 <ListItemIcon>
                   <TelegramIcon />
                 </ListItemIcon>
@@ -58,7 +76,8 @@ function Settings() {
               borderLeft: "none",
             }}
           >
-            <ApiKeys />
+            {page === API_KEYS_ROUTE ? <ApiKeys /> : null}
+            {page === TELE_ROUTE ? groupStore._id ? <Telegram /> : null : null}
           </Box>
         </Grid>
       </Grid>
