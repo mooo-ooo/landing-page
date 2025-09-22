@@ -82,11 +82,21 @@ function Telegram() {
       )}
 
       <Box sx={{ mb: 4 }}>
-        <Typography mb={2} color="textSecondary">
-          This group provides important announcements that require immediate
-          action to protect your positions and capital, such as withdrawing
-          funds, receiving money, or balancing your position's volume, etc.
-        </Typography>
+        <Box mb={2}>
+          <Typography color="textSecondary">
+            This group provides important announcements that require immediate
+            action to protect your positions and capital
+          </Typography>
+          <Typography color="textSecondary">- withdrawing funds</Typography>
+          <Typography color="textSecondary">- receiving money</Typography>
+          <Typography color="textSecondary">
+            - balancing your position's volume
+          </Typography>
+          <Typography color="textSecondary">
+            - adding, updating api keys
+          </Typography>
+        </Box>
+
         <TextField
           fullWidth
           label="Important group token"
