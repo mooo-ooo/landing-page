@@ -119,7 +119,7 @@ function ExchangeLeverages() {
               ),
             },
           }}
-          size="small"
+          size="medium"
         />
       </Box>
 
@@ -206,7 +206,6 @@ function ExchangeLeverages() {
                         InputProps={{
                           autoComplete: "off",
                         }}
-                        size="small"
                       />
                     </TableCell>
                   </TableRow>
@@ -226,7 +225,6 @@ function ExchangeLeverages() {
           InputProps={{
             autoComplete: "off",
           }}
-          size="small"
         />
         <Box>
           <Button
