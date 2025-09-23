@@ -12,14 +12,17 @@ import { useSelector } from "react-redux";
 import { selectGroup } from "../../redux/group/groupSlice";
 import ApiKeys from "./ApiKeys";
 import Telegram from "./Telegram";
+import ExchangeLeverages from "./ExchangeLeverages";
 import { useSearchParams } from "react-router-dom";
 import { yellow } from "../../constants/colors";
 
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import TelegramIcon from "@mui/icons-material/Telegram";
+import MarginIcon from '@mui/icons-material/Margin';
 
 const API_KEYS_ROUTE = "api-keys";
 const TELE_ROUTE = "telegram";
+const EX_LEVS = "exchange-leverages"
 
 function Settings() {
   const groupStore = useSelector(selectGroup);
@@ -65,6 +68,20 @@ function Settings() {
                 <ListItemText primary="Telegram" />
               </ListItemButton>
             </ListItem>
+            <Divider />
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => setSearchParams({ q: EX_LEVS })}
+                sx={{
+                  borderLeft: page === EX_LEVS ? `2px solid ${yellow}` : "",
+                }}
+              >
+                <ListItemIcon>
+                  <MarginIcon />
+                </ListItemIcon>
+                <ListItemText primary="Exchange leverages" />
+              </ListItemButton>
+            </ListItem>
           </List>
         </Grid>
         <Grid size={9}>
@@ -77,6 +94,7 @@ function Settings() {
             }}
           >
             {page === API_KEYS_ROUTE ? <ApiKeys /> : null}
+            {page === EX_LEVS ? groupStore._id ? <ExchangeLeverages /> : null : null}
             {page === TELE_ROUTE ? groupStore._id ? <Telegram /> : null : null}
           </Box>
         </Grid>

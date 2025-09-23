@@ -154,6 +154,7 @@ const Dashboard: FC = () => {
     fetchTransactions();
     fetchTransferMap();
     fetchDepositAddresses();
+    return () => clearInterval(intervalRef.current);
   }, []);
 
   const handleTransfer = async () => {
