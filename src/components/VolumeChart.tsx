@@ -50,13 +50,14 @@ const VolumeChart: FC<VolumeChartProps> = ({ width = 250, height = 250 }) => {
       <PieChart
         series={[
           {
+            valueFormatter: (item) => `${numeral(item.value).format("0,0")} USDT`,
             data: volumes,
             innerRadius: 30,
             outerRadius: 100,
             paddingAngle: 1,
             cornerRadius: 3,
             startAngle: -45,
-            arcLabel: (item) => `${numeral(item.value).format("0,0")}$`,
+            arcLabel: (item) => `${numeral(item.value / totalVol * 100).format("0,0")}%`,
             arcLabelMinAngle: 35,
             arcLabelRadius: "60%",
           },

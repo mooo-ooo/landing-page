@@ -108,6 +108,7 @@ function ExchangeLeverages() {
       >
         <Typography>Enter your trigger transfered amount</Typography>
         <TextField
+          size="small"
           sx={{ width: "300px" }}
           name="hedgingAmount"
           value={formData.hedgingAmount}
@@ -119,7 +120,6 @@ function ExchangeLeverages() {
               ),
             },
           }}
-          size="medium"
         />
       </Box>
 
@@ -198,8 +198,10 @@ function ExchangeLeverages() {
                     </TableCell>
                     <TableCell align="right">
                       <TextField
+                        // variant="standard"
                         sx={{ width: "300px" }}
                         type="number"
+                        size="small"
                         name={exchangeName.toLowerCase()}
                         value={formData[exchangeName.toLowerCase()]}
                         onChange={handleChange}
@@ -215,7 +217,7 @@ function ExchangeLeverages() {
           )}
         </TableBody>
       </Table>
-      <Box mt={2} display="flex" width="100%" justifyContent="space-between">
+      <Box mt={2} display="flex" width="100%" justifyContent="space-between" alignItems="flex-end">
         <TextField
           sx={{ width: "300px" }}
           label="Enter 2FA Token"
