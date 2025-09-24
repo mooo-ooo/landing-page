@@ -1,12 +1,11 @@
 import axios from "axios";
 import type { ExchangeName } from "../types/exchange";
+import { PROXY_URL } from '../config'
 
 export interface CandleStick {
   price: number;
   time: number;
 }
-
-const CORS_PROXY = "http://178.128.110.139:8080";
 
 const twoWeeks = 24 * 14;
 export const getCandleSticks = async (
@@ -17,7 +16,7 @@ export const getCandleSticks = async (
     switch (exchange) {
       case "coinex": {
         const { data } = await axios.get(
-          `${CORS_PROXY}/https://api.coinex.com/v2/futures/kline?market=${symbol}USDT&period=1hour&limit=${twoWeeks}`
+          `${PROXY_URL}/https://api.coinex.com/v2/futures/kline?market=${symbol}USDT&period=1hour&limit=${twoWeeks}`
         );
         return data.data.map(
           ({ close, created_at }: { close: string; created_at: number }) => {
@@ -54,7 +53,7 @@ export const getCandleSticks = async (
       }
       case "gate": {
         const { data } = await axios.get(
-          `${CORS_PROXY}/https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=${symbol}_USDT&interval=1h&limit=${twoWeeks}`
+          `${PROXY_URL}/https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=${symbol}_USDT&interval=1h&limit=${twoWeeks}`
         );
         return data.map(({ t, c }: { t: number; c: string }) => {
           return {
@@ -76,7 +75,7 @@ export const getCandleSticks = async (
       }
       case "huobi": {
         const { data } = await axios.get(
-          `${CORS_PROXY}/https://api.hbdm.com/index/market/history/linear_swap_mark_price_kline?contract_code=${symbol}-USDT&period=60min&size=${twoWeeks}`,
+          `${PROXY_URL}/https://api.hbdm.com/index/market/history/linear_swap_mark_price_kline?contract_code=${symbol}-USDT&period=60min&size=${twoWeeks}`,
           {
             headers: {
               "X-Requested-With": "XMLHttpRequest",

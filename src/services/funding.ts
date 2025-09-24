@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { ExchangeName } from '../types/exchange';
+import { PROXY_URL } from '../config'
 
 export interface FundingRate {
   symbol: string;
@@ -35,8 +36,6 @@ export interface HuobiFundingRateResponse {
   ts: number;
 }
 
-const CORS_PROXY = 'http://178.128.110.139:8080';
-
 export const getExchangeFundingRate = async (
   exchange: ExchangeName,
   symbol: string,
@@ -61,7 +60,7 @@ export const getExchangeFundingRate = async (
       }
       case 'gate': {
         const { data } = await axios.get(
-          `${CORS_PROXY}/https://api.gateio.ws/api/v4/futures/usdt/contracts/${symbol}_USDT`,
+          `${PROXY_URL}/https://api.gateio.ws/api/v4/futures/usdt/contracts/${symbol}_USDT`,
         );
         return {
           symbol,
@@ -87,7 +86,7 @@ export const getExchangeFundingRate = async (
       }
       case 'huobi': {
         const { data } = await axios.get<HuobiFundingRateResponse>(
-          `${CORS_PROXY}/https://api.hbdm.com/linear-swap-api/v1/swap_funding_rate?contract_code=${symbol}-USDT`,
+          `${PROXY_URL}/https://api.hbdm.com/linear-swap-api/v1/swap_funding_rate?contract_code=${symbol}-USDT`,
           {
             headers: {
               'X-Requested-With': 'XMLHttpRequest',

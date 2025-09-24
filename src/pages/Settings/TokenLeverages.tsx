@@ -19,9 +19,9 @@ import SaveIcon from "@mui/icons-material/Save";
 import numeral from "numeral";
 import { useSelector, useDispatch } from "react-redux";
 import type { IFuture } from "../../redux/balances/balancesSlice";
-import { selectPositions } from "../../redux/positions/positionsSlice";
 import { selectGroup, fetchGroup } from "../../redux/group/groupSlice";
 import type { AppDispatch } from "../../redux/store";
+import { useNormalizedPositions } from "../../hooks";
 import { styled } from "@mui/system";
 import {
   selectBalances,
@@ -36,7 +36,7 @@ function ExchangeLeverages() {
   const [isLoading, setIsLoading] = useState(false);
   const error = useSelector(selectBalancesError);
   const balances = useSelector(selectBalances);
-  const positions = useSelector(selectPositions);
+  const positions = useNormalizedPositions([]);
   const [formData, setFormData] = useState<Record<string, string>>({
     hedgingAmount: groupStore.hedgingAmount,
     token: "",
@@ -133,15 +133,15 @@ function ExchangeLeverages() {
           }}
         >
           <TableRow sx={{ height: "48px" }}>
-            <TableCell align="left">
-              <Typography color="textSecondary">Exchange</Typography>
+            <TableCell align="left" width="40%">
+              <Typography color="textSecondary">Token</Typography>
             </TableCell>
 
             <TableCell align="left">
-              <Typography color="textSecondary">Current leverage</Typography>
+              <Typography color="textSecondary">Buy leverage</Typography>
             </TableCell>
             <TableCell align="right">
-              <Typography color="textSecondary">Trigger leverage</Typography>
+              <Typography color="textSecondary">Sell leverage</Typography>
             </TableCell>
           </TableRow>
         </TableHead>
@@ -156,46 +156,39 @@ function ExchangeLeverages() {
               </TableCell>
             </TableRow>
           ) : (
-            Object.keys(balances).map((exchangeName) => {
-              const vol = positions[
-                exchangeName as unknown as keyof typeof balances
-              ]?.reduce((tot, { markPrice, size }) => {
-                return (tot = tot + markPrice * size);
-              }, 0);
-              const isShown =
-                positions[exchangeName as unknown as keyof typeof balances]
-                  ?.length > 0;
-
-              const exchange: IFuture =
-                balances[exchangeName as unknown as keyof typeof balances]
-                  .future;
-
-              if (!isShown) {
-                return null;
-              }
+            positions.map(({ baseToken }) => {
               return (
-                <Fragment key={exchangeName}>
-                  <TableRow key={exchangeName}>
+                <Fragment key={baseToken}>
+                  <TableRow key={baseToken}>
                     <TableCell>
-                      <Box display="flex" justifyItems="center" gap={2}>
+                      <Box display="flex" alignItems="center" gap={1}>
                         <img
-                          style={{
-                            borderRadius: "50%",
-                          }}
-                          src={`/${exchangeName}.png`}
-                          alt="USDT"
+                          src={`https://assets.coincap.io/assets/icons/${baseToken.toLowerCase()}@2x.png`}
+                          alt={baseToken}
                           width={20}
                           height={20}
                         />
-                        <Typography textTransform="capitalize">
-                          {exchangeName}
-                        </Typography>
+                        <Typography>{baseToken}</Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Typography>
-                        x{numeral(vol / exchange.marginBalance).format("0.0")}
-                      </Typography>
+                      <TextField
+                        // variant="standard"
+                        sx={{ width: "200px" }}
+                        type="number"
+                        size="small"
+                        defaultValue={50}
+                        // name={exchangeName.toLowerCase()}
+                        // value={formData[exchangeName.toLowerCase()]}
+                        onChange={handleChange}
+                        slotProps={{
+                          input: {
+                            endAdornment: (
+                              <InputAdornment position="end">%</InputAdornment>
+                            ),
+                          },
+                        }}
+                      />
                     </TableCell>
                     <TableCell align="right">
                       <TextField
@@ -203,11 +196,16 @@ function ExchangeLeverages() {
                         sx={{ width: "200px" }}
                         type="number"
                         size="small"
-                        name={exchangeName.toLowerCase()}
-                        value={formData[exchangeName.toLowerCase()]}
+                        defaultValue={50}
+                        // name={exchangeName.toLowerCase()}
+                        // value={formData[exchangeName.toLowerCase()]}
                         onChange={handleChange}
-                        InputProps={{
-                          autoComplete: "off",
+                        slotProps={{
+                          input: {
+                            endAdornment: (
+                              <InputAdornment position="end">%</InputAdornment>
+                            ),
+                          },
                         }}
                       />
                     </TableCell>
@@ -218,7 +216,14 @@ function ExchangeLeverages() {
           )}
         </TableBody>
       </Table>
-      <Box px={2} mt={2} display="flex" width="100%" justifyContent="space-between" alignItems="flex-end">
+      <Box
+        px={2}
+        mt={2}
+        display="flex"
+        width="100%"
+        justifyContent="space-between"
+        alignItems="flex-end"
+      >
         <TextField
           sx={{ width: "300px" }}
           label="Enter 2FA Token"

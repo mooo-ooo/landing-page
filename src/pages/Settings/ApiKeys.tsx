@@ -248,7 +248,7 @@ function ApiKeys() {
               <TableCell>
                 <Typography color="textSecondary">Status</Typography>
               </TableCell>
-              <TableCell>
+              <TableCell align="right">
                 <Typography color="textSecondary">Actions</Typography>
               </TableCell>
             </TableRow>
@@ -280,9 +280,9 @@ function ApiKeys() {
                       </Typography>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell align="right">
                     {existingKey ? (
-                      <Box display="flex" gap={2}>
+                      <Box display="flex" gap={2} justifyContent="flex-end">
                         <Button
                           variant="outlined"
                           size="small"

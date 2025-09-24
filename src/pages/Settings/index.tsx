@@ -13,6 +13,7 @@ import { selectGroup } from "../../redux/group/groupSlice";
 import ApiKeys from "./ApiKeys";
 import Telegram from "./Telegram";
 import ExchangeLeverages from "./ExchangeLeverages";
+import TokenLeverages from "./TokenLeverages";
 import { useSearchParams } from "react-router-dom";
 import { yellow } from "../../constants/colors";
 
@@ -23,6 +24,7 @@ import MarginIcon from '@mui/icons-material/Margin';
 const API_KEYS_ROUTE = "api-keys";
 const TELE_ROUTE = "telegram";
 const EX_LEVS = "exchange-leverages"
+const TOKEN_LEVS = "token-leverages"
 
 function Settings() {
   const groupStore = useSelector(selectGroup);
@@ -96,6 +98,7 @@ function Settings() {
             {page === API_KEYS_ROUTE ? <ApiKeys /> : null}
             {page === EX_LEVS ? groupStore._id ? <ExchangeLeverages /> : null : null}
             {page === TELE_ROUTE ? groupStore._id ? <Telegram /> : null : null}
+            {page === TOKEN_LEVS ? groupStore._id ? <TokenLeverages /> : null : null}
           </Box>
         </Grid>
       </Grid>

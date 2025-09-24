@@ -1,13 +1,12 @@
 import axios from "axios";
 import dayjs from 'dayjs'
 import type { ExchangeName } from "../types/exchange";
+import { PROXY_URL } from '../config'
 
 export interface FundingRate {
   fundingTime: Date;
   fundingRate: number;
 }
-
-const CORS_PROXY = "http://178.128.110.139:8080";
 
 export const fundingRateHistory = async (
   exchange: ExchangeName,
@@ -17,7 +16,7 @@ export const fundingRateHistory = async (
     switch (exchange) {
       case "coinex": {
         const { data: { data: { records }} } = await axios.get(
-          `${CORS_PROXY}/https://api.coinex.com/perpetual/v1/market/funding_history?market=${symbol}USDT&limit=200&offset=0`
+          `${PROXY_URL}/https://api.coinex.com/perpetual/v1/market/funding_history?market=${symbol}USDT&limit=200&offset=0`
         );
         return records.map(
           ({ time, funding_rate }: { funding_rate: string; time: number }) => {
@@ -54,7 +53,7 @@ export const fundingRateHistory = async (
       // }
       case "gate": {
         const { data } = await axios.get(
-          `${CORS_PROXY}/https://api.gateio.ws/api/v4/futures/usdt/funding_rate?contract=${symbol}_USDT&limit=300`
+          `${PROXY_URL}/https://api.gateio.ws/api/v4/futures/usdt/funding_rate?contract=${symbol}_USDT&limit=300`
         );
         return data.map(({ t, r }: { t: number; r: string }) => {
           return {
@@ -76,7 +75,7 @@ export const fundingRateHistory = async (
       }
       case "huobi": {
         const { data: { data : { data }} } = await axios.get(
-          `${CORS_PROXY}/https://api.hbdm.com/linear-swap-api/v1/swap_historical_funding_rate?contract_code=${symbol}-USDT&page_size=200`,
+          `${PROXY_URL}/https://api.hbdm.com/linear-swap-api/v1/swap_historical_funding_rate?contract_code=${symbol}-USDT&page_size=200`,
         );
 
         return data.map(({ funding_rate, funding_time }: { funding_rate: string; funding_time: string }) => {
