@@ -10,23 +10,16 @@ import {
   TableBody,
   Typography,
   InputAdornment,
-  Alert,
-  AlertTitle,
   TextField,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import SaveIcon from "@mui/icons-material/Save";
-import numeral from "numeral";
 import { useSelector, useDispatch } from "react-redux";
-import type { IFuture } from "../../redux/balances/balancesSlice";
 import { selectGroup, fetchGroup } from "../../redux/group/groupSlice";
 import type { AppDispatch } from "../../redux/store";
 import { useNormalizedPositions } from "../../hooks";
 import { styled } from "@mui/system";
-import {
-  selectBalances,
-  selectBalancesError,
-} from "../../redux/balances/balancesSlice";
+import { merge, cloneDeep } from "lodash";
 import api from "../../lib/axios";
 
 function ExchangeLeverages() {
@@ -34,23 +27,23 @@ function ExchangeLeverages() {
   const groupStore = useSelector(selectGroup);
   const { enqueueSnackbar } = useSnackbar();
   const [isLoading, setIsLoading] = useState(false);
-  const error = useSelector(selectBalancesError);
-  const balances = useSelector(selectBalances);
   const positions = useNormalizedPositions([]);
-  const [formData, setFormData] = useState<Record<string, string>>({
-    hedgingAmount: groupStore.hedgingAmount,
-    token: "",
-    ...groupStore.exchangeLeverages,
+  const { tokenLeverageWarning } = groupStore;
+  const [token, setToken] = useState("");
+  const [formData, setFormData] = useState({
+    // ...groupStore.tokenLeverages,
   });
-
+  console.log({ formData }, groupStore.tokenLeverages);
+  const existingSettings = merge(
+    cloneDeep(groupStore.tokenLeverages),
+    formData
+  );
   const handleUpdate = async () => {
     setIsLoading(true);
-    const { token, hedgingAmount, ...exchangeLeverages } = formData;
     api
       .put(`/api/v1/groups/me`, {
         token,
-        hedgingAmount: Number(hedgingAmount),
-        exchangeLeverages: convertStringValuesToNumbers(exchangeLeverages),
+        tokenLeverages: formData,
       })
       .then(() =>
         enqueueSnackbar(`Updated successfully`, { variant: "success" })
@@ -68,10 +61,7 @@ function ExchangeLeverages() {
       .finally(() => {
         dispatch(fetchGroup());
         setIsLoading(false);
-        setFormData((prev) => ({
-          ...prev,
-          token: "",
-        }));
+        setToken("");
       });
   };
 
@@ -81,9 +71,18 @@ function ExchangeLeverages() {
       | { target: { name: string; value: string } }
   ) => {
     const { name, value } = e.target;
+    const [token, side] = name.split(".");
+    const validValue = Number(value) > 90 ? 90 : Number(value) < 0 ? 0 : value;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [token]: {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        ...prev[token],
+        [side]: Number(validValue),
+      },
     }));
   };
 
@@ -99,29 +98,6 @@ function ExchangeLeverages() {
           with the highest available funds and transfer USDT to the
           high-leverage exchange to hedge
         </Typography>
-      </Box>
-      <Box
-        sx={{ mb: 1 }}
-        px={2}
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-      >
-        <Typography>Enter your trigger transfered amount</Typography>
-        <TextField
-          size="small"
-          sx={{ width: "200px" }}
-          name="hedgingAmount"
-          value={formData.hedgingAmount}
-          onChange={handleChange}
-          slotProps={{
-            input: {
-              endAdornment: (
-                <InputAdornment position="end">USDT</InputAdornment>
-              ),
-            },
-          }}
-        />
       </Box>
 
       <Table>
@@ -146,74 +122,68 @@ function ExchangeLeverages() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {error ? (
-            <TableRow>
-              <TableCell colSpan={4}>
-                <Alert severity="error">
-                  <AlertTitle>Fetching balances error</AlertTitle>
-                  {error}
-                </Alert>
-              </TableCell>
-            </TableRow>
-          ) : (
-            positions.map(({ baseToken }) => {
-              return (
-                <Fragment key={baseToken}>
-                  <TableRow key={baseToken}>
-                    <TableCell>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <img
-                          src={`https://assets.coincap.io/assets/icons/${baseToken.toLowerCase()}@2x.png`}
-                          alt={baseToken}
-                          width={20}
-                          height={20}
-                        />
-                        <Typography>{baseToken}</Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        // variant="standard"
-                        sx={{ width: "200px" }}
-                        type="number"
-                        size="small"
-                        defaultValue={50}
-                        // name={exchangeName.toLowerCase()}
-                        // value={formData[exchangeName.toLowerCase()]}
-                        onChange={handleChange}
-                        slotProps={{
-                          input: {
-                            endAdornment: (
-                              <InputAdornment position="end">%</InputAdornment>
-                            ),
-                          },
-                        }}
+          {positions.map(({ baseToken }) => {
+            return (
+              <Fragment key={baseToken}>
+                <TableRow key={baseToken}>
+                  <TableCell>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <img
+                        src={`https://assets.coincap.io/assets/icons/${baseToken.toLowerCase()}@2x.png`}
+                        alt={baseToken}
+                        width={20}
+                        height={20}
                       />
-                    </TableCell>
-                    <TableCell align="right">
-                      <TextField
-                        // variant="standard"
-                        sx={{ width: "200px" }}
-                        type="number"
-                        size="small"
-                        defaultValue={50}
-                        // name={exchangeName.toLowerCase()}
-                        // value={formData[exchangeName.toLowerCase()]}
-                        onChange={handleChange}
-                        slotProps={{
-                          input: {
-                            endAdornment: (
-                              <InputAdornment position="end">%</InputAdornment>
-                            ),
-                          },
-                        }}
-                      />
-                    </TableCell>
-                  </TableRow>
-                </Fragment>
-              );
-            })
-          )}
+                      <Typography>{baseToken}</Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      // variant="standard"
+                      sx={{ width: "200px" }}
+                      type="number"
+                      size="small"
+                      defaultValue={tokenLeverageWarning}
+                      name={`${baseToken.toLowerCase()}.buy`}
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      // @ts-ignore
+                      value={existingSettings[baseToken.toLowerCase()]?.buy}
+                      onChange={handleChange}
+                      slotProps={{
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">%</InputAdornment>
+                          ),
+                        },
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell align="right">
+                    <TextField
+                      // variant="standard"
+                      sx={{ width: "200px" }}
+                      type="number"
+                      size="small"
+                      defaultValue={tokenLeverageWarning}
+                      name={`${baseToken.toLowerCase()}.sell`}
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      // @ts-ignore
+                      value={existingSettings[baseToken.toLowerCase()]?.sell}
+                      onChange={handleChange}
+                      slotProps={{
+                        htmlInput: { max: 90 },
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">%</InputAdornment>
+                          ),
+                        },
+                      }}
+                    />
+                  </TableCell>
+                </TableRow>
+              </Fragment>
+            );
+          })}
         </TableBody>
       </Table>
       <Box
@@ -228,8 +198,8 @@ function ExchangeLeverages() {
           sx={{ width: "300px" }}
           label="Enter 2FA Token"
           name="token"
-          value={formData.token}
-          onChange={handleChange}
+          value={token}
+          onChange={(e) => setToken(e.target.value)}
           InputProps={{
             autoComplete: "off",
           }}
@@ -255,23 +225,3 @@ export default ExchangeLeverages;
 const TableCell = styled(TableCellMui)(() => ({
   padding: "12px 16px",
 }));
-
-type StringKeyObject<T> = { [key: string]: T };
-
-function convertStringValuesToNumbers(
-  obj: StringKeyObject<string>
-): StringKeyObject<number> {
-  const result: StringKeyObject<number> = {};
-
-  // Get all keys from the input object
-  const keys = Object.keys(obj);
-
-  // Iterate over each key
-  for (const key of keys) {
-    // Convert the string value to a number using parseFloat to handle decimals
-    // If the conversion fails (e.g., the string is "hello"), it will return NaN
-    result[key] = parseFloat(obj[key]);
-  }
-
-  return result;
-}

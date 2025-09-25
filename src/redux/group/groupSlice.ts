@@ -11,6 +11,8 @@ export interface IGroup {
   telePriorityToken?: string;
   hedgingAmount: string
   exchangeLeverages?: Record<string, string>
+  tokenLeverages?: Record<string, Record<string, string>>
+  tokenLeverageWarning: string
 }
 export interface GroupState {
   data: IGroup;
@@ -29,7 +31,8 @@ export const fetchGroup = createAsyncThunk(
 
 const initialState: GroupState = {
   data: {
-    hedgingAmount: '1000'
+    hedgingAmount: '1000',
+    tokenLeverageWarning: '70'
   },
   loading: false,
   error: undefined,
