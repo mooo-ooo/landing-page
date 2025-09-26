@@ -26,6 +26,7 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
   width,
   loadingFundingRates,
 }) => {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const balances = useSelector(selectBalances);
   const totalMargin = Object.values(balances).reduce(
     (tot, { total = 0 }) => tot + total,
@@ -36,7 +37,7 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
   >([]);
   useEffect(() => {
     api
-      .get(`/api/v1/account/funding-fees/last-7-days?fromDate=${Date.now()}`)
+      .get(`/api/v1/account/funding-fees/last-7-days?tz=${tz}&fromDate=${Date.now()}`)
       .then((result: { data: { fundingByDay: Record<string, number> } }) => {
         if (
           result.data?.fundingByDay &&
