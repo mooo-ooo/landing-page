@@ -91,7 +91,7 @@ function Settings() {
                 <ListItemButton
                   onClick={() => setSearchParams({ q: EX_LEVS })}
                   sx={{
-                    pl: 10,
+                    pl: 9,
                     borderLeft: page === EX_LEVS ? `2px solid ${yellow}` : "",
                   }}
                 >
@@ -100,7 +100,7 @@ function Settings() {
                 <ListItemButton
                   onClick={() => setSearchParams({ q: TOKEN_LEVS })}
                   sx={{
-                    pl: 10,
+                    pl: 9,
                     borderLeft:
                       page === TOKEN_LEVS ? `2px solid ${yellow}` : "",
                   }}
@@ -109,43 +109,6 @@ function Settings() {
                 </ListItemButton>
               </List>
             </Collapse>
-            {/* <List component="div" disablePadding>
-              <ListItemButton
-                onClick={() => setSearchParams({ q: EX_LEVS })}
-                sx={{
-                  borderLeft: page === EX_LEVS ? `2px solid ${yellow}` : "",
-                }}
-              >
-                <ListItemIcon>
-                  <MarginIcon />
-                </ListItemIcon>
-                <ListItemText primary="Exchange leverages" />
-              </ListItemButton>
-              <ListItemButton
-                onClick={() => setSearchParams({ q: EX_LEVS })}
-                sx={{
-                  borderLeft: page === EX_LEVS ? `2px solid ${yellow}` : "",
-                }}
-              >
-                <ListItemIcon>
-                  <MarginIcon />
-                </ListItemIcon>
-                <ListItemText primary="Exchange leverages" />
-              </ListItemButton>
-            </List> */}
-            {/* <ListItem disablePadding>
-              <ListItemButton
-                onClick={() => setSearchParams({ q: EX_LEVS })}
-                sx={{
-                  borderLeft: page === EX_LEVS ? `2px solid ${yellow}` : "",
-                }}
-              >
-                <ListItemIcon>
-                  <MarginIcon />
-                </ListItemIcon>
-                <ListItemText primary="Exchange leverages" />
-              </ListItemButton>
-            </ListItem> */}
           </List>
         </Grid>
         <Grid size={9}>

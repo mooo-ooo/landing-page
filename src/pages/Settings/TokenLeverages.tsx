@@ -19,6 +19,11 @@ import { selectGroup, fetchGroup } from "../../redux/group/groupSlice";
 import type { AppDispatch } from "../../redux/store";
 import { useNormalizedPositions } from "../../hooks";
 import { styled } from "@mui/system";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import RemoveIcon from "@mui/icons-material/Remove";
+import AddIcon from "@mui/icons-material/Add";
+import { red, green } from "../../constants/colors";
 import { merge, cloneDeep } from "lodash";
 import api from "../../lib/axios";
 
@@ -114,10 +119,16 @@ function ExchangeLeverages() {
             </TableCell>
 
             <TableCell align="left">
-              <Typography color="textSecondary">Buy leverage</Typography>
+              <Box display="flex" gap={1} justifyContent="flex-start">
+                <ArrowDownwardIcon sx={{ fill: red }} />
+                <Typography color="textSecondary">Buy leverage</Typography>
+              </Box>
             </TableCell>
             <TableCell align="right">
-              <Typography color="textSecondary">Sell leverage</Typography>
+              <Box display="flex" gap={1} justifyContent="flex-end">
+                <ArrowUpwardIcon sx={{ fill: green }} />
+                <Typography color="textSecondary">Sell leverage</Typography>
+              </Box>
             </TableCell>
           </TableRow>
         </TableHead>
@@ -138,47 +149,63 @@ function ExchangeLeverages() {
                     </Box>
                   </TableCell>
                   <TableCell>
-                    <TextField
-                      // variant="standard"
-                      sx={{ width: "200px" }}
-                      type="number"
-                      size="small"
-                      defaultValue={tokenLeverageWarning}
-                      name={`${baseToken.toLowerCase()}.buy`}
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                      // @ts-ignore
-                      value={existingSettings[baseToken.toLowerCase()]?.buy}
-                      onChange={handleChange}
-                      slotProps={{
-                        input: {
-                          endAdornment: (
-                            <InputAdornment position="end">%</InputAdornment>
-                          ),
-                        },
-                      }}
-                    />
+                    <Box
+                      display="flex"
+                      gap={1}
+                      justifyContent="flex-start"
+                      alignItems="center"
+                    >
+                      <RemoveIcon sx={{ opacity: 0.5 }} />
+                      <TextField
+                        // variant="standard"
+                        sx={{ width: "200px" }}
+                        type="number"
+                        size="small"
+                        defaultValue={tokenLeverageWarning}
+                        name={`${baseToken.toLowerCase()}.buy`}
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        value={existingSettings[baseToken.toLowerCase()]?.buy}
+                        onChange={handleChange}
+                        slotProps={{
+                          input: {
+                            endAdornment: (
+                              <InputAdornment position="end">%</InputAdornment>
+                            ),
+                          },
+                        }}
+                      />
+                    </Box>
                   </TableCell>
                   <TableCell align="right">
-                    <TextField
-                      // variant="standard"
-                      sx={{ width: "200px" }}
-                      type="number"
-                      size="small"
-                      defaultValue={tokenLeverageWarning}
-                      name={`${baseToken.toLowerCase()}.sell`}
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                      // @ts-ignore
-                      value={existingSettings[baseToken.toLowerCase()]?.sell}
-                      onChange={handleChange}
-                      slotProps={{
-                        htmlInput: { max: 90 },
-                        input: {
-                          endAdornment: (
-                            <InputAdornment position="end">%</InputAdornment>
-                          ),
-                        },
-                      }}
-                    />
+                    <Box
+                      display="flex"
+                      gap={1}
+                      justifyContent="flex-end"
+                      alignItems="center"
+                    >
+                      <AddIcon sx={{ opacity: 0.5 }} />
+                      <TextField
+                        // variant="standard"
+                        sx={{ width: "200px" }}
+                        type="number"
+                        size="small"
+                        defaultValue={tokenLeverageWarning}
+                        name={`${baseToken.toLowerCase()}.sell`}
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        value={existingSettings[baseToken.toLowerCase()]?.sell}
+                        onChange={handleChange}
+                        slotProps={{
+                          htmlInput: { max: 90 },
+                          input: {
+                            endAdornment: (
+                              <InputAdornment position="end">%</InputAdornment>
+                            ),
+                          },
+                        }}
+                      />
+                    </Box>
                   </TableCell>
                 </TableRow>
               </Fragment>
