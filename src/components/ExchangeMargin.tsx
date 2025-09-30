@@ -52,8 +52,8 @@ function ExchangeMargin() {
   const handleSubmit = async (exchange: string) => {
     api
       .post("/api/v1/account/wait-for-deposit", {exchange, amount: 3})
-      .then(({ data }) => {
-        enqueueSnackbar(`Transfered ${data?.amount || 'all'} USDT to USD-M account`, { variant: "success" });
+      .then(() => {
+        enqueueSnackbar(`Watching desposit (${exchange})`, { variant: "success" });
         
       })
   };
@@ -205,7 +205,7 @@ function ExchangeMargin() {
                       }}
                     >
                       <TableCell>
-                        <Box display="flex">
+                        <Box display="flex" gap={1}>
                           <img
                             style={{
                               borderRadius: "50%",

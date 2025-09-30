@@ -13,6 +13,7 @@ export interface IGroup {
   exchangeLeverages?: Record<string, string>
   tokenLeverages?: Record<string, Record<string, string>>
   tokenLeverageWarning: string
+  volumeThreshold?: number
 }
 export interface GroupState {
   data: IGroup;

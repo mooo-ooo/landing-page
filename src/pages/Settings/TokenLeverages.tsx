@@ -1,4 +1,5 @@
-import { useState, Fragment } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, Fragment, useEffect } from "react";
 import { AxiosError } from "axios";
 import {
   Box,
@@ -24,8 +25,13 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 import { red, green } from "../../constants/colors";
-import { merge, cloneDeep } from "lodash";
 import api from "../../lib/axios";
+import { transform, isEqual, has } from 'lodash'
+
+// Styled component for TableCell
+const TableCell = styled(TableCellMui)(() => ({
+  padding: "12px 16px",
+}));
 
 function ExchangeLeverages() {
   const dispatch = useDispatch<AppDispatch>();
@@ -33,22 +39,43 @@ function ExchangeLeverages() {
   const { enqueueSnackbar } = useSnackbar();
   const [isLoading, setIsLoading] = useState(false);
   const positions = useNormalizedPositions([]);
-  const { tokenLeverageWarning } = groupStore;
   const [token, setToken] = useState("");
+
   const [formData, setFormData] = useState({
-    // ...groupStore.tokenLeverages,
+    volumeThreshold: groupStore.volumeThreshold,
+    ...groupStore.tokenLeverages,
   });
-  console.log({ formData }, groupStore.tokenLeverages);
-  const existingSettings = merge(
-    cloneDeep(groupStore.tokenLeverages),
-    formData
-  );
+
+  // Use a separate state for the combined data to avoid re-calculating on every render
+  const [existingSettings, setExistingSettings] = useState(formData);
+
+  useEffect(() => {
+    const initialData = {
+      volumeThreshold: groupStore.volumeThreshold,
+      ...groupStore.tokenLeverages,
+    };
+    setFormData(initialData);
+    setExistingSettings(initialData);
+  }, [groupStore.volumeThreshold, groupStore.tokenLeverages]);
+
   const handleUpdate = async () => {
+    if (!existingSettings.volumeThreshold) {
+      enqueueSnackbar("volumeThreshold is required", { variant: "error" });
+      return;
+    }
+    if (token?.length !== 6) {
+      enqueueSnackbar("Invalid 2FA token", { variant: "error" });
+      return;
+    }
     setIsLoading(true);
+    const { volumeThreshold, ...tokenLeverages } = formData;
+    const updates = getObjectDiff(groupStore.tokenLeverages as any, tokenLeverages);
+
     api
       .put(`/api/v1/groups/me`, {
         token,
-        tokenLeverages: formData,
+        volumeThreshold,
+        tokenLeverages: updates,
       })
       .then(() =>
         enqueueSnackbar(`Updated successfully`, { variant: "success" })
@@ -63,8 +90,12 @@ function ExchangeLeverages() {
           enqueueSnackbar("An unexpected error occurred", { variant: "error" });
         }
       })
-      .finally(() => {
-        dispatch(fetchGroup());
+      .finally(async () => {
+        await dispatch(fetchGroup());
+        setFormData({
+          volumeThreshold: groupStore.volumeThreshold,
+          ...groupStore.tokenLeverages,
+        });
         setIsLoading(false);
         setToken("");
       });
@@ -76,19 +107,29 @@ function ExchangeLeverages() {
       | { target: { name: string; value: string } }
   ) => {
     const { name, value } = e.target;
-    const [token, side] = name.split(".");
-    const validValue = Number(value) > 90 ? 90 : Number(value) < 0 ? 0 : value;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    setFormData((prev) => ({
-      ...prev,
-      [token]: {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        ...prev[token],
-        [side]: Number(validValue),
-      },
-    }));
+    let newFormData;
+
+    if (name.includes(".")) {
+      const [tokenKey, side] = name.split(".");
+      const validValue =
+        Number(value) > 90 ? 90 : Number(value) < 0 ? 0 : Number(value);
+
+      newFormData = {
+        ...formData,
+        [tokenKey]: {
+          ...(formData as any)[tokenKey],
+          [side]: validValue,
+        },
+      };
+    } else {
+      newFormData = {
+        ...formData,
+        [name]: value,
+      };
+    }
+
+    setFormData(newFormData);
+    setExistingSettings(newFormData);
   };
 
   return (
@@ -104,7 +145,28 @@ function ExchangeLeverages() {
           high-leverage exchange to hedge
         </Typography>
       </Box>
-
+      <Box
+        sx={{ mb: 1 }}
+        px={2}
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+      >
+        <Typography>
+          If the volume on two exchanges deviates by more than the
+          "volumeThreshold," both positions will be force-closed.
+        </Typography>
+        <TextField
+          size="small"
+          sx={{ width: "200px" }}
+          name="volumeThreshold"
+          value={existingSettings.volumeThreshold || ""}
+          onChange={handleChange}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">USDT</InputAdornment>,
+          }}
+        />
+      </Box>
       <Table>
         <TableHead
           sx={{
@@ -134,13 +196,24 @@ function ExchangeLeverages() {
         </TableHead>
         <TableBody>
           {positions.map(({ baseToken }) => {
+            const { tokenLeverageWarning } = groupStore;
+            const tokenKey = baseToken.toLowerCase();
+            const buyValue =
+              (existingSettings as any)?.[tokenKey]?.buy === undefined
+                ? tokenLeverageWarning
+                : (existingSettings as any)?.[tokenKey]?.buy;
+            const sellValue =
+              (existingSettings as any)?.[tokenKey]?.sell === undefined
+                ? tokenLeverageWarning
+                : (existingSettings as any)?.[tokenKey]?.sell;
+
             return (
               <Fragment key={baseToken}>
-                <TableRow key={baseToken}>
+                <TableRow>
                   <TableCell>
                     <Box display="flex" alignItems="center" gap={1}>
                       <img
-                        src={`https://assets.coincap.io/assets/icons/${baseToken.toLowerCase()}@2x.png`}
+                        src={`https://assets.coincap.io/assets/icons/${tokenKey}@2x.png`}
                         alt={baseToken}
                         width={20}
                         height={20}
@@ -157,22 +230,16 @@ function ExchangeLeverages() {
                     >
                       <RemoveIcon sx={{ opacity: 0.5 }} />
                       <TextField
-                        // variant="standard"
                         sx={{ width: "200px" }}
                         type="number"
                         size="small"
-                        defaultValue={tokenLeverageWarning}
-                        name={`${baseToken.toLowerCase()}.buy`}
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        value={existingSettings[baseToken.toLowerCase()]?.buy}
+                        name={`${tokenKey}.buy`}
+                        value={buyValue}
                         onChange={handleChange}
-                        slotProps={{
-                          input: {
-                            endAdornment: (
-                              <InputAdornment position="end">%</InputAdornment>
-                            ),
-                          },
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">%</InputAdornment>
+                          ),
                         }}
                       />
                     </Box>
@@ -186,23 +253,16 @@ function ExchangeLeverages() {
                     >
                       <AddIcon sx={{ opacity: 0.5 }} />
                       <TextField
-                        // variant="standard"
                         sx={{ width: "200px" }}
                         type="number"
                         size="small"
-                        defaultValue={tokenLeverageWarning}
-                        name={`${baseToken.toLowerCase()}.sell`}
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        value={existingSettings[baseToken.toLowerCase()]?.sell}
+                        name={`${tokenKey}.sell`}
+                        value={sellValue}
                         onChange={handleChange}
-                        slotProps={{
-                          htmlInput: { max: 90 },
-                          input: {
-                            endAdornment: (
-                              <InputAdornment position="end">%</InputAdornment>
-                            ),
-                          },
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">%</InputAdornment>
+                          ),
                         }}
                       />
                     </Box>
@@ -249,6 +309,27 @@ function ExchangeLeverages() {
 
 export default ExchangeLeverages;
 
-const TableCell = styled(TableCellMui)(() => ({
-  padding: "12px 16px",
-}));
+function getObjectDiff<T extends Record<string, any>>(
+  oldObj: T,
+  newObj: T
+): Partial<T> {
+  const diff: Partial<T> = {};
+
+  // Find changes and additions in newObj compared to oldObj
+  // If the value is different OR the key didn't exist in oldObj, it's a change/addition
+  transform(newObj, (result, value, key) => {
+    if (!isEqual(value, oldObj[key])) {
+      (result as Record<string, any>)[key] = value;
+    }
+  }, diff);
+
+  // Find removals (keys present in oldObj but not in newObj)
+  // These keys are set to 'undefined' in the diff object to indicate removal
+  transform(oldObj, (result, value, key) => {
+    if (!has(newObj, key)) {
+      (result as Record<string, any>)[key] = undefined; // Indicate removal
+    }
+  }, diff);
+
+  return diff;
+}

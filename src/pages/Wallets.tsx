@@ -36,7 +36,7 @@ import numeral from "numeral";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select, { type SelectChangeEvent } from "@mui/material/Select";
-import { selectBalances } from '../redux/balances/balancesSlice'
+import { selectBalances } from "../redux/balances/balancesSlice";
 import ExchangeMargin from "../components/ExchangeMargin";
 import api from "../lib/axios";
 import { genExplorerTxUrl, genExplorerAddUrl } from "../helpers";
@@ -82,7 +82,8 @@ const Dashboard: FC = () => {
   const [, setFetchTransferCount] = useState(0);
   const [toEx, setToExchange] = useState("");
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
-  const [transferPending, setTransferPending] = useState<Record<string, string>>();
+  const [transferPendings, setTransferPendings] =
+    useState<{ from: string; to: string; id: string }[]>();
   const [exchangeAddresses, setExchangeAddresses] = useState<
     Record<string, IAddress[]>
   >({});
@@ -96,24 +97,23 @@ const Dashboard: FC = () => {
     setToExchange(event.target.value);
   };
 
-  const handleResolveTransferPending = async () => {
-    const { data } = await api.delete("/api/v1/wallets/transfer-pending");
+  const handleResolveTransferPending = async (key: string) => {
+    const { data } = await api.delete(
+      `/api/v1/wallets/transfer-pending?key=${key}`
+    );
     if (data) {
-      setTransferPending(undefined);
-      enqueueSnackbar(`You now can do transfer again`, { variant: "success" });
+      fetchTransferPending();
     }
   };
 
   const fetchTransferPending = () => {
     api.get("/api/v1/wallets/transfer-pending").then(function ({ data }) {
-      console.log('debug fetchTransferPending',  data );
-      setTransferPending(data);
+      setTransferPendings(data);
     });
   };
 
   const fetchTransferMap = () => {
     api.get("/api/v1/wallets/transaction-map").then(function ({ data }) {
-      console.log('debug',  data );
       setTransactionMap(data);
     });
   };
@@ -209,7 +209,7 @@ const Dashboard: FC = () => {
         }
       }, 1000 * 30); // Fetch every 30 seconds
     }
-    // setAmount(0);
+    fetchTransferPending();
     setLoadingTransfer(false);
     setToken("");
   };
@@ -297,7 +297,18 @@ const Dashboard: FC = () => {
                 <Select value={fromEx} onChange={handleChangeFrom} displayEmpty>
                   {exchanges.map((ex) => (
                     <MenuItem disabled={ex === toEx} key={ex} value={ex}>
-                      {ex}
+                      <Box display="flex" gap={1}>
+                        <img
+                          style={{
+                            borderRadius: "50%",
+                          }}
+                          src={`/${ex}.png`}
+                          alt="USDT"
+                          width={20}
+                          height={20}
+                        />
+                        {ex}
+                      </Box>
                     </MenuItem>
                   ))}
                 </Select>
@@ -329,7 +340,18 @@ const Dashboard: FC = () => {
                 <Select value={toEx} onChange={handleChangeTo} displayEmpty>
                   {exchanges.map((ex) => (
                     <MenuItem disabled={ex === fromEx} key={ex} value={ex}>
-                      {ex}
+                      <Box display="flex" gap={1}>
+                        <img
+                          style={{
+                            borderRadius: "50%",
+                          }}
+                          src={`/${ex}.png`}
+                          alt="USDT"
+                          width={20}
+                          height={20}
+                        />
+                        {ex}
+                      </Box>
                     </MenuItem>
                   ))}
                 </Select>
@@ -430,26 +452,38 @@ const Dashboard: FC = () => {
               </FormControl>
             </Box>
 
-            {transferPending ? (
-              <Alert
-                sx={{my: 1}}
-                severity="warning"
-                action={
-                  <Button
-                    onClick={handleResolveTransferPending}
-                    disabled={!transferPending}
-                    variant="contained"
-                    color="inherit"
-                    size="small"
-                  >
-                    {transferPending ? "Resolve" : "All gud"}
-                  </Button>
-                }
-              >
-                <AlertTitle>Warning</AlertTitle>
-                Waiting deposit from {transferPending && transferPending?.from?.toUpperCase()} to {transferPending && transferPending?.to?.toUpperCase()}
-              </Alert>
-            ) : null}
+            {transferPendings?.length
+              ? transferPendings.map((transferPending) => {
+                  const key = JSON.stringify({
+                    id: transferPending.id,
+                    to: transferPending.to,
+                  });
+                  return (
+                    <Alert
+                      key={key}
+                      sx={{ my: 1 }}
+                      severity="warning"
+                      action={
+                        <Button
+                          onClick={() => handleResolveTransferPending(key)}
+                          disabled={!transferPending}
+                          variant="contained"
+                          color="inherit"
+                          size="small"
+                        >
+                          {transferPending ? "Resolve" : "All gud"}
+                        </Button>
+                      }
+                    >
+                      <AlertTitle>Warning</AlertTitle>
+                      Waiting deposit from{" "}
+                      {transferPending &&
+                        transferPending?.from?.toUpperCase()}{" "}
+                      to {transferPending && transferPending?.to?.toUpperCase()}
+                    </Alert>
+                  );
+                })
+              : null}
 
             <Box>
               {transferError && (
