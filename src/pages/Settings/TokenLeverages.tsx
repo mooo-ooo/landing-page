@@ -325,7 +325,7 @@ function getObjectDiff<T extends Record<string, any>>(
 
   // Find removals (keys present in oldObj but not in newObj)
   // These keys are set to 'undefined' in the diff object to indicate removal
-  transform(oldObj, (result, value, key) => {
+  transform(oldObj, (result, _value, key) => {
     if (!has(newObj, key)) {
       (result as Record<string, any>)[key] = undefined; // Indicate removal
     }
