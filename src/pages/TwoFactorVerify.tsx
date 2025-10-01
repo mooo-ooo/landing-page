@@ -87,11 +87,11 @@ function TwoFactorVerify() {
         }
       });
 
-      if (response?.data?.access_token) {
+      if (response?.data?.accessToken) {
         // Clear the verification ID
         localStorage.removeItem('verification_id');
         // Store the new access token
-        localStorage.setItem('token', response.data.access_token);
+        localStorage.setItem('token', response.data.accessToken);
         navigate('/dashboard');
       }
     } catch (err) {

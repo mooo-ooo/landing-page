@@ -117,7 +117,7 @@ function Layout() {
             setUser({
               id: userData.id,
               email: userData.email,
-              is2faEnabled: userData.two_factor_enabled,
+              is2faEnabled: userData.twoFactorEnabled,
               groupId: userData.groupId,
               groupCode: userData.groupCode,
             })
@@ -130,7 +130,7 @@ function Layout() {
           setUserEmail(userData.email);
           setUserCredit(userData.credit);
           setUserGroupCode(userData.groupCode);
-          setTwoFactorEnabled(userData.two_factor_enabled);
+          setTwoFactorEnabled(userData.twoFactorEnabled);
         })
         .catch((err) => {
           // If token is invalid, clear it and redirect to login

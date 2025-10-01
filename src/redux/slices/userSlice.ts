@@ -6,7 +6,7 @@ interface UserState {
     id: string;
     email: string;
     name: string;
-    is2faEnabled: boolean;
+    twoFactorEnabled: boolean;
     groupId: number;
   } | null;
   loading: boolean;
@@ -22,13 +22,25 @@ const initialState: UserState = {
 export const fetchUserData = createAsyncThunk(
   "user/fetchUserData",
   async () => {
-    const response = await api.get("/api/v1/auth/me");
+    // 1. Destructure 'data' from the response for cleaner access.
+    const { data } = await api.get("/api/v1/auth/me");
+
+    // 2. Destructure properties directly from the 'data' object.
+    const {
+      id,
+      email,
+      name,
+      twoFactorEnabled, // API's snake_case key
+      groupId, // API's snake_case key
+    } = data;
+
+    // 3. Return the mapped camelCase object.
     return {
-      id: response.data.id,
-      email: response.data.email,
-      name: response.data.name,
-      is2faEnabled: response.data.is_2fa_enabled,
-      groupId: response.data.group_id,
+      id,
+      email,
+      name,
+      twoFactorEnabled, // Mapped to camelCase
+      groupId, // Mapped to camelCase
     };
   }
 );

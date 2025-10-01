@@ -110,9 +110,9 @@ function Login() {
         password: formData.password,
       });
       console.log(response);
-      if (response?.data?.access_token) {
+      if (response?.data?.accessToken) {
         // If 2FA is not required, proceed with normal login
-        localStorage.setItem('token', response.data.access_token);
+        localStorage.setItem('token', response.data.accessToken);
         navigate('/dashboard');
         return;
       }

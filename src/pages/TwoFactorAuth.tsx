@@ -91,10 +91,10 @@ function TwoFactorAuth() {
 
   useEffect(() => {
     const setup2FA = async () => {
-      if (user && !user.is2faEnabled) {
+      if (user && !user.twoFactorEnabled) {
         try {
           const response = await api.post('/api/v1/auth/2fa/setup');
-          setQrCode(response.data.qr_code);
+          setQrCode(response.data.qrCode);
           setOpenDialog(true);
         } catch (err) {
           if (err instanceof AxiosError) {
@@ -130,8 +130,8 @@ function TwoFactorAuth() {
 
       if (response?.data?.success) {
         setOpenSuccessDialog(true);
-        if (response?.data?.access_token) {
-          localStorage.setItem('token', response.data.access_token);
+        if (response?.data?.accessToken) {
+          localStorage.setItem('token', response.data.accessToken);
         }
       }
     } catch (err) {
