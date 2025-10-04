@@ -23,6 +23,7 @@ import MoneyIcon from "@mui/icons-material/Money";
 import numeral from "numeral";
 import { useSelector } from "react-redux";
 import { useBalances } from "../redux/selector";
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import type {
   IFuture,
   ICurrencyBalance,
@@ -32,6 +33,7 @@ import type {
   IPosition,
 } from "../redux/positions/positionsSlice";
 import { selectPositions } from "../redux/positions/positionsSlice";
+import { selectGroup } from '../redux/group/groupSlice'
 import { styled } from "@mui/system";
 import {
   selectBalances,
@@ -45,6 +47,7 @@ function ExchangeMargin() {
   const { enqueueSnackbar } = useSnackbar();
   const error = useSelector(selectBalancesError);
   const balances = useSelector(selectBalances);
+  const {exchangeLeverages} = useSelector(selectGroup);
   const positions = useSelector(selectPositions);
   const { leverage } = useBalances();
   const [selectedExchange, setSelectedExchange] = useState("");
@@ -181,6 +184,8 @@ function ExchangeMargin() {
                   return null;
                 }
 
+                const warningLev = Number(exchangeLeverages?.[exchangeName]) || WARNING_LEV
+
                 const liqSellPercent = nearestLiqEchange[exchangeName]?.sell
                   ? percentageChange(
                       nearestLiqEchange[exchangeName]?.sell?.markPrice || 0,
@@ -197,15 +202,10 @@ function ExchangeMargin() {
                   <Fragment key={exchangeName}>
                     <TableRow
                       key={exchangeName}
-                      sx={{
-                        border:
-                          lev > WARNING_LEV
-                            ? "2px solid rgb(240 185 11 / 70%)"
-                            : "unset",
-                      }}
                     >
                       <TableCell>
                         <Box display="flex" gap={1}>
+                          {lev > warningLev ? <WarningAmberIcon className="blinking-icon" color="warning"/> : null}
                           <img
                             style={{
                               borderRadius: "50%",
