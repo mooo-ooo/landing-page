@@ -8,6 +8,8 @@ interface UserState {
     name: string;
     twoFactorEnabled: boolean;
     groupId: number;
+    groupCode?: string;
+    credit?: number;
   } | null;
   loading: boolean;
   error: string | null;
@@ -81,4 +83,5 @@ const userSlice = createSlice({
 });
 
 export const { setUser, setError, clearUser } = userSlice.actions;
+export const selectUser = (state: { user: UserState }) => state.user.data;
 export default userSlice.reducer;

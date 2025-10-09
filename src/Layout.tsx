@@ -34,7 +34,7 @@ import numeral from "numeral";
 import NewStrategyDialog from "./components/StrategyDialog/NewStrategy";
 import UpdateStrategy from "./components/StrategyDialog/UpdateStrategy";
 
-import { setUser, setError } from "./redux/slices/userSlice";
+import { setUser, setError, selectUser } from "./redux/user/userSlice";
 import {
   setSummaryBalance,
   selectBalances,
@@ -44,7 +44,7 @@ import {
   selectNewStrategy,
   setNewStrategy,
   setUpdateStrategy,
-  selectUpdateStrategy
+  selectUpdateStrategy,
 } from "./redux/strategy/strategySlice";
 import { fetchGroup } from "./redux/group/groupSlice";
 import {
@@ -53,7 +53,6 @@ import {
   setPositionsLoading,
   selectPositionsLoading,
 } from "./redux/positions/positionsSlice";
-
 
 function Layout() {
   const didRun = useRef(false);
@@ -66,14 +65,12 @@ function Layout() {
   const user = useSelector((state: RootState) => state.user.data);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [localError, setLocalError] = useState<string>();
-  const [userEmail, setUserEmail] = useState<string>();
-  const [userCredit, setUserCredit] = useState<number>();
-  const [userGroupCode, setUserGroupCode] = useState<string>();
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const isMenuOpen = Boolean(anchorEl);
   const balances = useSelector(selectBalances);
   const positionLoading = useSelector(selectPositionsLoading);
+  const { email, credit, groupCode, twoFactorEnabled } =
+    useSelector(selectUser) || {};
 
   const totalMargin = Object.values(balances).reduce(
     (tot, { total = 0 }) => tot + total,
@@ -117,20 +114,16 @@ function Layout() {
             setUser({
               id: userData.id,
               email: userData.email,
-              is2faEnabled: userData.twoFactorEnabled,
+              twoFactorEnabled: userData.twoFactorEnabled,
               groupId: userData.groupId,
               groupCode: userData.groupCode,
             })
           );
-          dispatch(fetchGroup())
+          dispatch(fetchGroup());
           // Store groupId in localStorage for axios interceptor
           if (userData.groupId) {
             localStorage.setItem("groupId", userData.groupId.toString());
           }
-          setUserEmail(userData.email);
-          setUserCredit(userData.credit);
-          setUserGroupCode(userData.groupCode);
-          setTwoFactorEnabled(userData.twoFactorEnabled);
         })
         .catch((err) => {
           // If token is invalid, clear it and redirect to login
@@ -157,7 +150,7 @@ function Layout() {
   // Set x-group-id header when user data is available
   useEffect(() => {
     if (user?.groupId) {
-      api.defaults.headers.common["x-group-id"] = user.groupId.toString();
+      api.defaults.headers.common["group-id"] = user.groupId.toString();
     }
   }, [user?.groupId]);
 
@@ -182,13 +175,14 @@ function Layout() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("groupId");
     navigate("/login");
     handleMenuClose();
   };
 
   const handleCopyGroupCode = () => {
-    if (userGroupCode) {
-      navigator.clipboard.writeText(userGroupCode);
+    if (groupCode) {
+      navigator.clipboard.writeText(groupCode);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     }
@@ -229,7 +223,7 @@ function Layout() {
       >
         <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
           <Email sx={{ mr: 2, fontSize: 20, color: "text.secondary" }} />
-          <Typography variant="body1">{userEmail}</Typography>
+          <Typography variant="body1">{email}</Typography>
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
@@ -237,11 +231,11 @@ function Layout() {
             sx={{ mr: 2, fontSize: 20, color: "text.secondary" }}
           />
           <Typography variant="body1">
-            {userCredit?.toFixed(2) || "0.00"}
+            {credit?.toFixed(2) || "0.00"}
           </Typography>
         </Box>
 
-        {userGroupCode && (
+        {groupCode && (
           <Box
             sx={{
               display: "flex",
@@ -251,7 +245,7 @@ function Layout() {
           >
             <Box sx={{ display: "flex", alignItems: "center" }}>
               <Group sx={{ mr: 2, fontSize: 20, color: "text.secondary" }} />
-              <Typography variant="body1">{userGroupCode}</Typography>
+              <Typography variant="body1">{groupCode}</Typography>
             </Box>
             <Tooltip title={copySuccess ? "Copied!" : "Copy to clipboard"}>
               <IconButton
@@ -373,7 +367,7 @@ function Layout() {
             </Box>
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
-              {userEmail ? (
+              {email ? (
                 <Box>
                   <IconButton onClick={fetchBalance} color="primary">
                     <ReplayIcon />

@@ -4,7 +4,7 @@ import { AxiosError } from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../redux/store';
 import api from '../lib/axios';
-import { fetchUserData } from '../redux/slices/userSlice';
+import { fetchUserData } from '../redux/user/userSlice';
 import {
   Container,
   TextField,

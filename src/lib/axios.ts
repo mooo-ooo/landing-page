@@ -15,7 +15,7 @@ api.interceptors.request.use(
     // Get groupId from localStorage
     const groupId = localStorage.getItem('groupId');
     if (groupId) {
-      config.headers['x-group-id'] = groupId;
+      config.headers['group-id'] = groupId;
     }
 
     // Get 2FA token from localStorage
