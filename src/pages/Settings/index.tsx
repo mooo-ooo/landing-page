@@ -7,15 +7,11 @@ import {
   Box,
   Grid,
   Divider,
-  Collapse,
 } from "@mui/material";
-import { useState } from "react";
 import { useSelector } from "react-redux";
 import { selectGroup } from "../../redux/group/groupSlice";
 import ApiKeys from "./ApiKeys";
 import Telegram from "./Telegram";
-import ExpandLess from "@mui/icons-material/ExpandLess";
-import ExpandMore from "@mui/icons-material/ExpandMore";
 import ExchangeLeverages from "./ExchangeLeverages";
 import TokenLeverages from "./TokenLeverages";
 import { useSearchParams } from "react-router-dom";
@@ -24,6 +20,7 @@ import { yellow } from "../../constants/colors";
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import TelegramIcon from "@mui/icons-material/Telegram";
 import MarginIcon from "@mui/icons-material/Margin";
+import SwapVertIcon from '@mui/icons-material/SwapVert';
 
 const API_KEYS_ROUTE = "api-keys";
 const TELE_ROUTE = "telegram";
@@ -34,11 +31,6 @@ function Settings() {
   const groupStore = useSelector(selectGroup);
   const [searchParams, setSearchParams] = useSearchParams();
   const page = searchParams.get("q") || API_KEYS_ROUTE;
-  const [open, setOpen] = useState(true);
-
-  const handleClick = () => {
-    setOpen(!open);
-  };
   return (
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
       <Grid container>
@@ -78,37 +70,35 @@ function Settings() {
                 <ListItemText primary="Telegram" />
               </ListItemButton>
             </ListItem>
+            
             <Divider />
-            <ListItemButton onClick={handleClick}>
-              <ListItemIcon>
-                <MarginIcon />
-              </ListItemIcon>
-              <ListItemText primary="Leverage" />
-              {open ? <ExpandLess /> : <ExpandMore />}
-            </ListItemButton>
-            <Collapse in={open} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <ListItemButton
-                  onClick={() => setSearchParams({ q: EX_LEVS })}
-                  sx={{
-                    pl: 9,
-                    borderLeft: page === EX_LEVS ? `2px solid ${yellow}` : "",
-                  }}
-                >
-                  <ListItemText primary="Exchanges" />
-                </ListItemButton>
-                <ListItemButton
-                  onClick={() => setSearchParams({ q: TOKEN_LEVS })}
-                  sx={{
-                    pl: 9,
-                    borderLeft:
-                      page === TOKEN_LEVS ? `2px solid ${yellow}` : "",
-                  }}
-                >
-                  <ListItemText primary="Tokens" />
-                </ListItemButton>
-              </List>
-            </Collapse>
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => setSearchParams({ q: EX_LEVS })}
+                sx={{
+                  borderLeft: page === EX_LEVS ? `2px solid ${yellow}` : "",
+                }}
+              >
+                <ListItemIcon>
+                  <MarginIcon />
+                </ListItemIcon>
+                <ListItemText primary="Exchange leverages" />
+              </ListItemButton>
+            </ListItem>
+            <Divider />
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => setSearchParams({ q: TOKEN_LEVS })}
+                sx={{
+                  borderLeft: page === TOKEN_LEVS ? `2px solid ${yellow}` : "",
+                }}
+              >
+                <ListItemIcon>
+                  <SwapVertIcon />
+                </ListItemIcon>
+                <ListItemText primary="Distance liquidity (Position)" />
+              </ListItemButton>
+            </ListItem>
           </List>
         </Grid>
         <Grid size={9}>

@@ -12,6 +12,8 @@ import {
   Typography,
   InputAdornment,
   TextField,
+  FormControlLabel,
+  Checkbox
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import SaveIcon from "@mui/icons-material/Save";
@@ -26,7 +28,7 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 import { red, green } from "../../constants/colors";
 import api from "../../lib/axios";
-import { transform, isEqual, has } from 'lodash'
+import { transform, isEqual, has } from "lodash";
 
 // Styled component for TableCell
 const TableCell = styled(TableCellMui)(() => ({
@@ -40,6 +42,22 @@ function ExchangeLeverages() {
   const [isLoading, setIsLoading] = useState(false);
   const positions = useNormalizedPositions([]);
   const [token, setToken] = useState("");
+
+  const [dontUseVolumeThreshold, setDontUseVolumeThreshold] = useState(
+    groupStore.volumeThreshold === 0
+  );
+  const handleDontUseVolumeThreshold = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const checked = e.target.checked;
+    setDontUseVolumeThreshold(checked);
+    const newFormData = {
+      ...formData,
+      volumeThreshold: checked ? 0 : groupStore.volumeThreshold,
+    };
+    setFormData(newFormData);
+    setExistingSettings(newFormData);
+  };
 
   const [formData, setFormData] = useState({
     volumeThreshold: groupStore.volumeThreshold,
@@ -59,17 +77,16 @@ function ExchangeLeverages() {
   }, [groupStore.volumeThreshold, groupStore.tokenLeverages]);
 
   const handleUpdate = async () => {
-    if (!existingSettings.volumeThreshold) {
-      enqueueSnackbar("volumeThreshold is required", { variant: "error" });
-      return;
-    }
     if (token?.length !== 6) {
       enqueueSnackbar("Invalid 2FA token", { variant: "error" });
       return;
     }
     setIsLoading(true);
     const { volumeThreshold, ...tokenLeverages } = formData;
-    const updates = getObjectDiff(groupStore.tokenLeverages as any, tokenLeverages);
+    const updates = getObjectDiff(
+      groupStore.tokenLeverages as any,
+      tokenLeverages
+    );
 
     api
       .put(`/api/v1/groups/me`, {
@@ -136,13 +153,13 @@ function ExchangeLeverages() {
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Exchange leverages settings
+          Positions distance liquidity
         </Typography>
         <Typography variant="body1" color="textSecondary">
-          Your positions are checked every 3 seconds. If a specific exchange's
-          leverage exceeds the trigger level, the bot will find the exchange
-          with the highest available funds and transfer USDT to the
-          high-leverage exchange to hedge
+          Your positions are checked every 3 seconds. If a specific position's
+          liquidity exceeds the trigger level, the bot will find the exchange
+          with the highest available funds and transfer USDT to the exchange
+          with the highest risk to hedge the position
         </Typography>
       </Box>
       <Box
@@ -162,9 +179,21 @@ function ExchangeLeverages() {
           name="volumeThreshold"
           value={existingSettings.volumeThreshold || ""}
           onChange={handleChange}
+          disabled={dontUseVolumeThreshold}
           InputProps={{
             endAdornment: <InputAdornment position="end">USDT</InputAdornment>,
           }}
+        />
+      </Box>
+      <Box display="flex" alignItems="center" gap={2}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={dontUseVolumeThreshold}
+              onChange={handleDontUseVolumeThreshold}
+            />
+          }
+          label="Don't use volumeThreshold"
         />
       </Box>
       <Table>
@@ -317,19 +346,27 @@ function getObjectDiff<T extends Record<string, any>>(
 
   // Find changes and additions in newObj compared to oldObj
   // If the value is different OR the key didn't exist in oldObj, it's a change/addition
-  transform(newObj, (result, value, key) => {
-    if (!isEqual(value, oldObj[key])) {
-      (result as Record<string, any>)[key] = value;
-    }
-  }, diff);
+  transform(
+    newObj,
+    (result, value, key) => {
+      if (!isEqual(value, oldObj[key])) {
+        (result as Record<string, any>)[key] = value;
+      }
+    },
+    diff
+  );
 
   // Find removals (keys present in oldObj but not in newObj)
   // These keys are set to 'undefined' in the diff object to indicate removal
-  transform(oldObj, (result, _value, key) => {
-    if (!has(newObj, key)) {
-      (result as Record<string, any>)[key] = undefined; // Indicate removal
-    }
-  }, diff);
+  transform(
+    oldObj,
+    (result, _value, key) => {
+      if (!has(newObj, key)) {
+        (result as Record<string, any>)[key] = undefined; // Indicate removal
+      }
+    },
+    diff
+  );
 
   return diff;
 }
