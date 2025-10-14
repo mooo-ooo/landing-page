@@ -799,7 +799,7 @@ function BotSettings() {
             onClick={handleConfirmSubmit}
             variant="outlined"
             disabled={
-              isLoading || token.length < 6 || checkValidChanges(pendingSubmit)
+              isLoading || token.length < 6 || !checkValidChanges(pendingSubmit)
             }
           >
             {isLoading ? "Saving..." : "Confirm"}
@@ -821,9 +821,9 @@ function checkValidChanges(
 
   switch (type) {
     case "exchange-leverages":
-      return isEmpty(changes.exchangeLeverages);
+      return !isEmpty(changes.exchangeLeverages);
     case "positions":
-      return isEmpty(changes.tokenLiquidityDistance);
+      return !isEmpty(changes.tokenLiquidityDistance);
     default:
       return true;
   }
