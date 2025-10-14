@@ -46,6 +46,7 @@ import {
   selectBalancesError,
 } from "../../redux/balances/balancesSlice";
 import api from "../../lib/axios";
+import { isEmpty } from "lodash";
 
 type BotType =
   | "force-close"
@@ -718,21 +719,26 @@ function BotSettings() {
                     <Typography color="textSecondary" gutterBottom>
                       Exchange Leverages:
                     </Typography>
-                    {Object.entries(
-                      pendingSubmit.changes.exchangeLeverages
-                    ).map(([exchange, value]) => (
-                      <Box
-                        key={exchange}
-                        display="flex"
-                        justifyContent="space-between"
-                        alignItems="center"
-                      >
-                        <Typography sx={{ textTransform: "capitalize" }}>
-                          {exchange}:
-                        </Typography>
-                        <Typography>x{value as number}</Typography>
-                      </Box>
-                    ))}
+                    {Object.entries(pendingSubmit.changes.exchangeLeverages)
+                      .length ? (
+                      Object.entries(
+                        pendingSubmit.changes.exchangeLeverages
+                      ).map(([exchange, value]) => (
+                        <Box
+                          key={exchange}
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                        >
+                          <Typography sx={{ textTransform: "capitalize" }}>
+                            {exchange}:
+                          </Typography>
+                          <Typography>x{value as number}</Typography>
+                        </Box>
+                      ))
+                    ) : (
+                      <Typography>No Exchange Leverages Set</Typography>
+                    )}
                   </Box>
                 )}
                 {pendingSubmit.type === "positions" && (
@@ -742,50 +748,34 @@ function BotSettings() {
                     </Typography>
                     {Object.entries(
                       pendingSubmit.changes.tokenLiquidityDistance
-                    ).map(([token, values]: [string, any]) => (
-                      <Box
-                        key={token}
-                        display="flex"
-                        flexDirection="column"
-                        gap={0.5}
-                        sx={{ mb: 1 }}
-                      >
-                        <Typography
-                          sx={{
-                            textTransform: "uppercase",
-                            fontWeight: "bold",
-                          }}
+                    ).length ? (
+                      Object.entries(
+                        pendingSubmit.changes.tokenLiquidityDistance
+                      ).map(([token, values]: [string, any]) => (
+                        <Box
+                          key={token}
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          sx={{ mb: 1 }}
                         >
-                          {token}:
-                        </Typography>
-                        <Box sx={{ pl: 2 }}>
-                          {values.buy !== undefined && (
-                            <Box
-                              display="flex"
-                              justifyContent="space-between"
-                              alignItems="center"
-                            >
-                              <Typography color="textSecondary">
-                                Buy:
-                              </Typography>
-                              <Typography>{values.buy}%</Typography>
-                            </Box>
-                          )}
-                          {values.sell !== undefined && (
-                            <Box
-                              display="flex"
-                              justifyContent="space-between"
-                              alignItems="center"
-                            >
-                              <Typography color="textSecondary">
-                                Sell:
-                              </Typography>
-                              <Typography>{values.sell}%</Typography>
-                            </Box>
-                          )}
+                          <Typography sx={{ textTransform: "uppercase" }}>
+                            {token}
+                          </Typography>
+                          <Typography>
+                            {values.buy !== undefined &&
+                              `Buy [-${values.buy}%]`}
+                            {values.buy !== undefined &&
+                              values.sell !== undefined &&
+                              " or "}
+                            {values.sell !== undefined &&
+                              `Sell [+${values.sell}%]`}
+                          </Typography>
                         </Box>
-                      </Box>
-                    ))}
+                      ))
+                    ) : (
+                      <Typography>No Token Liquidity Distance Set</Typography>
+                    )}
                   </Box>
                 )}
               </Box>
@@ -808,7 +798,9 @@ function BotSettings() {
           <Button
             onClick={handleConfirmSubmit}
             variant="outlined"
-            disabled={isLoading || token.length < 6}
+            disabled={
+              isLoading || token.length < 6 || checkValidChanges(pendingSubmit)
+            }
           >
             {isLoading ? "Saving..." : "Confirm"}
           </Button>
@@ -819,6 +811,23 @@ function BotSettings() {
 }
 
 export default BotSettings;
+
+function checkValidChanges(
+  pendingSubmit: { type: BotType; changes: Record<string, any> } | null
+) {
+  if (!pendingSubmit) return true;
+
+  const { type, changes } = pendingSubmit;
+
+  switch (type) {
+    case "exchange-leverages":
+      return isEmpty(changes.exchangeLeverages);
+    case "positions":
+      return isEmpty(changes.tokenLiquidityDistance);
+    default:
+      return true;
+  }
+}
 
 function a11yProps(index: number) {
   return {
