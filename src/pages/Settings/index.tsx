@@ -12,20 +12,17 @@ import { useSelector } from "react-redux";
 import { selectGroup } from "../../redux/group/groupSlice";
 import ApiKeys from "./ApiKeys";
 import Telegram from "./Telegram";
-import ExchangeLeverages from "./ExchangeLeverages";
-import TokenLeverages from "./TokenLeverages";
+import BotSettings from "./BotSettings";
 import { useSearchParams } from "react-router-dom";
 import { yellow } from "../../constants/colors";
 
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import TelegramIcon from "@mui/icons-material/Telegram";
-import MarginIcon from "@mui/icons-material/Margin";
-import SwapVertIcon from '@mui/icons-material/SwapVert';
+import AdbIcon from '@mui/icons-material/Adb';
 
 const API_KEYS_ROUTE = "api-keys";
 const TELE_ROUTE = "telegram";
-const EX_LEVS = "exchange-leverages";
-const TOKEN_LEVS = "token-leverages";
+const BOT_SETTINGS = "bot-settings";
 
 function Settings() {
   const groupStore = useSelector(selectGroup);
@@ -74,18 +71,18 @@ function Settings() {
             <Divider />
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => setSearchParams({ q: EX_LEVS })}
+                onClick={() => setSearchParams({ q: BOT_SETTINGS })}
                 sx={{
-                  borderLeft: page === EX_LEVS ? `2px solid ${yellow}` : "",
+                  borderLeft: page === BOT_SETTINGS ? `2px solid ${yellow}` : "",
                 }}
               >
                 <ListItemIcon>
-                  <MarginIcon />
+                  <AdbIcon />
                 </ListItemIcon>
-                <ListItemText primary="Exchange leverages" />
+                <ListItemText primary="Bot settings" />
               </ListItemButton>
             </ListItem>
-            <Divider />
+            {/* <Divider />
             <ListItem disablePadding>
               <ListItemButton
                 onClick={() => setSearchParams({ q: TOKEN_LEVS })}
@@ -98,28 +95,27 @@ function Settings() {
                 </ListItemIcon>
                 <ListItemText primary="Distance liquidity (Position)" />
               </ListItemButton>
-            </ListItem>
+            </ListItem> */}
           </List>
         </Grid>
         <Grid size={9}>
           <Box
             sx={{
               padding: 2,
-              background: "rgb(30, 32, 38)",
               border: "1px solid rgba(255, 255, 255, 0.12)",
-              borderLeft: "none",
+              // borderLeft: "none",
             }}
           >
             {page === API_KEYS_ROUTE ? <ApiKeys /> : null}
-            {page === EX_LEVS ? (
+            {/* {page === EX_LEVS ? (
               groupStore._id ? (
                 <ExchangeLeverages />
               ) : null
-            ) : null}
+            ) : null} */}
             {page === TELE_ROUTE ? groupStore._id ? <Telegram /> : null : null}
-            {page === TOKEN_LEVS ? (
+            {page === BOT_SETTINGS ? (
               groupStore._id ? (
-                <TokenLeverages />
+                <BotSettings />
               ) : null
             ) : null}
           </Box>

@@ -1,42 +1,44 @@
-import { Suspense, lazy } from 'react'
-import { ThemeProvider, createTheme } from '@mui/material/styles'
-import { Routes, Route, BrowserRouter } from 'react-router-dom'
-import { SnackbarProvider } from 'notistack'
-import {
-  CssBaseline,
-} from '@mui/material'
+import { Suspense, lazy } from "react";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { Routes, Route, BrowserRouter } from "react-router-dom";
+import { SnackbarProvider } from "notistack";
+import { CssBaseline } from "@mui/material";
 
 // Pages
-import Layout from './Layout'
-import Home from './pages/Home'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import Dashboard from './pages/Dashboard'
-import Wallets from './pages/Wallets'
-import Fundings from './pages/Fundings'
-import Strategies from './pages/Strategies'
-import TwoFactorAuth from './pages/TwoFactorAuth'
-import TwoFactorVerify from './pages/TwoFactorVerify'
-import ApiKeys from './pages/ApiKeys'
-const Orderbooks = lazy(() => import('./pages/Orderbooks/Container'))
-const Settings = lazy(() => import('./pages/Settings'))
+import Layout from "./Layout";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import Wallets from "./pages/Wallets";
+import Fundings from "./pages/Fundings";
+import Strategies from "./pages/Strategies";
+import TwoFactorAuth from "./pages/TwoFactorAuth";
+import TwoFactorVerify from "./pages/TwoFactorVerify";
+import { green } from "./constants/colors";
+import ApiKeys from "./pages/ApiKeys";
+const Orderbooks = lazy(() => import("./pages/Orderbooks/Container"));
+const Settings = lazy(() => import("./pages/Settings"));
 
 // Store
-import { Provider } from 'react-redux'
-import { store } from './redux/store'
+import { Provider } from "react-redux";
+import { store } from "./redux/store";
 
 const darkTheme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: "dark",
     primary: {
-      main: 'rgb(240, 185, 11)',
+      main: "rgb(240, 185, 11)",
+    },
+    success: {
+      main: green,
     },
   },
   typography: {
-    fontFamily: 'IBM Plex Mono, monospace',
+    fontFamily: "IBM Plex Mono, monospace",
     fontSize: 12,
   },
-})
+});
 
 function App() {
   return (
@@ -50,7 +52,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/2fa-verify" element={<TwoFactorVerify />} />
-                
+
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Home />} />
                   <Route path="/2fa" element={<TwoFactorAuth />} />
@@ -69,7 +71,7 @@ function App() {
         </SnackbarProvider>
       </ThemeProvider>
     </Provider>
-  )
+  );
 }
 
-export default App
+export default App;

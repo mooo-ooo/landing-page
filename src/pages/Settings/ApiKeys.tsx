@@ -285,7 +285,7 @@ function ApiKeys() {
                       <Box display="flex" gap={2} justifyContent="flex-end">
                         <Button
                           variant="outlined"
-                          size="small"
+                          // size="small"
                           startIcon={<EditIcon />}
                           onClick={() => handleEdit(existingKey)}
                         >
@@ -293,7 +293,7 @@ function ApiKeys() {
                         </Button>
                         <Button
                           variant="outlined"
-                          size="small"
+                          // size="small"
                           color="error"
                           startIcon={<DeleteIcon />}
                           onClick={() => setDeletingEx(exchange.label)}
@@ -305,7 +305,7 @@ function ApiKeys() {
                       <Button
                         sx={{ width: 84 }}
                         variant="outlined"
-                        size="small"
+                        // size="small"
                         startIcon={<AddIcon />}
                         onClick={() => handleAdd(exchange.value)}
                       >

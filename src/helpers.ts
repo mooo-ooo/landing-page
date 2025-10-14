@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { transform, isEqual, has } from 'lodash'
+
 export const calculateSpread = (highPrice: number, lowPrice: number) => {
   const gap = Number(highPrice) - Number(lowPrice)
   const gapPercentage = (gap / highPrice) * 100
@@ -149,4 +152,57 @@ export function calculateDaysBack(timestamp: number | string): number {
   const daysBack = Math.floor(timeDifferenceMs / oneDayInMs);
 
   return daysBack;
+}
+
+export function getObjectDiff<T extends Record<string, any>>(
+  oldObj: T = {} as T,
+  newObj: T
+): Partial<T> {
+  const diff: Partial<T> = {};
+
+  // Find changes and additions in newObj compared to oldObj
+  // If the value is different OR the key didn't exist in oldObj, it's a change/addition
+  transform(
+    newObj,
+    (result, value, key) => {
+      if (!isEqual(value, oldObj[key])) {
+        (result as Record<string, any>)[key] = value;
+      }
+    },
+    diff
+  );
+
+  // Find removals (keys present in oldObj but not in newObj)
+  // These keys are set to 'undefined' in the diff object to indicate removal
+  transform(
+    oldObj,
+    (result, _value, key) => {
+      if (!has(newObj, key)) {
+        (result as Record<string, any>)[key] = undefined; // Indicate removal
+      }
+    },
+    diff
+  );
+
+  return diff;
+}
+
+type StringKeyObject<T> = { [key: string]: T };
+
+export function convertStringValuesToNumbers(
+  obj: StringKeyObject<string>
+): StringKeyObject<number> {
+  const result: StringKeyObject<number> = {};
+
+  // Get all keys from the input object
+  const keys = Object.keys(obj);
+
+  // Iterate over each key
+  for (const key of keys) {
+    // Convert the string value to a number using parseFloat to handle decimals
+    // If the conversion fails (e.g., the string is "hello"), it will return NaN
+    result[key] = parseFloat(obj[key]);
+  }
+
+  return result;
 }

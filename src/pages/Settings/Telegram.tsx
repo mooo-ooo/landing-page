@@ -28,7 +28,7 @@ function Telegram() {
     setError(undefined);
     setIsLoading(true);
     try {
-      await api.put(`/api/v1/groups/me`, formData);
+      await api.put(`/api/v1/groups/me`, { ...formData, type: "telegram" });
       dispatch(fetchGroup());
       setSuccess("settings updated successfully");
     } catch (error) {

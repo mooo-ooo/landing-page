@@ -11,7 +11,7 @@ export interface IGroup {
   telePriorityToken?: string;
   hedgingAmount: string
   exchangeLeverages?: Record<string, string>
-  tokenLeverages?: Record<string, Record<string, string>>
+  tokenLiquidityDistance?: Record<string, Record<string, string>>
   tokenLeverageWarning: string
   volumeThreshold?: number
 }
