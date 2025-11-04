@@ -76,13 +76,11 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
     if (baseToken && strategies.length) {
       const found = strategies.find(({ sellSymbol, buySymbol }: IStrategy) => {
         return (
-          sellSymbol.includes(baseToken?.toUpperCase()) &&
-          buySymbol.includes(baseToken?.toUpperCase())
+          buySymbol === sellSymbol && buySymbol === `${baseToken}/USDT:USDT`
         );
       });
       if (found) {
         setStrategy(found);
-        
       }
     }
   }, [strategies, baseToken]);

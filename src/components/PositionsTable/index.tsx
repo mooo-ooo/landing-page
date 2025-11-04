@@ -294,10 +294,11 @@ function Positions({
                 const foundStrategy = strategies.find(
                   ({ buySymbol, sellSymbol }) => {
                     return (
-                      buySymbol === sellSymbol && buySymbol === `${baseToken}/USDT:USDT`
+                      (buySymbol === sellSymbol) && (buySymbol === `${baseToken}/USDT:USDT`)
                     );
                   }
                 );
+
                 const totalSizeSell = sells.reduce(
                   (tot, { size }) => size + tot,
                   0
