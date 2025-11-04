@@ -544,7 +544,7 @@ function NewStrategyDialog(props: NewStrategyProps) {
                 variant="outlined"
               />
               <Typography color="textSecondary" fontSize={12}>
-                Volumn = tokenAmount * markPrice (buy + sell)
+                Volumn per side
               </Typography>
             </Box>
           )}
@@ -593,6 +593,26 @@ function NewStrategyDialog(props: NewStrategyProps) {
                   onChange={handleOnChangeStrategy}
                   type="string"
                   value={strategy.precision}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="standard"
+                />
+              </Box>
+              <Box
+                display="flex"
+                width="100%"
+                justifyContent="space-between"
+                alignItems="center"
+                my={2}
+              >
+                <Typography>swap amount (token amount):</Typography>
+                <TextField
+                  // sx={{ width: "100px" }}
+                  name="swapAmount"
+                  onChange={handleOnChangeStrategy}
+                  type="string"
+                  value={strategy.swapAmount}
                   InputLabelProps={{
                     shrink: true,
                   }}

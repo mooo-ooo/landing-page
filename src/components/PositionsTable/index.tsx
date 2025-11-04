@@ -294,8 +294,7 @@ function Positions({
                 const foundStrategy = strategies.find(
                   ({ buySymbol, sellSymbol }) => {
                     return (
-                      buySymbol.includes(baseToken) &&
-                      sellSymbol.includes(baseToken)
+                      buySymbol === sellSymbol && buySymbol === `${baseToken}/USDT:USDT`
                     );
                   }
                 );

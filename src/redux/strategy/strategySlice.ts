@@ -31,11 +31,7 @@ export interface IStrategy {
   maxVolOfPosition: number;
   minVolOfPosition: number;
 
-  percentChangeToSL: number;
-  alertSL?: number;
-  alertLiq?: number;
-  enabaledupdateSL?: boolean;
-  ignoreCheckSize?: boolean;
+  swapAmount?: number
 }
 export interface StrategiesState {
   data: IStrategy[];

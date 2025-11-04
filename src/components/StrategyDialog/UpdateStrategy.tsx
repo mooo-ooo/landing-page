@@ -45,9 +45,6 @@ export interface UpdateStrategyProps {
   onClose: () => void;
 }
 
-const markPriceBaseUrl =
-  "http://178.128.110.139:8080/https://api.mexc.com/api/v3/ticker/price?symbol=";
-
 function UpdateStrategyDialog(props: UpdateStrategyProps) {
   const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
@@ -61,7 +58,7 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
     severity: "",
     message: "",
   });
-  const [markPrice, setMarkPrice] = useState("");
+
   const exchanges = useMemo(() => {
     return Object.keys(balances);
   }, [balances]);
@@ -85,26 +82,7 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
       });
       if (found) {
         setStrategy(found);
-        api
-          .get(`${markPriceBaseUrl}${baseToken}USDT`)
-          .then(function ({ data: { price } }) {
-            setMarkPrice(price);
-            if (Number(price) > 50) {
-              setStrategy((prev) => {
-                return {
-                  ...prev,
-                  precision: estimatePrecision(Number(price)),
-                };
-              });
-            } else {
-              setStrategy((prev) => {
-                return {
-                  ...prev,
-                  multiple: estimateMultiple(Number(price)),
-                };
-              });
-            }
-          });
+        
       }
     }
   }, [strategies, baseToken]);
@@ -140,7 +118,7 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
       open={open}
     >
       <DialogTitle sx={{ fontSize: 16, background: "#1e2026" }}>
-        Update Strategy: {baseToken} - mark price: {markPrice} USDT
+        Update Strategy: {baseToken}
       </DialogTitle>
       <IconButton
         aria-label="close"
@@ -572,6 +550,26 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
                     variant="standard"
                   />
                 </Box>
+                <Box
+                  display="flex"
+                  width="100%"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  my={2}
+                >
+                  <Typography>swap amount (token amount)</Typography>
+                  <TextField
+                    // sx={{ width: "100px" }}
+                    name="swapAmount"
+                    onChange={handleOnChangeStrategy}
+                    type="string"
+                    value={strategy.swapAmount}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                    variant="standard"
+                  />
+                </Box>
               </AccordionDetails>
             </Accordion>
           </Fragment>
@@ -613,26 +611,3 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
 }
 
 export default UpdateStrategyDialog;
-
-const estimatePrecision = (price: number) => {
-  if (price > 50000) {
-    return 3;
-  }
-  if (price > 1000) {
-    return 2;
-  }
-  return 1;
-};
-
-const estimateMultiple = (price: number): number => {
-  // Start with a multiple of 1.
-  let multiple = 1;
-
-  // Loop until the condition price * multiple >= 1 is met.
-  // In each iteration, multiply the multiple by 10.
-  while (price * multiple < 1) {
-    multiple *= 10;
-  }
-
-  return multiple;
-};

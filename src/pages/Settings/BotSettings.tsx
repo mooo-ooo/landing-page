@@ -228,7 +228,7 @@ function BotSettings() {
           </Typography>
           <Typography color={red} gutterBottom>
             If the position's volume on two exchanges deviates by more than the
-            "volumeThreshold," both positions will be force-closed.
+            "volumeThreshold", both positions will be force-closed.
           </Typography>
           <FormControlLabel
             control={
