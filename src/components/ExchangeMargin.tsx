@@ -180,9 +180,9 @@ function ExchangeMargin() {
 
                 const lev = vol / exchange.marginBalance;
 
-                if (!isShown) {
-                  return null;
-                }
+                // if (!isShown) {
+                //   return null;
+                // }
 
                 const warningLev = Number(exchangeLeverages?.[exchangeName]) || WARNING_LEV
 

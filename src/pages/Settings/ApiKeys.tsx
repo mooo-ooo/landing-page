@@ -22,6 +22,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Switch,
+  FormControlLabel
 } from "@mui/material";
 import {
   Visibility,
@@ -31,7 +33,7 @@ import {
 import { useSelector } from "react-redux";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import { green, red } from "../../constants/colors";
+import { red } from "../../constants/colors";
 import {
   selectPositions,
   type PostitionsState,
@@ -56,10 +58,12 @@ function ApiKeys() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSecretKey, setShowSecretKey] = useState(false);
   const [showPassphrase, setShowPassphrase] = useState(false);
-  const [exchangeKeys, setExchangeKeys] = useState<string[]>([]);
+  const [exchangeKeys, setExchangeKeys] = useState<{exchange: string, enabled: boolean}[]>([]);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [deletingOtp, setDeletingOtp] = useState("");
+  const [disablingExOtp, setDisablingExOtp] = useState("");
   const [deletingEx, setDeletingEx] = useState<string | null>(null);
+  const [disablingEx, setDisablingEx] = useState<{exchange: string, status: boolean} | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     exchange: "",
@@ -70,7 +74,7 @@ function ApiKeys() {
   });
 
   const getExchangeKey = (exchange: string) => {
-    return exchangeKeys?.find((exchangeKey) => exchangeKey === exchange);
+    return exchangeKeys?.find((exchangeKey) => exchangeKey.exchange === exchange);
   };
 
   const fetchExchangeKeys = async () => {
@@ -181,6 +185,30 @@ function ApiKeys() {
     }
   };
 
+  const handleEnable = async (exchange: string, enabled: boolean) => {
+    setError(undefined)
+    setIsLoading(true);
+    try {
+      await api.put(
+        `/api/v1/exchange/enable`,
+        {exchange, enabled, token: disablingExOtp}
+      );
+      fetchExchangeKeys();
+      setDisablingEx(null);
+      setSuccess("API keys updated successfully");
+    } catch (error) {
+      setDisablingEx(null);
+      if (error instanceof AxiosError) {
+        setError(error.response?.data?.message || "Failed to save API keys");
+      } else {
+        setError("An unexpected error occurred");
+      }
+    } finally {
+      setIsLoading(false);
+      setDisablingExOtp('')
+    }
+  };
+
   const handleAdd = (exchange: string) => {
     setEditingKey(null);
     setFormData({
@@ -207,6 +235,8 @@ function ApiKeys() {
 
   const invalidToRemove =
     positions[deletingEx?.toLowerCase() as unknown as keyof PostitionsState]
+      ?.length > 0;
+  const invalidToDisable = positions[disablingEx?.exchange?.toLowerCase() as unknown as keyof PostitionsState]
       ?.length > 0;
 
   return (
@@ -257,7 +287,7 @@ function ApiKeys() {
             {ALL_EXCHANGES.map((exchange) => {
               const existingKey = getExchangeKey(exchange.value);
               return (
-                <TableRow key={exchange.value}>
+                <TableRow key={exchange.value} sx={{ opacity: existingKey?.enabled === false ? '0.5' : '1'}}>
                   <TableCell>
                     <Box display="flex" gap={2}>
                       <img
@@ -273,7 +303,23 @@ function ApiKeys() {
                   </TableCell>
                   <TableCell>
                     {existingKey ? (
-                      <Typography sx={{ color: green }}>Configured</Typography>
+                      <Box>
+                        <FormControlLabel
+                            control={
+                              <Switch
+                                color="success"
+                                checked={existingKey.enabled}
+                                onChange={() => {
+                                  setDisablingEx({
+                                    exchange: existingKey.exchange,
+                                    status: !existingKey.enabled
+                                  })
+                                }}
+                              />
+                            }
+                            label={`${existingKey.enabled ? "Configured" : "disabled"}`}
+                          />
+                      </Box>
                     ) : (
                       <Typography color="textSecondary">
                         Not configured
@@ -287,7 +333,7 @@ function ApiKeys() {
                           variant="outlined"
                           // size="small"
                           startIcon={<EditIcon />}
-                          onClick={() => handleEdit(existingKey)}
+                          onClick={() => handleEdit(existingKey.exchange)}
                         >
                           Update
                         </Button>
@@ -377,7 +423,63 @@ function ApiKeys() {
           </DialogActions>
         </form>
       </Dialog>
-
+      <Dialog
+        open={Boolean(disablingEx?.exchange)}
+        onClose={() => setDeletingEx(null)}
+        sx={{ "& .MuiDialog-paper": { width: "650px" } }}
+        maxWidth="xl"
+      >
+        <DialogTitle sx={{ fontSize: 16, background: "#1e2026", color: red }}>
+          {disablingEx?.status ? 'Enable' : 'Disable'} {disablingEx?.exchange}'s api key
+        </DialogTitle>
+        <form onSubmit={handleSubmit}>
+          <DialogContent
+            sx={{
+              background: "#1e2026",
+              paddingBottom: "32px",
+            }}
+          >
+            <Typography>
+              {invalidToDisable
+                ? "You cannot delete this api key because you still have open positions."
+                : "Please double-check and make sure this exchange has closed all positions."}
+            </Typography>
+            {invalidToDisable ? null : (
+              <TextField
+                fullWidth
+                label="2FA Code"
+                name="token"
+                value={disablingExOtp}
+                onChange={(e) => setDisablingExOtp(e.target.value as string)}
+                required
+                sx={{ my: 2 }}
+                placeholder="Enter code from your authenticator app"
+                inputProps={{
+                  maxLength: 6,
+                  pattern: "[0-9]*",
+                  inputMode: "numeric",
+                }}
+              />
+            )}
+          </DialogContent>
+          <DialogActions sx={{ width: "100%", background: "#1e2026" }}>
+            <Button color="inherit" onClick={() => setDisablingEx(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() =>
+                disablingEx?.exchange && handleEnable(disablingEx?.exchange?.toLowerCase(), disablingEx.status)
+              }
+              color="error"
+              type="submit"
+              variant="contained"
+              disabled={isLoading || invalidToRemove}
+            >
+              {isLoading ? "Updating..." : "Disable"}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
       <Dialog
         open={isDialogOpen}
         onClose={handleCloseDialog}
