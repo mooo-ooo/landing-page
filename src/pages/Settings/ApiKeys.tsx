@@ -475,7 +475,7 @@ function ApiKeys() {
               variant="contained"
               disabled={isLoading || invalidToRemove}
             >
-              {isLoading ? "Updating..." : "Disable"}
+              {isLoading ? "Updating..." : disablingEx?.status ? "Enable" : 'Disable'}
             </Button>
           </DialogActions>
         </form>
