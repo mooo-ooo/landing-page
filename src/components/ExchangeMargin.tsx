@@ -166,9 +166,9 @@ function ExchangeMargin() {
                   return (tot = tot + markPrice * size);
                 }, 0);
 
-                const isShown =
-                  positions[exchangeName as unknown as keyof typeof balances]
-                    ?.length > 0;
+                // const isShown =
+                //   positions[exchangeName as unknown as keyof typeof balances]
+                //     ?.length > 0;
 
                 const exchange: IFuture =
                   balances[exchangeName as unknown as keyof typeof balances]
