@@ -317,7 +317,7 @@ function ApiKeys() {
                                 }}
                               />
                             }
-                            label={`${existingKey.enabled ? "Configured" : "disabled"}`}
+                            label={`enable`}
                           />
                       </Box>
                     ) : (
@@ -441,7 +441,7 @@ function ApiKeys() {
           >
             <Typography>
               {invalidToDisable
-                ? "You cannot delete this api key because you still have open positions."
+                ? "You cannot disable this api key because you still have open positions."
                 : "Please double-check and make sure this exchange has closed all positions."}
             </Typography>
             {invalidToDisable ? null : (
