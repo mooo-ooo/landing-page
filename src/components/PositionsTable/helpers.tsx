@@ -129,7 +129,7 @@ export const createPositionsTable = ({
     const sellCreatedAts = sells.map(({ createdAt }) => createdAt);
     const buyCreatedAts = buys.map(({ createdAt }) => createdAt);
 
-    const createdAt = Math.min(...[...sellCreatedAts, ...buyCreatedAts]);
+    const createdAt = Math.max(...[...sellCreatedAts, ...buyCreatedAts]);
     
     const cells = [
       {
