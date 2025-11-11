@@ -44,6 +44,7 @@ import type { ISymbol } from "../../types";
 import type { ExchangeName } from "../../types/exchange";
 import sort from "lodash/orderBy";
 import BalanceOrderConfirmationDialog from "./BalanceOrderConfirmationDialog";
+import Volume24h from './Volume24h'
 import { strip } from "../../helpers";
 // Store
 import type { IPosition } from "../../redux/positions/positionsSlice";
@@ -365,7 +366,7 @@ function Positions({
                           timeout="auto"
                           unmountOnExit
                         >
-                          <Box sx={{ margin: 1 }}>
+                          <Box display="flex" sx={{ margin: 1 }} alignItems="center">
                             <IconButton
                               onClick={() =>
                                 foundStrategy
@@ -382,6 +383,10 @@ function Positions({
                             >
                               <ViewQuiltIcon />
                             </IconButton>
+                            <Typography>Strategy</Typography>
+                          </Box>
+                          <Box display="flex" sx={{ margin: 1 }} alignItems="center">
+                            <Volume24h buyExchange={buys[0].exchange} sellExchange={sells[0].exchange} baseToken={baseToken} />
                           </Box>
                           <Box sx={{ margin: 1 }}>
                             <CandleChart

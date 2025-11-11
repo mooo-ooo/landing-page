@@ -113,7 +113,7 @@ export const createPositionsTable = ({
       0
     );
 
-    const volOfStrategy = (totalSizeSell + totalSizeBuy) * sells[0]?.markPrice;
+    const volOfStrategy = (totalSizeSell + totalSizeBuy) * (sells[0]?.markPrice || buys[0]?.markPrice);
 
     const capitalAllocated = equity * (volOfStrategy / totalVol);
 
