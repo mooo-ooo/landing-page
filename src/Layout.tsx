@@ -15,6 +15,11 @@ import {
   Typography,
   Tooltip,
   LinearProgress,
+  Drawer,
+  ListItem,
+  List,
+  ListItemButton,
+  Divider,
 } from "@mui/material";
 import {
   AccountCircle,
@@ -27,6 +32,8 @@ import {
   ContentCopy,
   Group,
 } from "@mui/icons-material";
+import MenuIcon from '@mui/icons-material/Menu'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import ReplayIcon from "@mui/icons-material/Replay";
 import { styled } from "@mui/system";
 import api from "./lib/axios";
@@ -55,6 +62,7 @@ import {
 } from "./redux/positions/positionsSlice";
 
 function Layout() {
+  const isWeb = useMediaQuery('(min-width:600px)')
   const didRun = useRef(false);
   const initialized = useRef(false);
   const location = useLocation();
@@ -64,10 +72,14 @@ function Layout() {
   const updateStrategyProps = useSelector(selectUpdateStrategy);
   const user = useSelector((state: RootState) => state.user.data);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [openDrawer, setOpenDrawer] = useState(false)
   const [localError, setLocalError] = useState<string>();
   const [copySuccess, setCopySuccess] = useState(false);
   const isMenuOpen = Boolean(anchorEl);
   const balances = useSelector(selectBalances);
+  const toggleDrawer = (newOpen: boolean) => () => {
+    setOpenDrawer(newOpen)
+  }
   const positionLoading = useSelector(selectPositionsLoading);
   const { email, credit, groupCode, twoFactorEnabled } =
     useSelector(selectUser) || {};
@@ -317,86 +329,180 @@ function Layout() {
     </Menu>
   );
 
+  const Mobile = (
+    <AppBar position="fixed" sx={{ background: "#181a20" }}>
+      <Toolbar>
+        <IconButton
+          size="large"
+          edge="start"
+          color="inherit"
+          aria-label="open drawer"
+          onClick={toggleDrawer(true)}
+        >
+          <MenuIcon />
+        </IconButton>
+        <Box sx={{ flexGrow: 1 }} display="flex" justifyContent="center">
+          <img style={{ height: 16 }} src="/logo.png" alt="logo" />
+        </Box>
+        
+        <Typography>
+          ~{numeral(totalMargin).format("0,0.0")} USDT
+        </Typography>
+        <IconButton onClick={fetchBalance} color="primary">
+          <ReplayIcon />
+        </IconButton>
+      </Toolbar>
+      {positionLoading ? (
+        <Box sx={{ width: '100%' }}>
+          <LinearProgress />
+        </Box>
+      ) : null}
+    </AppBar>
+  )
+
+  const DrawerList = (
+    <Box sx={{ width: 250, background: "rgb(30, 32, 38)", height: "inherit" }} role="presentation" onClick={toggleDrawer(false)}>
+      <List>
+        <ListItem>
+          <Email sx={{ mr: 2, fontSize: 20, color: "text.secondary" }} />
+          <Typography variant="body1">{email}</Typography>
+        </ListItem>
+
+        <ListItem>
+          <MonetizationOn
+            sx={{ mr: 2, fontSize: 20, color: "text.secondary" }}
+          />
+          <Typography variant="body1">
+            {credit?.toFixed(2) || "0.00"}
+          </Typography>
+        </ListItem>
+      </List>
+      
+      <List>
+        <ListItem disablePadding>
+          <LinkStyled to="/dashboard">
+            <ListItemButton>
+              <Typography>Dashboard</Typography>
+            </ListItemButton>
+          </LinkStyled>
+        </ListItem>
+        <Divider />
+        <ListItem disablePadding>
+          <LinkStyled to="/wallets">
+            <ListItemButton>
+              <Typography>Wallets</Typography>
+            </ListItemButton>
+          </LinkStyled>
+        </ListItem>
+        <Divider />
+        <ListItem disablePadding>
+          <LinkStyled to="/strategies">
+            <ListItemButton>
+              <Typography>Strategies</Typography>
+            </ListItemButton>
+          </LinkStyled>
+        </ListItem>
+        <Divider />
+        <ListItem disablePadding>
+          <ListItemButton onClick={handleLogout}>
+            <Typography>Logout</Typography>
+          </ListItemButton>
+        </ListItem>
+      </List>
+    </Box>
+  )
+
   return (
     <Box mt="60px">
       <Box sx={{ flexGrow: 1 }}>
-        <AppBar position="fixed" sx={{ background: "#181a20" }}>
-          <Toolbar>
-            <Box display="flex" justifyContent="space-between" gap="36px">
-              <img
-                style={{ height: 18, marginRight: "12px" }}
-                src="/logo.png"
-                alt="logo"
-              />
-              <LinkStyled
-                to="/dashboard"
-                isActive={location.pathname === "/dashboard"}
-              >
-                Dashboard
-              </LinkStyled>
-              <LinkStyled
-                to="/strategies"
-                isActive={location.pathname === "/strategies"}
-              >
-                Strategies
-              </LinkStyled>
-              <LinkStyled
-                to="/tools"
-                isActive={location.pathname === "/signal"}
-              >
-                Signal
-              </LinkStyled>
-              <LinkStyled
-                to="/orderbooks"
-                isActive={location.pathname === "/orderbooks"}
-              >
-                Orderbooks
-              </LinkStyled>
-              <LinkStyled
-                to="/wallets"
-                isActive={location.pathname === "/wallets"}
-              >
-                Wallets
-              </LinkStyled>
-              <LinkStyled
-                to="/fundings"
-                isActive={location.pathname === "/fundings"}
-              >
-                Funding Fees
-              </LinkStyled>
-            </Box>
-            <Box sx={{ flexGrow: 1 }} />
-            <Box sx={{ display: { xs: "none", md: "flex" } }}>
-              {email ? (
-                <Box>
-                  <IconButton onClick={fetchBalance} color="primary">
-                    <ReplayIcon />
-                  </IconButton>
-                  ~{numeral(totalMargin).format("0,0.0")} USDT
-                  <IconButton
-                    size="large"
-                    edge="end"
-                    aria-label="account of current user"
-                    aria-controls={menuId}
-                    aria-haspopup="true"
-                    onClick={handleProfileMenuOpen}
-                    color="inherit"
-                  >
-                    <AccountCircle />
-                  </IconButton>
-                </Box>
-              ) : (
-                <LinkStyled to="/login">Login</LinkStyled>
-              )}
-            </Box>
-          </Toolbar>
-          {positionLoading ? (
-            <Box sx={{ width: "100%" }}>
-              <LinearProgress />
-            </Box>
-          ) : null}
-        </AppBar>
-        {renderMenu}
+        {isWeb ? (
+          <AppBar position="fixed" sx={{ background: "#181a20" }}>
+            <Toolbar>
+              <Box display="flex" justifyContent="space-between" gap="36px">
+                <img
+                  style={{ height: 18, marginRight: "12px" }}
+                  src="/logo.png"
+                  alt="logo"
+                />
+                <LinkStyled
+                  to="/dashboard"
+                  isActive={location.pathname === "/dashboard"}
+                >
+                  Dashboard
+                </LinkStyled>
+                <LinkStyled
+                  to="/strategies"
+                  isActive={location.pathname === "/strategies"}
+                >
+                  Strategies
+                </LinkStyled>
+                <LinkStyled
+                  to="/tools"
+                  isActive={location.pathname === "/signal"}
+                >
+                  Signal
+                </LinkStyled>
+                <LinkStyled
+                  to="/orderbooks"
+                  isActive={location.pathname === "/orderbooks"}
+                >
+                  Orderbooks
+                </LinkStyled>
+                <LinkStyled
+                  to="/wallets"
+                  isActive={location.pathname === "/wallets"}
+                >
+                  Wallets
+                </LinkStyled>
+                <LinkStyled
+                  to="/fundings"
+                  isActive={location.pathname === "/fundings"}
+                >
+                  Funding Fees
+                </LinkStyled>
+              </Box>
+              <Box sx={{ flexGrow: 1 }} />
+              <Box sx={{ display: { xs: "none", md: "flex" } }}>
+                {email ? (
+                  <Box>
+                    <IconButton onClick={fetchBalance} color="primary">
+                      <ReplayIcon />
+                    </IconButton>
+                    ~{numeral(totalMargin).format("0,0.0")} USDT
+                    <IconButton
+                      size="large"
+                      edge="end"
+                      aria-label="account of current user"
+                      aria-controls={menuId}
+                      aria-haspopup="true"
+                      onClick={handleProfileMenuOpen}
+                      color="inherit"
+                    >
+                      <AccountCircle />
+                    </IconButton>
+                  </Box>
+                ) : (
+                  <LinkStyled to="/login">Login</LinkStyled>
+                )}
+              </Box>
+            </Toolbar>
+            {positionLoading ? (
+              <Box sx={{ width: "100%" }}>
+                <LinearProgress />
+              </Box>
+            ) : null}
+          </AppBar>
+        ) : (
+          Mobile
+        )}
+
+        {isWeb ? (
+          renderMenu
+        ) : (
+          <Drawer open={openDrawer} onClose={toggleDrawer(false)}>
+            {DrawerList}
+          </Drawer>
+        )}
       </Box>
       {/* An <Outlet> renders whatever child route is currently active,
           so you can think about this <Outlet> as a placeholder for
@@ -433,6 +539,7 @@ function Layout() {
     </Box>
   );
 }
+
 
 export default Layout;
 

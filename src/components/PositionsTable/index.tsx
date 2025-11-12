@@ -20,6 +20,7 @@ import {
   Alert,
   AlertTitle,
 } from "@mui/material";
+import useMediaQuery from '@mui/material/useMediaQuery'
 import type { AccordionProps } from "@mui/material";
 import { styled } from "@mui/system";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -69,6 +70,7 @@ function Positions({
     baseToken: string;
   }[];
 }) {
+  const isWeb = useMediaQuery('(min-width:600px)')
   const dispatch = useDispatch<AppDispatch>();
   const balances = useSelector(selectBalances);
   const equity = Object.values(balances).reduce(
@@ -127,7 +129,7 @@ function Positions({
       });
   }, [selectedExchanges, positions, searchToken]);
 
-  const headCells = getHeadCells(filteredPositions.length);
+  const headCells = getHeadCells(filteredPositions.length, isWeb);
 
   const sortedTableWithCells = useMemo(() => {
     const result = createPositionsTable({
@@ -138,6 +140,7 @@ function Positions({
       openTokenDetails,
       setOpenTokenDetails,
       setShownBalanceOrderConfirmationDialog,
+      isWeb
     });
     return sort(
       result,
@@ -235,15 +238,18 @@ function Positions({
           >
             <TableRow sx={{ height: "56px" }}>
               {sort(
-                headCells.map((cell) => {
-                  return {
-                    ...cell,
-                    order: cellsOrder[cell.id],
-                  };
-                }),
+                headCells
+                  .filter(({ id }) => (isWeb ? true : mobileCells.includes(id)))
+                  .map((cell) => {
+                    return {
+                      ...cell,
+                      order: cellsOrder[cell.id],
+                    };
+                  }),
                 ["order"]
               ).map((headCell) => (
                 <TableCell
+                  isWeb
                   key={headCell.id}
                   align="left"
                   sortDirection={orderBy === headCell.id ? order : false}
@@ -274,7 +280,7 @@ function Positions({
                   </Box>
                 </TableCell>
               ))}
-              <TableCell>
+              <TableCell isWeb>
                 <MoreVertIcon />
               </TableCell>
             </TableRow>
@@ -283,7 +289,7 @@ function Positions({
           <TableBody>
             {error ? (
               <TableRow>
-                <TableCell colSpan={headCells.length + 1}>
+                <TableCell isWeb colSpan={headCells.length + 1}>
                   <Alert severity="error">
                     <AlertTitle>Fetching positions error</AlertTitle>
                     {error}
@@ -295,7 +301,8 @@ function Positions({
                 const foundStrategy = strategies.find(
                   ({ buySymbol, sellSymbol }) => {
                     return (
-                      (buySymbol === sellSymbol) && (buySymbol === `${baseToken}/USDT:USDT`)
+                      buySymbol === sellSymbol &&
+                      buySymbol === `${baseToken}/USDT:USDT`
                     );
                   }
                 );
@@ -321,19 +328,24 @@ function Positions({
                   <Fragment key={baseToken}>
                     <TableRow>
                       {sort(
-                        cells.map((cell) => {
-                          return {
-                            ...cell,
-                            order: cellsOrder[cell.id],
-                          };
-                        }),
+                        cells
+                          .filter(({ id }) =>
+                            isWeb ? true : mobileCells.includes(id)
+                          )
+                          .map((cell) => {
+                            return {
+                              ...cell,
+                              order: cellsOrder[cell.id],
+                            };
+                          }),
                         ["order"]
                       ).map(({ component, id }) => {
-                        return <TableCell key={id}>{component}</TableCell>;
+                        return <TableCell isWeb key={id}>{component}</TableCell>;
                       })}
                     </TableRow>
                     <TableRow>
                       <TableCell
+                        isWeb
                         style={{
                           paddingBottom: 0,
                           paddingTop: 0,
@@ -366,7 +378,11 @@ function Positions({
                           timeout="auto"
                           unmountOnExit
                         >
-                          <Box display="flex" sx={{ margin: 1 }} alignItems="center">
+                          <Box
+                            display="flex"
+                            sx={{ margin: 1 }}
+                            alignItems="center"
+                          >
                             <IconButton
                               onClick={() =>
                                 foundStrategy
@@ -385,8 +401,16 @@ function Positions({
                             </IconButton>
                             <Typography>Strategy</Typography>
                           </Box>
-                          <Box display="flex" sx={{ margin: 1 }} alignItems="center">
-                            <Volume24h buyExchange={buys[0]?.exchange} sellExchange={sells[0]?.exchange} baseToken={baseToken} />
+                          <Box
+                            display="flex"
+                            sx={{ margin: 1 }}
+                            alignItems="center"
+                          >
+                            <Volume24h
+                              buyExchange={buys[0]?.exchange}
+                              sellExchange={sells[0]?.exchange}
+                              baseToken={baseToken}
+                            />
                           </Box>
                           <Box sx={{ margin: 1 }}>
                             <CandleChart
@@ -415,14 +439,16 @@ function Positions({
 
 export default Positions;
 
-const getHeadCells = (numberOfToken: number): readonly HeadCell[] => [
+const mobileCells = ['baseToken', 'exchanges', 'liqPrice', 'estimatedFee', 'actions']
+
+const getHeadCells = (numberOfToken: number, isWeb: boolean): readonly HeadCell[] => [
   {
     id: "baseToken",
     label: `Token (${numberOfToken})`,
   },
   {
     id: "exchanges",
-    label: "Exchanges",
+    label: isWeb ? "Exchanges" : "Exs",
   },
 
   {
@@ -446,7 +472,7 @@ const getHeadCells = (numberOfToken: number): readonly HeadCell[] => [
   },
   {
     id: "liqPrice",
-    label: "Dist. to liq",
+    label: isWeb ? "Dist. to liq" : 'Dist. liq',
     sortable: true,
   },
 
@@ -457,7 +483,7 @@ const getHeadCells = (numberOfToken: number): readonly HeadCell[] => [
   },
   {
     id: "estimatedFee",
-    label: "Est.Reward",
+    label: isWeb ? "Est.Reward" : "Reward",
     sortable: true,
   },
   {
@@ -505,8 +531,19 @@ interface Data extends IPosition {
   age: number;
 }
 
-const TableCell = styled(TableCellMui)(() => ({
-  padding: "6px 16px",
+// const TableCell = styled(TableCellMui)(() => ({
+//   padding: "6px 16px",
+// }));
+
+const TableCell = styled(TableCellMui)((props: {isWeb?: boolean}) => ({
+  // Define default padding
+  padding: '6px 16px', 
+
+  // Use a ternary operator or an if condition to apply modifications
+  ...(props.isWeb && {
+    // Styles to apply when isWeb is true
+    padding: '6px', 
+  }),
 }));
 
 const Accordion = styled((props: AccordionProps) => (

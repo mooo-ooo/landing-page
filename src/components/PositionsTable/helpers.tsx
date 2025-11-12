@@ -42,7 +42,8 @@ export const createPositionsTable = ({
   totalVol,
   openTokenDetails,
   setOpenTokenDetails,
-  setShownBalanceOrderConfirmationDialog
+  setShownBalanceOrderConfirmationDialog,
+  isWeb
 }: {
   positions: {
     buys: IPosition[];
@@ -55,6 +56,7 @@ export const createPositionsTable = ({
   openTokenDetails: string;
   setShownBalanceOrderConfirmationDialog: (token: string) => void;
   setOpenTokenDetails: (token: string) => void;
+  isWeb: boolean
 }) => {
   return positions.map(({ baseToken, sells, buys }) => {
     const estimatedFee = [...sells, ...buys].reduce((tot, cur) => {
@@ -135,7 +137,13 @@ export const createPositionsTable = ({
       {
         id: "baseToken",
         component: (
-          <Box display="flex" alignItems="center" gap={1}>
+          <Box display="flex" alignItems="center" gap={1} sx={{
+            width: 64,
+            overflow: "hidden", 
+            whiteSpace: "nowrap", 
+            textOverflow: "ellipsis",
+            flexDirection: isWeb ? "row" : "column"
+          }}>
             <img
               src={`https://assets.coincap.io/assets/icons/${baseToken.toLowerCase()}@2x.png`}
               alt={baseToken}
@@ -265,14 +273,14 @@ export const createPositionsTable = ({
                     </Typography>
                     <Typography fontSize="10px">
                       {numeral(sells[0]?.liqPrice).format(
-                        precisionMap[baseToken] || "0,0.[000]"
+                        precisionMap[baseToken] || "0,0.[00]"
                       )}
                       $
                     </Typography>
                   </Box>
 
                   <BorderLinearProgress
-                    sx={{ width: 124 }}
+                    sx={{ width: isWeb ? 124 : 81 }}
                     variant="determinate"
                     value={distToLiqSell}
                   />
@@ -290,13 +298,13 @@ export const createPositionsTable = ({
                     </Typography>
                     <Typography fontSize="10px">
                       {numeral(buys[0]?.liqPrice).format(
-                        precisionMap[baseToken] || "0,0.[0000]"
+                        precisionMap[baseToken] || "0,0.[00]"
                       )}
                       $
                     </Typography>
                   </Box>
                   <BorderLinearProgress
-                    sx={{ width: 124 }}
+                    sx={{ width: isWeb ? 124 : 81 }}
                     variant="determinate"
                     value={distToLiqBuy}
                   />
@@ -339,7 +347,7 @@ export const createPositionsTable = ({
             }}
             fontWeight="bold"
           >
-            {numeral(estimatedFee).format("0,0.[00]")}$
+            {numeral(estimatedFee).format(isWeb ? "0,0.[00]" : "0,0.[0]")}$
           </Typography>
         ),
       },

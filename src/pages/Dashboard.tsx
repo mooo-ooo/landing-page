@@ -1,5 +1,6 @@
 import { useMemo, useRef, useEffect, useState, type FC } from "react";
 import { Grid, Box } from "@mui/material";
+import useMediaQuery from '@mui/material/useMediaQuery'
 import PositionsTable from "../components/PositionsTable";
 import ExchangeMargin from "../components/ExchangeMargin";
 import FundingFeesChart from "../components/FundingFeesChart";
@@ -17,6 +18,7 @@ import type { ISymbol } from "../types";
 import api from "../lib/axios";
 
 const Dashboard: FC = () => {
+  const isWeb = useMediaQuery('(min-width:600px)')
   const dispatch = useDispatch<AppDispatch>();
   const [symbols, setSymbols] = useState<ISymbol[]>([]);
   const positionsError = useSelector(selectPositionsError);
@@ -119,6 +121,30 @@ const Dashboard: FC = () => {
     exchangeMarginHeight > 700 || exchangeMarginHeight < 250
       ? 300
       : exchangeMarginHeight - 24;
+
+  const Mobile = (
+    <Box display="flex" flexDirection="column" gap="12px" py="16px">
+      <FundingFeesChart
+        loadingFundingRates={loadingFundingRates}
+        width={dashboardWidth}
+        height={fixedHeight}
+        estimatedFundingFee={estimatedFundingFee}
+      />
+      <ExchangeMargin />
+      <PositionsTable
+        strategies={strategies}
+        symbols={symbols}
+        positions={positionsWithFunding}
+        loadingFundingRates={loadingFundingRates}
+        exchanges={exchanges}
+        error={positionsError}
+      />
+    </Box>
+  );
+
+  if (!isWeb) {
+    return Mobile
+  }
 
   return (
     <Box
