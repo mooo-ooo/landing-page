@@ -386,7 +386,7 @@ function Positions({
                             <Typography>Strategy</Typography>
                           </Box>
                           <Box display="flex" sx={{ margin: 1 }} alignItems="center">
-                            <Volume24h buyExchange={buys[0].exchange} sellExchange={sells[0].exchange} baseToken={baseToken} />
+                            <Volume24h buyExchange={buys[0]?.exchange} sellExchange={sells[0]?.exchange} baseToken={baseToken} />
                           </Box>
                           <Box sx={{ margin: 1 }}>
                             <CandleChart
