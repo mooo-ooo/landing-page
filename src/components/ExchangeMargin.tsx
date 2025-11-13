@@ -15,6 +15,7 @@ import {
   Collapse,
   Button
 } from "@mui/material";
+import CoinIconLoader from '../components/CoinIconLoader'
 import { useSnackbar } from "notistack";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
@@ -240,16 +241,12 @@ function ExchangeMargin() {
                                     ?.baseToken
                                 }
                               >
-                                <img
-                                  src={`https://assets.coincap.io/assets/icons/${nearestLiqEchange[
+                                <CoinIconLoader
+                                  height="20px"
+                                  width="20px"
+                                  symbol={nearestLiqEchange[
                                     exchangeName
-                                  ].sell?.baseToken.toLowerCase()}@2x.png`}
-                                  alt={
-                                    nearestLiqEchange[exchangeName].sell
-                                      ?.baseToken
-                                  }
-                                  width={20}
-                                  height={20}
+                                  ].sell?.baseToken.toLowerCase()}
                                 />
                               </Tooltip>
                             ) : null}
@@ -269,16 +266,12 @@ function ExchangeMargin() {
                                   nearestLiqEchange[exchangeName].buy?.baseToken
                                 }
                               >
-                                <img
-                                  src={`https://assets.coincap.io/assets/icons/${nearestLiqEchange[
+                                <CoinIconLoader
+                                  height="20px"
+                                  width="20px"
+                                  symbol={nearestLiqEchange[
                                     exchangeName
-                                  ].buy?.baseToken.toLowerCase()}@2x.png`}
-                                  alt={
-                                    nearestLiqEchange[exchangeName].buy
-                                      ?.baseToken
-                                  }
-                                  width={20}
-                                  height={20}
+                                  ].buy?.baseToken.toLowerCase()}
                                 />
                               </Tooltip>
                             ) : null}

@@ -6,6 +6,7 @@ import LinearProgress, {
 import ConstructionIcon from "@mui/icons-material/Construction";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import CoinIconLoader from '../../components/CoinIconLoader'
 import numeral from "numeral";
 import {
   calculateAveragePrice,
@@ -137,20 +138,40 @@ export const createPositionsTable = ({
       {
         id: "baseToken",
         component: (
-          <Box display="flex" alignItems="center" gap={1} sx={{
-            width: 64,
-            overflow: "hidden", 
-            whiteSpace: "nowrap", 
-            textOverflow: "ellipsis",
-            flexDirection: isWeb ? "row" : "column"
-          }}>
-            <img
-              src={`https://assets.coincap.io/assets/icons/${baseToken.toLowerCase()}@2x.png`}
-              alt={baseToken}
-              width={20}
-              height={20}
-            />
-            <Typography>{baseToken}</Typography>
+          <Box
+            display="flex"
+            gap={1}
+            sx={
+              isWeb
+                ? {alignItems: 'center'}
+                : {
+                    flexDirection: "column",
+                    alignItems: 'flex-start'
+                  }
+            }
+          >
+            <Box>
+              <CoinIconLoader
+                height="20px"
+                width="20px"
+                symbol={baseToken.toLowerCase()}
+              />
+            </Box>
+            {isWeb ? (
+              <Typography>{baseToken}</Typography>
+            ) : (
+              <Typography
+                sx={{
+                  width: 54,
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                  textOverflow: "ellipsis",
+                  flexDirection: "column",
+                }}
+              >
+                {baseToken}
+              </Typography>
+            )}
           </Box>
         ),
       },
@@ -195,7 +216,9 @@ export const createPositionsTable = ({
                   cursor: "pointer",
                   width: "fit-content",
                 }}
-                onClick={() => setShownBalanceOrderConfirmationDialog(baseToken)}
+                onClick={() =>
+                  setShownBalanceOrderConfirmationDialog(baseToken)
+                }
               >
                 <ConstructionIcon
                   sx={{ fill: "rgb(246, 70, 93)", fontSize: 16 }}
@@ -221,28 +244,31 @@ export const createPositionsTable = ({
       {
         id: "unrealizedPnl",
         value: biggestPnL.maxPnL,
-        component: biggestPnL?.maxPnL > 0 ? (
-          <Box
-            my="12px"
-            display="flex"
-            width="100%"
-            alignItems="center"
-            gap={1}
-          >
-            <img
-              style={{
-                borderRadius: "50%",
-              }}
-              src={`/${biggestPnL.exchange}.png`}
-              alt="USDT"
-              width={20}
-              height={20}
-            />
-            <Typography>{numeral(biggestPnL.maxPnL).format("0,0")}$</Typography>
-          </Box>
-        ) : (
-          <Skeleton animation="wave" />
-        ),
+        component:
+          biggestPnL?.maxPnL > 0 ? (
+            <Box
+              my="12px"
+              display="flex"
+              width="100%"
+              alignItems="center"
+              gap={1}
+            >
+              <img
+                style={{
+                  borderRadius: "50%",
+                }}
+                src={`/${biggestPnL.exchange}.png`}
+                alt="USDT"
+                width={20}
+                height={20}
+              />
+              <Typography>
+                {numeral(biggestPnL.maxPnL).format("0,0")}$
+              </Typography>
+            </Box>
+          ) : (
+            <Skeleton animation="wave" />
+          ),
       },
       {
         id: "markPrice",
@@ -268,10 +294,10 @@ export const createPositionsTable = ({
               {sells.length ? (
                 <Box>
                   <Box display="flex" justifyContent="space-between">
-                    <Typography fontSize="10px">
+                    <Typography fontSize={isWeb ? "10px" : 'unset'}>
                       {numeral(distToLiqSell).format("0,0")}%
                     </Typography>
-                    <Typography fontSize="10px">
+                    <Typography fontSize={isWeb ? "10px" : 'unset'}>
                       {numeral(sells[0]?.liqPrice).format(
                         precisionMap[baseToken] || "0,0.[00]"
                       )}
@@ -293,10 +319,10 @@ export const createPositionsTable = ({
               {buys.length ? (
                 <Box>
                   <Box display="flex" justifyContent="space-between">
-                    <Typography fontSize="10px">
+                    <Typography fontSize={isWeb ? "10px" : 'unset'}>
                       {numeral(distToLiqBuy).format("0,0")}%
                     </Typography>
-                    <Typography fontSize="10px">
+                    <Typography fontSize={isWeb ? "10px" : 'unset'}>
                       {numeral(buys[0]?.liqPrice).format(
                         precisionMap[baseToken] || "0,0.[00]"
                       )}
@@ -418,11 +444,11 @@ const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
 
 const precisionMap: Record<string, string> = {
   SHIB: "0.0000e+0",
-  DOGE: "0,0.0[0000]",
-  BONK: "0,0.0[0000]",
+  DOGE: "0,0.0[0]",
+  BONK: "0,0.0[0]",
   AVAX: "0,0.00",
-  ETC: "0.000",
-  SUI: "0,0.000",
+  ETC: "0.0",
+  SUI: "0,0.0[0]",
   BTC: "0,0",
   LTC: "0,0",
   XRP: "0,0.00",

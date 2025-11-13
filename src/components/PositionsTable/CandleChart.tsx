@@ -132,7 +132,7 @@ function CandleChart({
         },
         labels: {
           formatter: ({ value }: { value: number }) => {
-            return numeral(value).format("0,0.[000]") + "%";
+            return numeral(value).format("0,0.[00]");
           },
           style: {
             color: "#FFF",

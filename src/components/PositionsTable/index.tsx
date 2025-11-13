@@ -444,7 +444,7 @@ const mobileCells = ['baseToken', 'exchanges', 'liqPrice', 'estimatedFee', 'acti
 const getHeadCells = (numberOfToken: number, isWeb: boolean): readonly HeadCell[] => [
   {
     id: "baseToken",
-    label: `Token (${numberOfToken})`,
+    label: isWeb ? `Token (${numberOfToken})` : `Token`,
   },
   {
     id: "exchanges",
@@ -483,7 +483,7 @@ const getHeadCells = (numberOfToken: number, isWeb: boolean): readonly HeadCell[
   },
   {
     id: "estimatedFee",
-    label: isWeb ? "Est.Reward" : "Reward",
+    label: isWeb ? "Est.Reward" : "Fees",
     sortable: true,
   },
   {
