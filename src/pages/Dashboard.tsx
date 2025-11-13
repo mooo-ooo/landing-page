@@ -2,7 +2,7 @@ import { useMemo, useRef, useEffect, useState, type FC } from "react";
 import { Grid, Box } from "@mui/material";
 import useMediaQuery from '@mui/material/useMediaQuery'
 import PositionsTable from "../components/PositionsTable";
-import ExchangeMargin from "../components/ExchangeMargin";
+import ExchangeMargin, { ExchangeMarginMobile } from "../components/ExchangeMargin";
 import FundingFeesChart from "../components/FundingFeesChart";
 import EquitiesChart from "../components/VolumeChart";
 import { useNormalizedPositions, useFundingRates } from "../hooks";
@@ -123,14 +123,14 @@ const Dashboard: FC = () => {
       : exchangeMarginHeight - 24;
 
   const Mobile = (
-    <Box display="flex" flexDirection="column" gap="12px" py="16px">
+    <Box ref={dashboardRef} display="flex" flexDirection="column" gap="12px" py="16px">
       <FundingFeesChart
         loadingFundingRates={loadingFundingRates}
         width={dashboardWidth}
-        height={fixedHeight}
+        height={300}
         estimatedFundingFee={estimatedFundingFee}
       />
-      <ExchangeMargin />
+      {isWeb ? <ExchangeMargin /> : <ExchangeMarginMobile />}
       <PositionsTable
         strategies={strategies}
         symbols={symbols}
