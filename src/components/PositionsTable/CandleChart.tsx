@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Box, Typography, Skeleton } from "@mui/material";
+import useMediaQuery from '@mui/material/useMediaQuery'
 import * as Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import dayjs from "dayjs";
@@ -17,6 +18,7 @@ function CandleChart({
   buyExchanges: ExchangeName[];
   baseToken: string;
 }) {
+  const isWeb = useMediaQuery('(min-width:600px)')
   const [candleSticks, setCandleSticks] = useState<CandleStick[]>([]);
   const [diffFundings, setDiffFundings] = useState<number[]>([]);
 
@@ -94,7 +96,7 @@ function CandleChart({
     },
     plotOptions: {
       column: {
-        pointWidth: 5,
+        pointWidth: isWeb ? 5 : 2,
         borderColor: "none", // Red border color
         borderWidth: 0, // 2px border width
         borderRadius: 2, // Sets a fixed width of 20 pixels for each column
@@ -117,7 +119,7 @@ function CandleChart({
           },
         },
         title: {
-          text: "Price",
+          text: isWeb ? "Price" : null,
         },
         lineColor: "rgb(81 81 81 / 50%)",
         lineWidth: 1,
@@ -128,7 +130,7 @@ function CandleChart({
         // gridLineWidth: 0,
         gridLineColor: "rgb(81 81 81 / 40%)",
         title: {
-          text: "Funding",
+          text: isWeb ? "Funding" : null,
         },
         labels: {
           formatter: ({ value }: { value: number }) => {
