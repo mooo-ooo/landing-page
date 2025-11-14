@@ -23,6 +23,7 @@
     "dayjs": "^1.11.13",
     "highcharts": "^12.3.0",
     "highcharts-react-official": "^3.2.2",
+    "human-readable-numbers": "^0.9.5",
     "lodash": "^4.17.21",
     "notistack": "^3.0.2",
     "numeral": "^2.0.6",

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import readableNumber from 'human-readable-numbers'
 import { Box, Typography, Skeleton } from "@mui/material";
 import get24hVolume from "../../services/vol24h";
 import type { ExchangeName } from "../../types/exchange";
-import numeral from "numeral";
+
 
 function Volume24h({
   baseToken,
@@ -25,8 +26,8 @@ function Volume24h({
         get24hVolume(sellExchange as ExchangeName, baseToken),
       ]);
       setVol24h({
-        buyVol: buyVol.usdt,
-        sellVol: selVol.usdt,
+        buyVol: buyVol,
+        sellVol: selVol,
       });
     };
     fetchVol();
@@ -39,10 +40,10 @@ function Volume24h({
     <Box display="flex" gap="16px">
       <Typography>Volume 24h (USDT):</Typography>
       <Typography>
-        {buyExchange.toUpperCase()}: {numeral(vol24h.buyVol).format("0,0]")}
+        {buyExchange.toUpperCase()}: {readableNumber.toHumanString(vol24h.buyVol)}
       </Typography>
       <Typography>
-        {sellExchange.toUpperCase()}: {numeral(vol24h.sellVol).format("0,0]")}
+        {sellExchange.toUpperCase()}: {readableNumber.toHumanString(vol24h.sellVol)}
       </Typography>
     </Box>
   );

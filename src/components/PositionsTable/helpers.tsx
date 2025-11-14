@@ -7,6 +7,7 @@ import ConstructionIcon from "@mui/icons-material/Construction";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import CoinIconLoader from '../../components/CoinIconLoader'
+import readableNumber from 'human-readable-numbers'
 import numeral from "numeral";
 import {
   calculateAveragePrice,
@@ -204,7 +205,7 @@ export const createPositionsTable = ({
         id: "volume",
         component: (
           <Box>
-            <Typography>{numeral(volOfStrategy).format("0,0]")}$</Typography>
+            <Typography>{readableNumber.toHumanString(volOfStrategy)}$</Typography>
             {spreadSize ? (
               <Box
                 display="flex"
@@ -276,9 +277,7 @@ export const createPositionsTable = ({
           <Tooltip title={sells[0]?.exchange}>
             <Typography>
               {sells.length ? (
-                numeral(sells[0]?.markPrice).format(
-                  precisionMap[baseToken] || "0,0.[000]"
-                )
+                readableNumber.toHumanString(sells[0]?.markPrice)
               ) : (
                 <Skeleton animation="wave" />
               )}
@@ -295,12 +294,10 @@ export const createPositionsTable = ({
                 <Box>
                   <Box display="flex" justifyContent="space-between">
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
-                      {numeral(distToLiqSell).format("0,0")}%
+                      {readableNumber.toHumanString(distToLiqSell)}%
                     </Typography>
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
-                      {numeral(sells[0]?.liqPrice).format(
-                        precisionMap[baseToken] || "0,0.[00]"
-                      )}
+                      {readableNumber.toHumanString(sells[0]?.liqPrice)}
                       $
                     </Typography>
                   </Box>
@@ -320,12 +317,10 @@ export const createPositionsTable = ({
                 <Box>
                   <Box display="flex" justifyContent="space-between">
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
-                      {numeral(distToLiqBuy).format("0,0")}%
+                      {readableNumber.toHumanString(distToLiqBuy)}%
                     </Typography>
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
-                      {numeral(buys[0]?.liqPrice).format(
-                        precisionMap[baseToken] || "0,0.[00]"
-                      )}
+                      {readableNumber.toHumanString(buys[0]?.liqPrice)}
                       $
                     </Typography>
                   </Box>
@@ -441,15 +436,3 @@ const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
     }),
   },
 }));
-
-const precisionMap: Record<string, string> = {
-  SHIB: "0.0000e+0",
-  DOGE: "0,0.0[0]",
-  BONK: "0,0.0[0]",
-  AVAX: "0,0.00",
-  ETC: "0.0",
-  SUI: "0,0.0[0]",
-  BTC: "0,0",
-  LTC: "0,0",
-  XRP: "0,0.00",
-};

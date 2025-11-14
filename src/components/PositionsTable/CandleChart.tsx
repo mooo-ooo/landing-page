@@ -8,6 +8,7 @@ import { getCandleSticks, type CandleStick } from "../../services/candlestick";
 import { fundingRateHistory } from "../../services/fundingRateHistory";
 import type { ExchangeName } from "../../types/exchange";
 import numeral from "numeral";
+import readableNumber from 'human-readable-numbers'
 
 function CandleChart({
   baseToken,
@@ -112,7 +113,7 @@ function CandleChart({
         gridLineWidth: 0,
         labels: {
           formatter: ({ value }: { value: number }) => {
-            return numeral(value).format("0,0.0");
+            return readableNumber.toHumanString(value);
           },
           style: {
             color: "#FFF",
@@ -134,7 +135,7 @@ function CandleChart({
         },
         labels: {
           formatter: ({ value }: { value: number }) => {
-            return numeral(value).format("0,0.[00]");
+            return numeral(value).format("0,0.[00]") + '%';
           },
           style: {
             color: "#FFF",

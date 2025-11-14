@@ -3,11 +3,6 @@ import axios from "axios";
 import { PROXY_URL } from "../config";
 import type { ExchangeName } from "../types/exchange";
 
-// Define the expected return type
-interface Vol24h {
-  usdt: number;
-}
-
 // Define the structure for an exchange's configuration
 interface ExchangeConfig {
   url: (symbol: string) => string;
@@ -42,7 +37,7 @@ const exchangeConfigs: Record<string, ExchangeConfig> = {
     },
   },
   huobi: {
-    url: (symbol) => `${PROXY_URL}/https://api.hbdm.com/linear-swap-ex/market/detail/merged?contract_code=${symbol}-USDT`,
+    url: (symbol) => `https://api.hbdm.com/linear-swap-ex/market/detail/merged?contract_code=${symbol}-USDT`,
     extractor: (data) =>
       safeParseFloat(data?.tick?.trade_turnover),
   },
@@ -57,7 +52,7 @@ const exchangeConfigs: Record<string, ExchangeConfig> = {
       safeParseFloat(data?.[0]?.volume_24h_quote),
   },
   bitget: {
-    url: (symbol) => `${PROXY_URL}/https://api.bitget.com/api/v2/mix/market/tickers?productType=USDT-FUTURES&symbol=${symbol}USDT`,
+    url: (symbol) => `https://api.bitget.com/api/v2/mix/market/ticker?productType=USDT-FUTURES&symbol=${symbol}USDT`,
     extractor: (data) =>
       safeParseFloat(data?.data?.[0]?.quoteVolume),
   },
@@ -68,14 +63,14 @@ const exchangeConfigs: Record<string, ExchangeConfig> = {
 export default async (
   exchange: ExchangeName,
   symbol: string
-): Promise<Vol24h> => {
+): Promise<number> => {
   // 1. Check if the exchange is supported
   const config = exchangeConfigs[exchange];
   if (!config) {
     // If the type system is enforced correctly, this shouldn't happen,
     // but it's a good safety net for future maintenance.
     console.error(`Unsupported exchange: ${exchange}`);
-    return { usdt: 0 };
+    return 0;
   }
 
   try {
@@ -86,14 +81,10 @@ export default async (
     // 3. Extract and calculate volume using the configuration
     const usdtVolume = config.extractor(response.data);
 
-    return {
-      usdt: usdtVolume,
-    };
+    return usdtVolume
   } catch (error) {
     // 4. Centralized error logging
     console.error(`Error fetching 24h volume for ${exchange} ${symbol}:`, error);
-    return {
-      usdt: 0,
-    };
+    return 0;
   }
 };
