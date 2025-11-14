@@ -80,6 +80,7 @@ function CandleChart({
       text: null,
     },
     chart: {
+      spacing: [12, 0, 12, 0],
       polar: true,
       type: "line",
       backgroundColor: "none",
