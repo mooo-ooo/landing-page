@@ -412,7 +412,7 @@ function Positions({
                               baseToken={baseToken}
                             />
                           </Box>
-                          <Box sx={{ margin: 1 }}>
+                          <Box sx={{ margin: isWeb ? 1 : 0 }}>
                             <CandleChart
                               baseToken={baseToken}
                               sellExchanges={sells.map(
