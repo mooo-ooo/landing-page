@@ -665,6 +665,7 @@ const Dashboard: FC = () => {
 
                     {/* 4. To Address */}
                     <CardItem
+                      size={6}
                       label="To Address"
                       valueComponent={
                         to?.length > 10 ? (
@@ -689,6 +690,7 @@ const Dashboard: FC = () => {
 
                     {/* 5. TxId */}
                     <CardItem
+                      size={6}
                       label="Transaction ID"
                       valueComponent={
                         <a
@@ -1173,11 +1175,13 @@ export default Dashboard;
 const CardItem = ({
   label,
   valueComponent,
+  size = 4
 }: {
   label: string;
   valueComponent: React.ReactNode;
+  size?: number
 }) => (
-  <Grid size={4} sx={{ mb: 1 }}>
+  <Grid size={size} sx={{ mb: 1 }}>
     <Typography variant="caption" color="text.secondary">
       {label}
     </Typography>
