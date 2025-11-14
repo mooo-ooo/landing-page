@@ -97,7 +97,7 @@ function CandleChart({
     },
     plotOptions: {
       column: {
-        pointWidth: isWeb ? 5 : 2,
+        pointWidth: isWeb ? 5 : 1,
         borderColor: "none", // Red border color
         borderWidth: 0, // 2px border width
         borderRadius: 2, // Sets a fixed width of 20 pixels for each column
@@ -117,6 +117,7 @@ function CandleChart({
           },
           style: {
             color: "#FFF",
+            fontSize: isWeb ? '13px' : '10px'
           },
         },
         title: {
@@ -135,10 +136,11 @@ function CandleChart({
         },
         labels: {
           formatter: ({ value }: { value: number }) => {
-            return numeral(value).format("0,0.[00]") + '%';
+            return numeral(value).format("0,0.[00]");
           },
           style: {
             color: "#FFF",
+            fontSize: isWeb ? '13px' : '10px'
           },
         },
         lineWidth: 1,
@@ -179,6 +181,14 @@ function CandleChart({
                 "0.000"
               )}
               %
+            </Typography>
+          </Box>
+          <Box display="flex" justifyContent='space-between'>
+            <Typography mb={2}>
+              Funding %
+            </Typography>
+            <Typography mb={2}>
+              Price (USDT)
             </Typography>
           </Box>
           <HighchartsReact highcharts={Highcharts} options={options} />
