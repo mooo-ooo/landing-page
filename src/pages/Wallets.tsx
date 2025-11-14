@@ -21,6 +21,8 @@ import {
   IconButton,
   LinearProgress,
   AlertTitle,
+  Card,
+  CardContent,
 } from "@mui/material";
 import ReplayIcon from "@mui/icons-material/Replay";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -36,8 +38,11 @@ import numeral from "numeral";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select, { type SelectChangeEvent } from "@mui/material/Select";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { selectBalances } from "../redux/balances/balancesSlice";
-import ExchangeMargin from "../components/ExchangeMargin";
+import ExchangeMargin, {
+  ExchangeMarginMobile,
+} from "../components/ExchangeMargin";
 import api from "../lib/axios";
 import { genExplorerTxUrl, genExplorerAddUrl } from "../helpers";
 
@@ -65,6 +70,7 @@ interface IAddress {
 const exchangesWhichAllowFee: string[] = ["huobi"];
 
 const Dashboard: FC = () => {
+  const isWeb = useMediaQuery("(min-width:600px)");
   const balances = useSelector(selectBalances);
   const [page, setPage] = useState(0);
   const { enqueueSnackbar } = useSnackbar();
@@ -255,6 +261,472 @@ const Dashboard: FC = () => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+
+  const MobileWallets = (
+    <Box display="flex" flexDirection="column" gap="12px" py="16px">
+      <Box>
+        <Box>
+          <Box
+            sx={{ border: "1px solid rgba(81, 81, 81, 1)" }}
+            padding={2}
+            alignItems="center"
+          >
+            <Box
+              display="flex"
+              gap={2}
+              flexDirection="column"
+              alignItems="center"
+            >
+              <FormControl fullWidth>
+                {selectedFromEx ? (
+                  <Typography variant="caption">
+                    Available balance:&nbsp;
+                    {numeral(
+                      (
+                        selectedFromEx as unknown as {
+                          future: { marginAvailable: number };
+                          trading: { marginAvailable: number };
+                        }
+                      )?.future?.marginAvailable ||
+                        (
+                          selectedFromEx as unknown as {
+                            future: { marginAvailable: number };
+                            trading: { marginAvailable: number };
+                          }
+                        )?.trading?.marginAvailable
+                    ).format("0,0.0")}{" "}
+                    USDT
+                  </Typography>
+                ) : (
+                  <Typography variant="caption">From exchange</Typography>
+                )}
+                <Select value={fromEx} onChange={handleChangeFrom} displayEmpty>
+                  {exchanges.map((ex) => (
+                    <MenuItem disabled={ex === toEx} key={ex} value={ex}>
+                      <Box display="flex" gap={1}>
+                        <img
+                          style={{
+                            borderRadius: "50%",
+                          }}
+                          src={`/${ex}.png`}
+                          alt="USDT"
+                          width={20}
+                          height={20}
+                        />
+                        {ex}
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <DoubleArrowIcon />
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                {selectedToEx ? (
+                  <Typography variant="caption">
+                    Availale balance: &nbsp;
+                    {numeral(
+                      (
+                        selectedToEx as unknown as {
+                          future: { marginAvailable: number };
+                          trading: { marginAvailable: number };
+                        }
+                      )?.future?.marginAvailable ||
+                        (
+                          selectedToEx as unknown as {
+                            future: { marginAvailable: number };
+                            trading: { marginAvailable: number };
+                          }
+                        )?.trading?.marginAvailable
+                    ).format("0,0.0")}{" "}
+                    USDT
+                  </Typography>
+                ) : (
+                  <Typography variant="caption">To exchange</Typography>
+                )}
+                <Select value={toEx} onChange={handleChangeTo} displayEmpty>
+                  {exchanges.map((ex) => (
+                    <MenuItem disabled={ex === fromEx} key={ex} value={ex}>
+                      <Box display="flex" gap={1}>
+                        <img
+                          style={{
+                            borderRadius: "50%",
+                          }}
+                          src={`/${ex}.png`}
+                          alt="USDT"
+                          width={20}
+                          height={20}
+                        />
+                        {ex}
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <Box display="flex" flexDirection="column">
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <TextField
+                  fullWidth
+                  id="filled-number"
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                    const val = Number(event.target.value);
+                    setAmount(val);
+                  }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">USDT</InputAdornment>
+                      ),
+                    },
+                  }}
+                  label={`Amount`}
+                  type="number"
+                  value={amount || ""}
+                  inputProps={{
+                    step: "5",
+                    min: String(0),
+                  }}
+                  variant="standard"
+                />
+              </FormControl>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <TextField
+                  fullWidth
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                    setToken(event.target.value);
+                  }}
+                  label={`2FA Code`}
+                  type="string"
+                  value={token2fa}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  variant="standard"
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PhonelinkLockIcon
+                            sx={{ fill: "rgba(255, 255, 255, 0.5)" }}
+                          />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              </FormControl>
+            </Box>
+
+            <Box my={2} display="flex" gap={6} justifyContent="space-around">
+              <FormControl fullWidth>
+                {exchangesWhichAllowFee.includes(fromEx) ? (
+                  <TextField
+                    fullWidth
+                    disabled={disabledFeeExchanges.includes(fromEx)}
+                    id="filled-number"
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                      const val = Number(event.target.value);
+                      setFee(val);
+                    }}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">USDT</InputAdornment>
+                        ),
+                      },
+                    }}
+                    label={`Fee (Optional)`}
+                    type="number"
+                    value={
+                      disabledFeeExchanges.includes(fromEx) ? "" : fee || ""
+                    }
+                    variant="standard"
+                  />
+                ) : null}
+              </FormControl>
+
+              <FormControl fullWidth>
+                <LoadingButton
+                  size="large"
+                  loading={loadingTransfer}
+                  onClick={handleTransfer}
+                  variant="contained"
+                  disabled={!token2fa || amount <= 0 || !validEx}
+                >
+                  Transfer
+                </LoadingButton>
+              </FormControl>
+            </Box>
+
+            {transferPendings?.length
+              ? transferPendings.map((transferPending) => {
+                  const key = JSON.stringify({
+                    id: transferPending.id,
+                    to: transferPending.to,
+                  });
+                  return (
+                    <Alert
+                      key={key}
+                      sx={{ my: 1 }}
+                      severity="warning"
+                      action={
+                        <Button
+                          onClick={() => handleResolveTransferPending(key)}
+                          disabled={!transferPending}
+                          variant="contained"
+                          color="inherit"
+                          size="small"
+                        >
+                          {transferPending ? "Resolve" : "All gud"}
+                        </Button>
+                      }
+                    >
+                      <AlertTitle>Warning</AlertTitle>
+                      Waiting deposit from{" "}
+                      {transferPending &&
+                        transferPending?.from?.toUpperCase()}{" "}
+                      to {transferPending && transferPending?.to?.toUpperCase()}
+                    </Alert>
+                  );
+                })
+              : null}
+
+            <Box>
+              {transferError && (
+                <Box mb={1}>
+                  <Alert severity="error">
+                    <Typography fontSize="14px">{transferError}</Typography>
+                  </Alert>
+                </Box>
+              )}
+              {chainSelected && addressSelected ? (
+                <Alert severity="info">
+                  <Box display="flex" flexDirection="column">
+                    <Typography fontSize="14px">
+                      Chain: {chainSelected}
+                    </Typography>
+                    <Box display="flex" flexDirection="row" alignItems="center">
+                      <Typography fontSize="14px">
+                        Address: {shortenAddress(addressSelected)}
+                      </Typography>
+                      <IconButton
+                        onClick={() => {
+                          navigator.clipboard.writeText(addressSelected);
+                          enqueueSnackbar(`Copy ${addressSelected}`, {
+                            variant: "success",
+                          });
+                        }}
+                      >
+                        <ContentCopyIcon />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                </Alert>
+              ) : null}
+            </Box>
+          </Box>
+        </Box>
+        <Box mt={2}>
+          <ExchangeMarginMobile />
+        </Box>
+      </Box>
+      <Box>
+        <Box display="flex" my={2} alignItems="center">
+          <Box>
+            <Typography fontWeight="bold">
+              Withdrawal/Deposit Records
+            </Typography>
+            {loading ? <LinearProgress color="info" /> : null}
+          </Box>
+
+          <IconButton size="medium" onClick={fetchTransactions}>
+            <ReplayIcon />
+          </IconButton>
+        </Box>
+
+        <Paper
+          sx={{
+            width: "100%",
+            overflow: "hidden",
+            mb: 2,
+            backgroundColor: "#010409",
+            border: "1px solid #30363d",
+            padding: 2, // Added padding for better spacing around cards
+          }}
+        >
+          {(rowsPerPage > 0
+            ? transactions.slice(
+                page * rowsPerPage,
+                page * rowsPerPage + rowsPerPage
+              )
+            : transactions
+          ).map(
+            ({
+              createdAt,
+              type,
+              amount,
+              status,
+              tx,
+              to,
+              chain,
+              id,
+              exchange,
+            }) => (
+              <Card
+                key={id + tx}
+                sx={{
+                  mb: 2,
+                  backgroundColor: "#0d1117", // Darker card background
+                  border: "1px solid #30363d",
+                  color: "white",
+                }}
+              >
+                <CardContent>
+                  <Grid container spacing={1}>
+                    {/* 1. Datetime & Type (Often prominent info) */}
+                    <Grid size={6}>
+                      <Box display="flex" justifyContent="space-between">
+                        <Typography variant="body2" fontWeight="bold">
+                          {dayjs(new Date(Number(createdAt))).format(
+                            "DD/MM/YYYY HH:mm"
+                          )}
+                        </Typography>
+                        <Typography variant="body2" textTransform="capitalize">
+                          {type}
+                        </Typography>
+                      </Box>
+                    </Grid>
+
+                    {/* 2. Status (Often needs prominence) */}
+                    <Grid size={6}>
+                      <Box
+                        display="flex"
+                        justifyContent="flex-end"
+                        alignItems="center"
+                      >
+                        <Box
+                          sx={{
+                            borderRadius: 8,
+                            width: "fit-content",
+                            padding: "4px 8px",
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            fontWeight="bold"
+                            sx={{
+                              color: "white",
+                            }}
+                          >
+                            {status.toLowerCase()}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Grid>
+                    <Grid size={12}>
+                      <hr
+                        style={{ border: "1px solid #30363d", margin: "8px 0" }}
+                      />
+                    </Grid>
+
+                    {/* 3. Amount, Exchange, Chain */}
+                    <CardItem
+                      label="Amount"
+                      valueComponent={
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <img
+                            src={`https://assets.coincap.io/assets/icons/usdt@2x.png`}
+                            width={20}
+                            height={20}
+                            alt="Currency icon"
+                          />
+                          <Typography>
+                            {numeral(amount).format("0,0.0")}
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                    <CardItem
+                      label="Exchange"
+                      valueComponent={
+                        <Typography textTransform="capitalize">
+                          {exchange}
+                        </Typography>
+                      }
+                    />
+                    <CardItem
+                      label="Chain"
+                      valueComponent={
+                        <Typography textTransform="capitalize">
+                          {chain}
+                        </Typography>
+                      }
+                    />
+
+                    {/* 4. To Address */}
+                    <CardItem
+                      label="To Address"
+                      valueComponent={
+                        to?.length > 10 ? (
+                          <a
+                            href={genExplorerAddUrl(to, chain)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              color: "lightblue",
+                              textDecoration: "none",
+                            }}
+                          >
+                            {shortenAddress(to)}
+                          </a>
+                        ) : (
+                          <Typography textTransform="capitalize">
+                            {to}
+                          </Typography>
+                        )
+                      }
+                    />
+
+                    {/* 5. TxId */}
+                    <CardItem
+                      label="Transaction ID"
+                      valueComponent={
+                        <a
+                          href={genExplorerTxUrl(tx, chain)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: "lightblue", textDecoration: "none" }}
+                        >
+                          {shortenAddress(tx)}
+                        </a>
+                      }
+                    />
+                  </Grid>
+                </CardContent>
+              </Card>
+            )
+          )}
+
+          {/* Pagination component adapted for card list */}
+          <Box mt={2}>
+            <CustomTablePagination
+              rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
+              colSpan={5}
+              count={transactions.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </Box>
+        </Paper>
+      </Box>
+    </Box>
+  );
+
+  if (!isWeb) {
+    return MobileWallets;
+  }
 
   return (
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
@@ -697,6 +1169,21 @@ const Dashboard: FC = () => {
 };
 
 export default Dashboard;
+
+const CardItem = ({
+  label,
+  valueComponent,
+}: {
+  label: string;
+  valueComponent: React.ReactNode;
+}) => (
+  <Grid size={4} sx={{ mb: 1 }}>
+    <Typography variant="caption" color="text.secondary">
+      {label}
+    </Typography>
+    <Box sx={{ mt: 0.5 }}>{valueComponent}</Box>
+  </Grid>
+);
 
 function shortenAddress(
   address: string,
