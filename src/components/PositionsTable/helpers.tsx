@@ -294,7 +294,7 @@ export const createPositionsTable = ({
                 <Box>
                   <Box display="flex" justifyContent="space-between">
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
-                      {numeral(distToLiqSell).format("0")}
+                      {numeral(distToLiqSell).format("0")}%
                       {/* {readableNumber.toHumanString(distToLiqSell)}% */}
                     </Typography>
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
@@ -318,7 +318,7 @@ export const createPositionsTable = ({
                 <Box>
                   <Box display="flex" justifyContent="space-between">
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
-                      {numeral(distToLiqBuy).format("0")}
+                      {numeral(distToLiqBuy).format("0")}%
                       {/* {readableNumber.toHumanString(distToLiqBuy)}% */}
                     </Typography>
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>

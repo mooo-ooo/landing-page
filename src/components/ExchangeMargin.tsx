@@ -167,10 +167,6 @@ function ExchangeMargin() {
                   return (tot = tot + markPrice * size);
                 }, 0);
 
-                // const isShown =
-                //   positions[exchangeName as unknown as keyof typeof balances]
-                //     ?.length > 0;
-
                 const exchange: IFuture =
                   balances[exchangeName as unknown as keyof typeof balances]
                     .future;
@@ -180,10 +176,6 @@ function ExchangeMargin() {
                     .spot;
 
                 const lev = vol / exchange.marginBalance;
-
-                // if (!isShown) {
-                //   return null;
-                // }
 
                 const warningLev = Number(exchangeLeverages?.[exchangeName]) || WARNING_LEV
 
@@ -450,9 +442,6 @@ export const ExchangeMarginMobile = () => {
               <TableCell align="left">
                 Ex (x{numeral(leverage).format("0,0.00")})
               </TableCell>
-
-              {/* <TableCell align="left">Equity</TableCell>
-              <TableCell align="left">Available</TableCell> */}
               <TableCell align="left">Liquidation</TableCell>
               <TableCell>
                 <MoreVertIcon />
@@ -477,10 +466,6 @@ export const ExchangeMarginMobile = () => {
                   return (tot = tot + markPrice * size);
                 }, 0);
 
-                // const isShown =
-                //   positions[exchangeName as unknown as keyof typeof balances]
-                //     ?.length > 0;
-
                 const exchange: IFuture =
                   balances[exchangeName as unknown as keyof typeof balances]
                     .future;
@@ -490,10 +475,6 @@ export const ExchangeMarginMobile = () => {
                     .spot;
 
                 const lev = vol / exchange.marginBalance;
-
-                // if (!isShown) {
-                //   return null;
-                // }
 
                 const warningLev = Number(exchangeLeverages?.[exchangeName]) || WARNING_LEV
 
@@ -530,17 +511,11 @@ export const ExchangeMarginMobile = () => {
                           {numeral(vol / exchange.marginBalance).format("0.0")}]
                         </Box>
                       </TableCell>
-                      {/* <TableCell>
-                        ${numeral(exchange.marginBalance).format("0,0")}
-                      </TableCell>
-                      <TableCell>
-                        ${numeral(exchange.marginAvailable).format("0,0")}
-                      </TableCell> */}
                       <TableCell>
                         <Box
                           display="flex"
                           justifyContent="space-between"
-                          gap={2}
+                          gap={1}
                         >
                           <Box display="flex">
                             {nearestLiqEchange[exchangeName]?.sell ? (

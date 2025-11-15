@@ -339,7 +339,7 @@ function Layout() {
           aria-label="open drawer"
           onClick={toggleDrawer(true)}
         >
-          <MenuIcon />
+          <MenuIcon sx={{ fontSize: 26}}/>
         </IconButton>
         <Box sx={{ flexGrow: 1 }} display="flex" justifyContent="center">
           <img style={{ height: 16 }} src="/logo.png" alt="logo" />
