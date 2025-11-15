@@ -294,7 +294,8 @@ export const createPositionsTable = ({
                 <Box>
                   <Box display="flex" justifyContent="space-between">
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
-                      {readableNumber.toHumanString(distToLiqSell)}%
+                      {numeral(distToLiqSell).format("0")}
+                      {/* {readableNumber.toHumanString(distToLiqSell)}% */}
                     </Typography>
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
                       {readableNumber.toHumanString(sells[0]?.liqPrice)}
@@ -303,7 +304,7 @@ export const createPositionsTable = ({
                   </Box>
 
                   <BorderLinearProgress
-                    sx={{ width: isWeb ? 124 : 81 }}
+                    sx={{ width: isWeb ? 124 : 84 }}
                     variant="determinate"
                     value={distToLiqSell}
                   />
@@ -317,7 +318,8 @@ export const createPositionsTable = ({
                 <Box>
                   <Box display="flex" justifyContent="space-between">
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
-                      {readableNumber.toHumanString(distToLiqBuy)}%
+                      {numeral(distToLiqBuy).format("0")}
+                      {/* {readableNumber.toHumanString(distToLiqBuy)}% */}
                     </Typography>
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
                       {readableNumber.toHumanString(buys[0]?.liqPrice)}
@@ -325,7 +327,7 @@ export const createPositionsTable = ({
                     </Typography>
                   </Box>
                   <BorderLinearProgress
-                    sx={{ width: isWeb ? 124 : 81 }}
+                    sx={{ width: isWeb ? 124 : 84 }}
                     variant="determinate"
                     value={distToLiqBuy}
                   />
