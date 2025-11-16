@@ -10,8 +10,8 @@ function Volume24h({
   sellExchange,
   buyExchange,
 }: {
-  sellExchange: string;
-  buyExchange: string;
+  sellExchange?: string;
+  buyExchange?: string;
   baseToken: string;
 }) {
   const [vol24h, setVol24h] = useState<{ buyVol: number; sellVol: number }>({
@@ -22,8 +22,8 @@ function Volume24h({
   useEffect(() => {
     const fetchVol = async () => {
       const [buyVol, selVol] = await Promise.all([
-        get24hVolume(buyExchange as ExchangeName, baseToken),
-        get24hVolume(sellExchange as ExchangeName, baseToken),
+        buyExchange ? get24hVolume(buyExchange as ExchangeName, baseToken) : 0,
+        sellExchange ? get24hVolume(sellExchange as ExchangeName, baseToken) : 0,
       ]);
       setVol24h({
         buyVol: buyVol,
@@ -40,10 +40,10 @@ function Volume24h({
     <Box display="flex" gap="16px">
       <Typography>Volume 24h (USDT):</Typography>
       <Typography>
-        {buyExchange.toUpperCase()}: {readableNumber.toHumanString(vol24h.buyVol)}
+        {buyExchange?.toUpperCase()}: {readableNumber.toHumanString(vol24h.buyVol)}
       </Typography>
       <Typography>
-        {sellExchange.toUpperCase()}: {readableNumber.toHumanString(vol24h.sellVol)}
+        {sellExchange?.toUpperCase()}: {readableNumber.toHumanString(vol24h.sellVol)}
       </Typography>
     </Box>
   );
