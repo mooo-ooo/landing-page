@@ -15,12 +15,11 @@ import {
   InputAdornment,
   Stack,
   Chip,
-  IconButton,
   Collapse,
   Alert,
   AlertTitle,
 } from "@mui/material";
-import useMediaQuery from '@mui/material/useMediaQuery'
+import useMediaQuery from "@mui/material/useMediaQuery";
 import type { AccordionProps } from "@mui/material";
 import { styled } from "@mui/system";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -29,23 +28,16 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SearchIcon from "@mui/icons-material/Search";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import ViewQuiltIcon from "@mui/icons-material/ViewQuilt";
-import { useDispatch, useSelector } from "react-redux";
-import CandleChart from "./CandleChart";
+import { useSelector } from "react-redux";
 import { createPositionsTable } from "./helpers";
-import type { AppDispatch } from "../../redux/store";
 import type { IStrategy } from "../../redux/strategy/strategySlice";
 import { selectBalances } from "../../redux/balances/balancesSlice";
 import { useBalances } from "../../redux/selector";
-import {
-  setUpdateStrategy,
-  setNewStrategy,
-} from "../../redux/strategy/strategySlice";
 import type { ISymbol } from "../../types";
-import type { ExchangeName } from "../../types/exchange";
+import TableDetailsWeb from "./TableDetails/TableDetailsWeb";
+import TableDetailsMobile from "./TableDetails/TableDetailsMobile";
 import sort from "lodash/orderBy";
 import BalanceOrderConfirmationDialog from "./BalanceOrderConfirmationDialog";
-import Volume24h from './Volume24h'
 import { strip } from "../../helpers";
 // Store
 import type { IPosition } from "../../redux/positions/positionsSlice";
@@ -70,8 +62,7 @@ function Positions({
     baseToken: string;
   }[];
 }) {
-  const isWeb = useMediaQuery('(min-width:600px)')
-  const dispatch = useDispatch<AppDispatch>();
+  const isWeb = useMediaQuery("(min-width:600px)");
   const balances = useSelector(selectBalances);
   const equity = Object.values(balances).reduce(
     (tot, { total = 0 }) => tot + total,
@@ -140,7 +131,7 @@ function Positions({
       openTokenDetails,
       setOpenTokenDetails,
       setShownBalanceOrderConfirmationDialog,
-      isWeb
+      isWeb,
     });
     return sort(
       result,
@@ -340,7 +331,11 @@ function Positions({
                           }),
                         ["order"]
                       ).map(({ component, id }) => {
-                        return <TableCell isWeb key={id}>{component}</TableCell>;
+                        return (
+                          <TableCell isWeb key={id}>
+                            {component}
+                          </TableCell>
+                        );
                       })}
                     </TableRow>
                     <TableRow>
@@ -378,7 +373,7 @@ function Positions({
                           timeout="auto"
                           unmountOnExit
                         >
-                          <Box
+                          {/* <Box
                             display="flex"
                             sx={{ margin: 1 }}
                             alignItems="center"
@@ -422,7 +417,27 @@ function Positions({
                                 (buy) => buy.exchange as ExchangeName
                               )}
                             />
-                          </Box>
+                          </Box> */}
+                          {isWeb ? (
+                            <TableDetailsWeb
+                              buys={buys}
+                              sells={sells}
+                              baseToken={baseToken}
+                              foundStrategy={foundStrategy}
+                            />
+                          ) : (
+                            <TableDetailsMobile
+                              setShownBalanceOrderConfirmationDialog={
+                                setShownBalanceOrderConfirmationDialog
+                              }
+                              equity={equity}
+                              totalVol={totalVol}
+                              buys={buys}
+                              sells={sells}
+                              baseToken={baseToken}
+                              foundStrategy={foundStrategy}
+                            />
+                          )}
                         </Collapse>
                       </TableCell>
                     </TableRow>
@@ -439,9 +454,18 @@ function Positions({
 
 export default Positions;
 
-const mobileCells = ['baseToken', 'exchanges', 'liqPrice', 'estimatedFee', 'actions']
+const mobileCells = [
+  "baseToken",
+  "exchanges",
+  "liqPrice",
+  "estimatedFee",
+  "actions",
+];
 
-const getHeadCells = (numberOfToken: number, isWeb: boolean): readonly HeadCell[] => [
+const getHeadCells = (
+  numberOfToken: number,
+  isWeb: boolean
+): readonly HeadCell[] => [
   {
     id: "baseToken",
     label: isWeb ? `Token (${numberOfToken})` : `Token`,
@@ -472,7 +496,7 @@ const getHeadCells = (numberOfToken: number, isWeb: boolean): readonly HeadCell[
   },
   {
     id: "liqPrice",
-    label: isWeb ? "Dist. to liq" : 'Dist. liq',
+    label: isWeb ? "Dist. to liq" : "Dist. liq",
     sortable: true,
   },
 
@@ -535,14 +559,14 @@ interface Data extends IPosition {
 //   padding: "6px 16px",
 // }));
 
-const TableCell = styled(TableCellMui)((props: {isWeb?: boolean}) => ({
+const TableCell = styled(TableCellMui)((props: { isWeb?: boolean }) => ({
   // Define default padding
-  padding: '6px 16px', 
+  padding: "6px 16px",
 
   // Use a ternary operator or an if condition to apply modifications
   ...(props.isWeb && {
     // Styles to apply when isWeb is true
-    padding: '6px', 
+    padding: "6px",
   }),
 }));
 

@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import readableNumber from 'human-readable-numbers'
+import readableNumber from "human-readable-numbers";
 import { Box, Typography, Skeleton } from "@mui/material";
 import get24hVolume from "../../services/vol24h";
 import type { ExchangeName } from "../../types/exchange";
-
 
 function Volume24h({
   baseToken,
@@ -23,7 +22,9 @@ function Volume24h({
     const fetchVol = async () => {
       const [buyVol, selVol] = await Promise.all([
         buyExchange ? get24hVolume(buyExchange as ExchangeName, baseToken) : 0,
-        sellExchange ? get24hVolume(sellExchange as ExchangeName, baseToken) : 0,
+        sellExchange
+          ? get24hVolume(sellExchange as ExchangeName, baseToken)
+          : 0,
       ]);
       setVol24h({
         buyVol: buyVol,
@@ -34,17 +35,41 @@ function Volume24h({
   }, []);
 
   if (!vol24h.buyVol) {
-    return <Skeleton animation="wave" height={64} />
+    return <Skeleton animation="wave" height={64} />;
   }
   return (
     <Box display="flex" gap="16px">
       <Typography>Volume 24h (USDT):</Typography>
-      <Typography>
-        {buyExchange?.toUpperCase()}: {readableNumber.toHumanString(vol24h.buyVol)}
-      </Typography>
-      <Typography>
-        {sellExchange?.toUpperCase()}: {readableNumber.toHumanString(vol24h.sellVol)}
-      </Typography>
+      {buyExchange ? (
+        <Box display="flex">
+          <img
+            style={{
+              borderRadius: "50%",
+            }}
+            src={`/${buyExchange}.png`}
+            alt="USDT"
+            width={20}
+            height={20}
+          />
+          <Typography>{readableNumber.toHumanString(vol24h.buyVol)}</Typography>
+        </Box>
+      ) : null}
+      {sellExchange ? (
+        <Box display="flex">
+          <img
+            style={{
+              borderRadius: "50%",
+            }}
+            src={`/${sellExchange}.png`}
+            alt="USDT"
+            width={20}
+            height={20}
+          />
+          <Typography>
+            {readableNumber.toHumanString(vol24h.sellVol)}
+          </Typography>
+        </Box>
+      ) : null}
     </Box>
   );
 }
