@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import readableNumber from "human-readable-numbers";
+import useMediaQuery from '@mui/material/useMediaQuery'
 import { Box, Typography, Skeleton } from "@mui/material";
 import get24hVolume from "../../services/vol24h";
 import type { ExchangeName } from "../../types/exchange";
@@ -13,6 +14,7 @@ function Volume24h({
   buyExchange?: string;
   baseToken: string;
 }) {
+  const isWeb = useMediaQuery('(min-width:600px)')
   const [vol24h, setVol24h] = useState<{ buyVol: number; sellVol: number }>({
     buyVol: 0,
     sellVol: 0,
@@ -38,38 +40,42 @@ function Volume24h({
     return <Skeleton animation="wave" height={64} />;
   }
   return (
-    <Box display="flex" gap="16px">
-      <Typography>Volume 24h (USDT):</Typography>
-      {buyExchange ? (
-        <Box display="flex">
-          <img
-            style={{
-              borderRadius: "50%",
-            }}
-            src={`/${buyExchange}.png`}
-            alt="USDT"
-            width={20}
-            height={20}
-          />
-          <Typography>{readableNumber.toHumanString(vol24h.buyVol)}</Typography>
-        </Box>
-      ) : null}
-      {sellExchange ? (
-        <Box display="flex">
-          <img
-            style={{
-              borderRadius: "50%",
-            }}
-            src={`/${sellExchange}.png`}
-            alt="USDT"
-            width={20}
-            height={20}
-          />
-          <Typography>
-            {readableNumber.toHumanString(vol24h.sellVol)}
-          </Typography>
-        </Box>
-      ) : null}
+    <Box display="flex" width={isWeb ? 'unset' : "100%"} justifyContent="space-between">
+      <Typography mr={1}>Volume 24h (USDT):</Typography>
+      <Box display="flex" gap={1}>
+        {buyExchange ? (
+          <Box display="flex">
+            <img
+              style={{
+                borderRadius: "50%",
+              }}
+              src={`/${buyExchange}.png`}
+              alt="USDT"
+              width={20}
+              height={20}
+            />
+            <Typography>
+              {readableNumber.toHumanString(vol24h.buyVol)}
+            </Typography>
+          </Box>
+        ) : null}
+        {sellExchange ? (
+          <Box display="flex">
+            <img
+              style={{
+                borderRadius: "50%",
+              }}
+              src={`/${sellExchange}.png`}
+              alt="USDT"
+              width={20}
+              height={20}
+            />
+            <Typography>
+              {readableNumber.toHumanString(vol24h.sellVol)}
+            </Typography>
+          </Box>
+        ) : null}
+      </Box>
     </Box>
   );
 }

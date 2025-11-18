@@ -175,23 +175,33 @@ function CandleChart({
     <Box display="flex" flexDirection="column" gap="16px">
       {candleSticks.length && diffFundings.length ? (
         <Box>
-          <Box display="flex" alignItems="center" gap={1}>
+          {isWeb ? <Box display="flex" alignItems="center" gap={1}>
             <Typography mb={2}>
               Last 2 weeks APR:{" "}
               {numeral((last2WeeksFundingRates * (365 / (7 * 2))) / 2).format(
-                "0.000"
+                "0.0"
               )}
               %
             </Typography>
-          </Box>
-          <Box display="flex" justifyContent='space-between'>
-            <Typography mb={2}>
+          </Box> : <Box display="flex" justifyContent="space-between">
+            <Typography>
+              Last 2 weeks APR:
+            </Typography>
+            <Typography>
+              {numeral((last2WeeksFundingRates * (365 / (7 * 2))) / 2).format(
+                "0.0"
+              )}
+              %
+            </Typography>
+          </Box>}
+          {isWeb ? null : <Box display="flex" mt={2} justifyContent='space-between'>
+            <Typography fontSize="12px" color="textDisabled">
               Funding %
             </Typography>
-            <Typography mb={2}>
+            <Typography fontSize="12px" color="textDisabled">
               Price (USDT)
             </Typography>
-          </Box>
+          </Box>}
           <HighchartsReact highcharts={Highcharts} options={options} />
         </Box>
       ) : (

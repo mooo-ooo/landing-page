@@ -1,8 +1,9 @@
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 import api from "../lib/axios";
-import { Typography, Box, Skeleton } from "@mui/material";
+import { Typography, Box, Skeleton, IconButton } from "@mui/material";
 import numeral from "numeral";
+import ReplayIcon from "@mui/icons-material/Replay";
 import { useSelector } from "react-redux";
 import { selectBalances } from "../redux/balances/balancesSlice";
 import { LinePlot, MarkPlot } from "@mui/x-charts/LineChart";
@@ -35,7 +36,8 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
   const [rewardHistory, setRewardHistory] = useState<
     { date: string; value: number }[]
   >([]);
-  useEffect(() => {
+
+  const calculateFundingFees = async () => {
     api
       .get(`/api/v1/account/funding-fees/last-7-days?tz=${tz}&fromDate=${Date.now()}`)
       .then((result: { data: { fundingByDay: Record<string, number> } }) => {
@@ -82,6 +84,9 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
         console.error(err);
         setRewardHistory([]);
       });
+  }
+  useEffect(() => {
+    calculateFundingFees()
   }, []);
 
   const apr = (estimatedFundingFee / totalMargin) * 3 * 365;
@@ -91,13 +96,16 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
       {loadingFundingRates ? (
         <Skeleton animation="wave" />
       ) : (
-        <Box display="flex" justifyContent="space-between">
+        <Box display="flex" alignItems="center" justifyContent="space-between">
           <Box display="flex" alignItems="center">
             <Typography mr={1}>Est.funding:</Typography>
             <img height={16} src="/usdt.png" />
             <Typography ml={0.5}>
               {numeral(estimatedFundingFee).format("0,0")}
             </Typography>
+            <IconButton size="medium" onClick={calculateFundingFees}>
+              <ReplayIcon />
+            </IconButton>
           </Box>
           <Typography>APY: {numeral(apy * 100).format("0,0")}%</Typography>
         </Box>
