@@ -175,16 +175,18 @@ function CandleChart({
     <Box display="flex" flexDirection="column" gap="16px">
       {candleSticks.length && diffFundings.length ? (
         <Box>
-          {isWeb ? <Box display="flex" alignItems="center" gap={1}>
-            <Typography mb={2}>
+          {isWeb ? <Box display="flex" mb={2} alignItems="center" gap={1}>
+            <Typography color="textSecondary">
               Last 2 weeks APR:{" "}
+            </Typography>
+            <Typography>
               {numeral((last2WeeksFundingRates * (365 / (7 * 2))) / 2).format(
                 "0.0"
               )}
               %
             </Typography>
           </Box> : <Box display="flex" justifyContent="space-between">
-            <Typography>
+            <Typography color="textSecondary">
               Last 2 weeks APR:
             </Typography>
             <Typography>

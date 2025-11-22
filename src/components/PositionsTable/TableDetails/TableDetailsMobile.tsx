@@ -157,7 +157,7 @@ function TableDetailsMobile({
         </Typography>
       </Box>
       <Box my={1} display="flex" justifyContent="space-between">
-        <Typography>Total volume:</Typography>
+        <Typography color="textSecondary">Total volume:</Typography>
         <Box>
           <Typography>
             {readableNumber.toHumanString(volOfStrategy)}$
@@ -186,7 +186,7 @@ function TableDetailsMobile({
         </Box>
       </Box>
       <Box my={1} display="flex" justifyContent="space-between" alignItems="center">
-        <Typography>Unrealized Pnl:</Typography>
+        <Typography color="textSecondary">Unrealized Pnl:</Typography>
         <Box>
           {biggestPnL?.maxPnL > 0 ? (
             <Box
@@ -213,7 +213,7 @@ function TableDetailsMobile({
         </Box>
       </Box>
       <Box my={1} display="flex" justifyContent="space-between">
-        <Typography>APR:</Typography>
+        <Typography color="textSecondary">APR:</Typography>
         {apr === null ? (
           <Skeleton animation="wave" />
         ) : (

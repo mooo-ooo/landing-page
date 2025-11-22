@@ -41,7 +41,7 @@ function Volume24h({
   }
   return (
     <Box display="flex" width={isWeb ? 'unset' : "100%"} justifyContent="space-between">
-      <Typography mr={1}>Volume 24h (USDT):</Typography>
+      <Typography color="textSecondary" mr={1}>Volume 24h (USDT):</Typography>
       <Box display="flex" gap={1}>
         {buyExchange ? (
           <Box display="flex">
