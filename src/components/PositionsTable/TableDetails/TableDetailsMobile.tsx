@@ -147,7 +147,7 @@ function TableDetailsMobile({
         </Button>
       </Box>
       <Box my={1} display="flex" justifyContent="space-between">
-        <Typography>Mark price:</Typography>
+        <Typography color="textSecondary">Mark price:</Typography>
         <Typography>
           {sells?.length ? (
             readableNumber.toHumanString(sells[0]?.markPrice) + ' USDT'
