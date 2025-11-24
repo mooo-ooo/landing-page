@@ -2,6 +2,7 @@ import { useMemo, useRef, useEffect, useState, type FC } from "react";
 import { Grid, Box } from "@mui/material";
 import useMediaQuery from '@mui/material/useMediaQuery'
 import PositionsTable from "../components/PositionsTable";
+import StrategiesStatus from "../components/StrategiesStatus"
 import ExchangeMargin, { ExchangeMarginMobile } from "../components/ExchangeMargin";
 import FundingFeesChart from "../components/FundingFeesChart";
 import EquitiesChart from "../components/VolumeChart";
@@ -177,6 +178,7 @@ const Dashboard: FC = () => {
           </div>
         </Grid>
       </Grid>
+      <StrategiesStatus />
       <PositionsTable
         strategies={strategies}
         symbols={symbols}
