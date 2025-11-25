@@ -132,6 +132,7 @@ const Dashboard: FC = () => {
         estimatedFundingFee={estimatedFundingFee}
       />
       {isWeb ? <ExchangeMargin /> : <ExchangeMarginMobile />}
+      {strategies.length ? <StrategiesStatus /> : null}
       <PositionsTable
         strategies={strategies}
         symbols={symbols}
@@ -178,7 +179,8 @@ const Dashboard: FC = () => {
           </div>
         </Grid>
       </Grid>
-      <StrategiesStatus />
+      {strategies.length ? <StrategiesStatus /> : null}
+      
       <PositionsTable
         strategies={strategies}
         symbols={symbols}
