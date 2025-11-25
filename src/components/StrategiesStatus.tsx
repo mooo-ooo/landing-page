@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Box, Typography } from "@mui/material";
 import CoinIconLoader from "./CoinIconLoader";
+import useMediaQuery from '@mui/material/useMediaQuery'
 import Marquee from "react-fast-marquee";
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 import { useSelector } from "react-redux";
 import readableNumber from "human-readable-numbers";
 import {
@@ -12,6 +14,7 @@ import api from "../lib/axios";
 
 // This component attempts to display the icon and calls onFallbackNeeded if it fails.
 const StrategiesStatus = () => {
+  const isWeb = useMediaQuery('(min-width:600px)')
   const initialized = useRef(false);
   const strategiesStore = useSelector(selectStrategies);
   const [strategies, setStrategies] = useState<IStrategy[]>();
@@ -52,7 +55,7 @@ const StrategiesStatus = () => {
   return (
     <Box bgcolor="#1e2026" width="100%" py={1} display="flex">
       <Typography sx={{ whiteSpace: "nowrap" }} mx={1}>
-        Bot running:{" "}
+        {isWeb ? "Bot running:" : <SmartToyIcon />}
       </Typography>
       <Marquee>
         {strategies.map(({isIncrease, strategyName, maxVolOfPosition, minVolOfPosition, bestInSpread, bestOutSpread}) => (
