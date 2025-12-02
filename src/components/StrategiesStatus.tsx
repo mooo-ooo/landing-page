@@ -20,11 +20,12 @@ const StrategiesStatus = () => {
   const [strategies, setStrategies] = useState<IStrategy[]>();
   const fetchStrategies = () => {
     api
-      .get("/api/v1/strategies/status")
-      .then(function ({ data }: { data: string[] }) {
+      .get("/api/v1/bot-master")
+      .then(function ({ data }: { data: {name: string}[] }) {
         return setStrategies(
           data
-            ?.map((baseToken) => {
+            ?.map(({name}) => {
+              const baseToken = name.split("-")[1]
               // 1. The result of .map() is (IStrategy | undefined)[]
               return strategiesStore.find(
                 (strategy) => strategy.strategyName === baseToken

@@ -317,7 +317,7 @@ function Positions({
                     : "buy";
                 return (
                   <Fragment key={baseToken}>
-                    <TableRow>
+                    <TableRow hover>
                       {sort(
                         cells
                           .filter(({ id }) =>
@@ -338,7 +338,7 @@ function Positions({
                         );
                       })}
                     </TableRow>
-                    <TableRow>
+                    <TableRow hover>
                       <TableCell
                         isWeb
                         style={{
