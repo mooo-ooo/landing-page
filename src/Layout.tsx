@@ -40,7 +40,9 @@ import api from "./lib/axios";
 import numeral from "numeral";
 import NewStrategyDialog from "./components/StrategyDialog/NewStrategy";
 import UpdateStrategy from "./components/StrategyDialog/UpdateStrategy";
-
+import {
+  fetchStrategies,
+} from "./redux/strategy/strategySlice";
 import { setUser, setError, selectUser } from "./redux/user/userSlice";
 import {
   setSummaryBalance,
@@ -153,6 +155,19 @@ function Layout() {
     if (!initialized.current) {
       initialized.current = true;
       fetchBalance();
+    }
+
+    return () => clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      dispatch(fetchStrategies())
+    }, 1000 * 60);
+    if (!initialized.current) {
+      initialized.current = true;
+      dispatch(fetchStrategies())
     }
 
     return () => clearInterval(intervalId);

@@ -73,6 +73,10 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
   };
 
   useEffect(() => {
+    dispatch(fetchStrategies())
+  }, [])
+
+  useEffect(() => {
     if (baseToken && strategies.length) {
       const found = strategies.find(({ sellSymbol, buySymbol }: IStrategy) => {
         return (
@@ -493,7 +497,7 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
                   variant="outlined"
                 />
                 <Typography color="textSecondary" fontSize={12}>
-                  Volumn = tokenAmount * markPrice (buy + sell)
+                  Volumn per side
                 </Typography>
               </Box>
             )}

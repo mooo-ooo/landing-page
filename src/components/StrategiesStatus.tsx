@@ -40,7 +40,7 @@ const StrategiesStatus = () => {
   useEffect(() => {
     const intervalId = setInterval(() => {
       fetchStrategies();
-    }, 1000 * 10);
+    }, 1000 * 30);
     if (!initialized.current) {
       initialized.current = true;
       fetchStrategies();
