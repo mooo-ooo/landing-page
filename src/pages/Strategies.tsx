@@ -79,7 +79,7 @@ const Strategies: FC = () => {
             <TableHead sx={{ bgcolor: "#3f51b5" }}>
               <TableRow>
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Strategy Name
+                  Name
                 </TableCell>
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   PM2 ID
@@ -114,7 +114,7 @@ const Strategies: FC = () => {
                       scope="row"
                       sx={{ fontWeight: "medium" }}
                     >
-                      {name}
+                      {name.split('-')[1]}
                     </TableCell>
                     <TableCell>{id}</TableCell>
                     <TableCell>
@@ -253,24 +253,16 @@ const StrategyRow = ({
   const baseToken = sellSymbol.split("/")[0];
   const dispatch = useDispatch<AppDispatch>();
 
-  const handleOk = (strategyName: string) => {
-    api.post("/api/v1/bot-master", {strategyName}).then(async () => {
-      dispatch(fetchStrategies());
-      setOpen(false);
-    });
-  };
+  // const handleOk = (strategyName: string) => {
+  //   api.post("/api/v1/bot-master", {strategyName}).then(async () => {
+  //     dispatch(fetchStrategies());
+  //     setOpen(false);
+  //   });
+  // };
   return (
     <TableRow key={_id}>
       <TableCell>
-        <div
-          style={{
-            cursor: "move",
-            textAlign: "center",
-            lineHeight: "36px",
-          }}
-        >
-          {strategyName}
-        </div>
+        {strategyName}
       </TableCell>
       <TableCell>
         <Typography
@@ -446,7 +438,7 @@ const StrategyRow = ({
           <Button autoFocus onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleOk}>Ok</Button>
+          {/* <Button onClick={handleOk}>Ok</Button> */}
         </DialogActions>
       </Dialog>
     </TableRow>
@@ -475,8 +467,8 @@ const StatusBadge = ({ status }: { status: string }) => {
       sx={{
         display: "inline-flex",
         alignItems: "center",
-        px: 1.5,
-        py: 0.5,
+        px: 0.7,
+        py: 0.2,
         borderRadius: 2,
         fontSize: "0.75rem",
         fontWeight: 500,
