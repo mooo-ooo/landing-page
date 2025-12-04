@@ -14,6 +14,7 @@ export interface IGroup {
   tokenLiquidityDistance?: Record<string, Record<string, string>>
   tokenLeverageWarning: string
   volumeThreshold?: number
+  botMasterBaseUrl?: string
 }
 export interface GroupState {
   data: IGroup;

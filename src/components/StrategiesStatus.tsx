@@ -12,15 +12,17 @@ import {
   type IStrategy,
   selectStrategies,
 } from "../redux/strategy/strategySlice";
+import { selectGroup } from "../redux/group/groupSlice";
 import api from "../lib/axios";
 
 // This component attempts to display the icon and calls onFallbackNeeded if it fails.
 const StrategiesStatus = () => {
+  const groupStore = useSelector(selectGroup);
   const isWeb = useMediaQuery("(min-width:600px)");
   const initialized = useRef(false);
   const strategiesStore = useSelector(selectStrategies);
   const [strategies, setStrategies] = useState<IStrategy[]>();
-  const fetchStrategies = () => {
+  const fetchBotMaster = () => {
     api
       .get("/api/v1/bot-master")
       .then(function ({ data }: { data: { name: string }[] }) {
@@ -40,16 +42,18 @@ const StrategiesStatus = () => {
   };
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      fetchStrategies();
-    }, 1000 * 30);
-    if (!initialized.current) {
-      initialized.current = true;
-      fetchStrategies();
+    if (groupStore.botMasterBaseUrl) {
+      const intervalId = setInterval(() => {
+        fetchBotMaster();
+      }, 1000 * 30);
+      if (!initialized.current) {
+        initialized.current = true;
+        fetchBotMaster();
+      }
+      return () => clearInterval(intervalId);
     }
-    return () => clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [groupStore.botMasterBaseUrl]);
 
   if (!strategies?.length) {
     return null;

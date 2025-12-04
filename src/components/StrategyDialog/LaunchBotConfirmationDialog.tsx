@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import type { IStrategy } from "../../redux/strategy/strategySlice";
 import { useTheme } from "@mui/material/styles";
+import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
 import useMediaQuery from "@mui/material/useMediaQuery";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import CloseIcon from "@mui/icons-material/Close";
@@ -141,9 +142,16 @@ function LaunchBotConfirmationDialog(props: NewStrategyProps) {
               }}
             >
               <Typography>Open</Typography>
-              <Typography>
-                [{strategy.bestInSpread} | {strategy.secondInSpread}]
+              <Box display="flex" gap={1}>
+                <Typography>
+                {strategy.bestInSpread}% 
               </Typography>
+              <ArrowRightAltIcon />
+              <Typography>
+                {strategy.secondInSpread}%
+              </Typography>
+              </Box>
+              
             </Box>
           ) : null}
           <Box height={16} />
@@ -156,9 +164,9 @@ function LaunchBotConfirmationDialog(props: NewStrategyProps) {
               justifyContent: "space-between",
             }}
           >
-            <Typography>Min vol of strategy (USDT)</Typography>
+            <Typography>Min vol of strategy (USDT) (2 sides)</Typography>
             <Typography>
-              {numeral(strategy.minVolOfPosition).format("0,0.[000]")}
+              {numeral((strategy?.minVolOfPosition || 0) * 2).format("0,0.[000]")}
             </Typography>
           </Box> : <Box
             display="flex"
@@ -169,9 +177,9 @@ function LaunchBotConfirmationDialog(props: NewStrategyProps) {
               justifyContent: "space-between",
             }}
           >
-            <Typography>Max vol of strategy (USDT)</Typography>
+            <Typography>Max vol of strategy (USDT) (2 sides)</Typography>
             <Typography>
-              {numeral(strategy.maxVolOfPosition).format("0,0.[000]")}
+              {numeral((strategy?.maxVolOfPosition || 0) * 2).format("0,0.[000]")}
             </Typography>
           </Box>}
           <Box height={16} />

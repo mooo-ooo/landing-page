@@ -36,6 +36,7 @@ import {
   fetchStrategies,
   selectStrategies,
 } from "../redux/strategy/strategySlice";
+import { selectGroup } from "../redux/group/groupSlice";
 import { useSnackbar } from "notistack";
 
 import {
@@ -47,6 +48,7 @@ import {
 import api from "../lib/axios";
 
 const Strategies: FC = () => {
+  const groupStore = useSelector(selectGroup);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchToken, setSearchToken] = useState("");
   const [page, setPage] = useState(0);
@@ -78,17 +80,21 @@ const Strategies: FC = () => {
   };
 
   const fetchBots = () => {
-    api.get("/api/v1/bot-master").then(async ({ data }) => {
+    if (groupStore.botMasterBaseUrl) {
+      api.get("/api/v1/bot-master").then(async ({ data }) => {
       setBots(data);
     });
+    }
   };
   useEffect(() => {
     fetchBots();
   }, [strategies]);
+
   useEffect(() => {
-    dispatch(fetchStrategies());
-    fetchBots();
-  }, []);
+    if (groupStore._id) {
+      dispatch(fetchStrategies());
+    }
+  }, [groupStore]);
   const handleRemoveStrategy = (id: string) => {
     api.delete(`/api/v1/strategies?_id=${id}`).then(() => {
       dispatch(fetchStrategies());
@@ -113,15 +119,19 @@ const Strategies: FC = () => {
       : strategies;
   return (
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
+      <Box mt={1}>
+        <Typography variant="h4" component="h1" gutterBottom>Strategy management Hub</Typography>
+        <Typography variant="body1" color="textSecondary">Monitor, launch, and configure your currently deployed market-making and arbitrage algorithms across integrated exchanges.</Typography>
+      </Box>
       {bots?.length ? (
         <Box mb={4}>
-          <Typography mb={2}>Your Bots</Typography>
+          <Typography my={2} color="textSecondary">Your running Bots</Typography>
           <TableContainer component={Paper} elevation={4}>
             <Table
-              sx={{ minWidth: 650 }}
+              sx={{ minWidth: 650, background: "rgba(0,0,0,0.12)" }}
               aria-label="PM2 Strategy Monitoring Dashboard Mockup"
             >
-              <TableHead sx={{ bgcolor: "#2196F3", height: "36px" }} >
+              <TableHead sx={{ height: "36px" }} >
                 <TableRow>
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                     Name
@@ -192,10 +202,7 @@ const Strategies: FC = () => {
           </TableContainer>
         </Box>
       ) : null}
-      <Box mt={1}>
-        <Typography variant="h4" component="h1" gutterBottom>Strategy management Hub</Typography>
-        <Typography variant="body1" color="textSecondary">Monitor, launch, and configure your currently deployed market-making and arbitrage algorithms across integrated exchanges.</Typography>
-      </Box>
+      
       <Box
         display="flex"
         justifyContent="space-between"
