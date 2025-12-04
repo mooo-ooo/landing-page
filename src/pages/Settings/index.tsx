@@ -82,20 +82,6 @@ function Settings() {
                 <ListItemText primary="Bot settings" />
               </ListItemButton>
             </ListItem>
-            {/* <Divider />
-            <ListItem disablePadding>
-              <ListItemButton
-                onClick={() => setSearchParams({ q: TOKEN_LEVS })}
-                sx={{
-                  borderLeft: page === TOKEN_LEVS ? `2px solid ${yellow}` : "",
-                }}
-              >
-                <ListItemIcon>
-                  <SwapVertIcon />
-                </ListItemIcon>
-                <ListItemText primary="Distance liquidity (Position)" />
-              </ListItemButton>
-            </ListItem> */}
           </List>
         </Grid>
         <Grid size={9}>
@@ -107,11 +93,6 @@ function Settings() {
             }}
           >
             {page === API_KEYS_ROUTE ? <ApiKeys /> : null}
-            {/* {page === EX_LEVS ? (
-              groupStore._id ? (
-                <ExchangeLeverages />
-              ) : null
-            ) : null} */}
             {page === TELE_ROUTE ? groupStore._id ? <Telegram /> : null : null}
             {page === BOT_SETTINGS ? (
               groupStore._id ? (

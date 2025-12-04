@@ -344,7 +344,6 @@ function Positions({
                         style={{
                           paddingBottom: 0,
                           paddingTop: 0,
-                          // border: openTokenDetails === baseToken ? 'unset' :"none",
                           borderBottom:
                             openTokenDetails === baseToken
                               ? "1px solid rgba(81, 81, 81, 1)"
@@ -373,51 +372,6 @@ function Positions({
                           timeout="auto"
                           unmountOnExit
                         >
-                          {/* <Box
-                            display="flex"
-                            sx={{ margin: 1 }}
-                            alignItems="center"
-                          >
-                            <IconButton
-                              onClick={() =>
-                                foundStrategy
-                                  ? dispatch(
-                                      setUpdateStrategy({
-                                        open: true,
-                                        baseToken,
-                                      })
-                                    )
-                                  : dispatch(
-                                      setNewStrategy({ open: true, baseToken })
-                                    )
-                              }
-                            >
-                              <ViewQuiltIcon />
-                            </IconButton>
-                            <Typography>Strategy</Typography>
-                          </Box>
-                          <Box
-                            display="flex"
-                            sx={{ margin: 1 }}
-                            alignItems="center"
-                          >
-                            <Volume24h
-                              buyExchange={buys[0]?.exchange}
-                              sellExchange={sells[0]?.exchange}
-                              baseToken={baseToken}
-                            />
-                          </Box>
-                          <Box sx={{ margin: isWeb ? 1 : 0 }}>
-                            <CandleChart
-                              baseToken={baseToken}
-                              sellExchanges={sells.map(
-                                (sell) => sell.exchange as ExchangeName
-                              )}
-                              buyExchanges={buys.map(
-                                (buy) => buy.exchange as ExchangeName
-                              )}
-                            />
-                          </Box> */}
                           {isWeb ? (
                             <TableDetailsWeb
                               buys={buys}

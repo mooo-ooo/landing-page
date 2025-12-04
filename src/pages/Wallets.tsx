@@ -633,7 +633,7 @@ const Dashboard: FC = () => {
                     <CardItem
                       label="Amount"
                       valueComponent={
-                        <Box display="flex" alignItems="center" gap={1}>
+                        <Box display="flex" alignItems="center" gap={0.5}>
                           <img
                             src={`https://assets.coincap.io/assets/icons/usdt@2x.png`}
                             width={20}
@@ -641,7 +641,7 @@ const Dashboard: FC = () => {
                             alt="Currency icon"
                           />
                           <Typography>
-                            {numeral(amount).format("0,0.0")}
+                            {numeral(amount).format("0,0")}
                           </Typography>
                         </Box>
                       }
