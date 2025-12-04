@@ -40,6 +40,7 @@ import api from "./lib/axios";
 import numeral from "numeral";
 import NewStrategyDialog from "./components/StrategyDialog/NewStrategy";
 import UpdateStrategy from "./components/StrategyDialog/UpdateStrategy";
+import LaunchBotConfirmationDialog from "./components/StrategyDialog/LaunchBotConfirmationDialog"
 import {
   fetchStrategies,
 } from "./redux/strategy/strategySlice";
@@ -54,6 +55,8 @@ import {
   setNewStrategy,
   setUpdateStrategy,
   selectUpdateStrategy,
+  setLaunchStrategy,
+  selectLaunchStrategy
 } from "./redux/strategy/strategySlice";
 import { fetchGroup } from "./redux/group/groupSlice";
 import {
@@ -72,6 +75,7 @@ function Layout() {
   const dispatch = useDispatch<AppDispatch>();
   const newStrategyProps = useSelector(selectNewStrategy);
   const updateStrategyProps = useSelector(selectUpdateStrategy);
+  const launchStrategy = useSelector(selectLaunchStrategy)
   const user = useSelector((state: RootState) => state.user.data);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openDrawer, setOpenDrawer] = useState(false)
@@ -535,6 +539,12 @@ function Layout() {
         <UpdateStrategy
           {...updateStrategyProps}
           onClose={() => dispatch(setUpdateStrategy({ open: false }))}
+        />
+      ) : null}
+      {launchStrategy?.open ? (
+        <LaunchBotConfirmationDialog
+          {...launchStrategy}
+          onClose={() => dispatch(setLaunchStrategy({ open: false }))}
         />
       ) : null}
       <Snackbar

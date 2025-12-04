@@ -9,13 +9,18 @@ import {
   TableRow,
   IconButton,
   TableCell as TableCellMui,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   Button,
-  DialogActions,
-  TableContainer
+  TableContainer,
+  TableFooter,
+  Tooltip,
+  TextField,
 } from "@mui/material";
+import {
+  TablePagination,
+  tablePaginationClasses as classes,
+} from "@mui/base/TablePagination";
+import SearchIcon from "@mui/icons-material/Search";
+import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import PausePresentationIcon from "@mui/icons-material/PausePresentation";
@@ -36,18 +41,41 @@ import { useSnackbar } from "notistack";
 import {
   setUpdateStrategy,
   setNewStrategy,
+  setLaunchStrategy,
   type IStrategy,
 } from "../redux/strategy/strategySlice";
 import api from "../lib/axios";
 
 const Strategies: FC = () => {
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchToken, setSearchToken] = useState("");
+  const [page, setPage] = useState(0);
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch<AppDispatch>();
   const strategies = useSelector(selectStrategies);
 
   const [bots, setBots] = useState<
-    { status: string, name: string; id: string; monit: { cpu: number; memory: number } }[]
+    {
+      status: string;
+      name: string;
+      id: string;
+      monit: { cpu: number; memory: number };
+    }[]
   >([]);
+
+  const handleChangePage = (
+    _event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   const fetchBots = () => {
     api.get("/api/v1/bot-master").then(async ({ data }) => {
@@ -67,100 +95,139 @@ const Strategies: FC = () => {
       enqueueSnackbar(`Removed successfully`, { variant: "success" });
     });
   };
+
+  const handleRemoveBot = (strategyName: string) => {
+    api.delete(`/api/v1/bot-master/${strategyName}`).then(() => {
+      fetchBots()
+      enqueueSnackbar(`Removed ${strategyName} successfully`, { variant: "success" });
+    });
+  };
+
+  const displayedStrategies =
+    rowsPerPage > 0
+      ? strategies
+          .filter((strategy) =>
+            strategy.strategyName.includes(searchToken.toUpperCase())
+          )
+          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+      : strategies;
   return (
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
-      <Box mb={4}>
-        <Typography mb={2}>Your Bots</Typography>
-        <TableContainer component={Paper} elevation={4}>
-          <Table
-            sx={{ minWidth: 650 }}
-            aria-label="PM2 Strategy Monitoring Dashboard Mockup"
-          >
-            <TableHead sx={{ bgcolor: "#3f51b5" }}>
-              <TableRow>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Name
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  PM2 ID
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Status
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  CPU
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Memory
-                </TableCell>
-                <TableCell
-                  align="right"
-                  sx={{ color: "white", fontWeight: "bold" }}
-                >
-                  Actions
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {bots.map(({id, monit: {cpu, memory}, name, status }) => {
-                return (
-                  <TableRow
-                    key={id}
-                    hover
-                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+      {bots?.length ? (
+        <Box mb={4}>
+          <Typography mb={2}>Your Bots</Typography>
+          <TableContainer component={Paper} elevation={4}>
+            <Table
+              sx={{ minWidth: 650 }}
+              aria-label="PM2 Strategy Monitoring Dashboard Mockup"
+            >
+              <TableHead sx={{ bgcolor: "#2196F3", height: "36px" }} >
+                <TableRow>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Name
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    PM2 ID
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Status
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    CPU
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Memory
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{ color: "white", fontWeight: "bold" }}
                   >
-                    <TableCell
-                      component="th"
-                      scope="row"
-                      sx={{ fontWeight: "medium" }}
+                    Actions
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {bots.map(({ id, monit: { cpu, memory }, name, status }) => {
+                  const stratName = name.split("-")[1]
+                  return (
+                    <TableRow
+                      key={id}
+                      hover
+                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
-                      {name.split('-')[1]}
-                    </TableCell>
-                    <TableCell>{id}</TableCell>
-                    <TableCell>
-                      <StatusBadge status={status} />
-                    </TableCell>
-                    <TableCell sx={{ fontFamily: "monospace" }}>
-                      {cpu.toFixed(1)}%
-                    </TableCell>
-                    <TableCell sx={{ fontFamily: "monospace" }}>
-                      {Math.round(memory / (1024 * 1024))} MB
-                    </TableCell>
-                    <TableCell align="right">
-                      <IconButton
-                        onClick={() => handleRemoveStrategy(id)}
-                        size="small"
-                        sx={{
-                          color: "text.secondary",
-                          "&:hover": { color: "primary.main" },
-                        }}
+                      <TableCell
+                        component="th"
+                        scope="row"
+                        sx={{ fontWeight: "medium" }}
                       >
-                        <DeleteForeverIcon color="error" />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                        {stratName}
+                      </TableCell>
+                      <TableCell>{id}</TableCell>
+                      <TableCell>
+                        <StatusBadge status={status} />
+                      </TableCell>
+                      <TableCell sx={{ fontFamily: "monospace" }}>
+                        {cpu.toFixed(1)}%
+                      </TableCell>
+                      <TableCell sx={{ fontFamily: "monospace" }}>
+                        {Math.round(memory / (1024 * 1024))} MB
+                      </TableCell>
+                      <TableCell align="right">
+                        <IconButton
+                          onClick={() => handleRemoveBot(stratName.toUpperCase())}
+                          size="small"
+                          sx={{
+                            color: "text.secondary",
+                            "&:hover": { color: "primary.main" },
+                          }}
+                        >
+                          <DeleteForeverIcon color="error" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      ) : null}
+      <Box mt={1}>
+        <Typography variant="h4" component="h1" gutterBottom>Strategy management Hub</Typography>
+        <Typography variant="body1" color="textSecondary">Monitor, launch, and configure your currently deployed market-making and arbitrage algorithms across integrated exchanges.</Typography>
       </Box>
-      <Box display="flex" alignItems="center">
-        <Typography>Your Strategies</Typography>
-        <IconButton
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mt={2}
+      >
+        {/* 1. Search Token Input */}
+        <TextField
+          variant="outlined"
+          placeholder="Search tokens (e.g., DOGE)"
+          size="small"
+          value={searchToken}
+          onChange={(e) => setSearchToken(e.target.value)}
+          InputProps={{
+            // Light blue icon
+            startAdornment: <SearchIcon sx={{ color: "#90CAF9", mr: 1 }} />,
+          }}
+          sx={{ width: "300px" }} // Give it a fixed width
+        />
+
+        {/* 2. Add New Strategy Button (Primary CTA) */}
+        <Button
+          variant="contained"
+          color="primary" // Use MUI primary color (blue) or custom green for high visibility
+          startIcon={<AddIcon />}
           onClick={() =>
             dispatch(setNewStrategy({ open: true, baseToken: "" }))
           }
-          size="small"
-          sx={{
-            color: "text.secondary",
-            "&:hover": { color: "primary.main" },
-          }}
         >
-          <AddIcon />
-        </IconButton>
+          Add New Strategy
+        </Button>
       </Box>
-
       <Paper
         sx={{
           width: "100%",
@@ -183,12 +250,6 @@ const Strategies: FC = () => {
                 <Typography color="textSecondary">Symbol</Typography>
               </TableCell>
               <TableCell align="left">
-                <Typography color="textSecondary">Open Spread Rate</Typography>
-              </TableCell>
-              <TableCell align="left">
-                <Typography color="textSecondary">Close Spread Rate</Typography>
-              </TableCell>
-              <TableCell align="left">
                 <Typography color="textSecondary">Max vol (order)</Typography>
               </TableCell>
 
@@ -206,7 +267,7 @@ const Strategies: FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {strategies.map((strategy) => (
+            {displayedStrategies.map((strategy) => (
               <StrategyRow
                 strategy={strategy}
                 key={strategy._id}
@@ -214,6 +275,28 @@ const Strategies: FC = () => {
               />
             ))}
           </TableBody>
+          <TableFooter>
+            <tr>
+              <CustomTablePagination
+                rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
+                colSpan={5}
+                count={strategies.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                slotProps={{
+                  select: {
+                    "aria-label": "rows per page",
+                  },
+                  actions: {
+                    showFirstButton: true,
+                    showLastButton: true,
+                  },
+                }}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
+            </tr>
+          </TableFooter>
         </Table>
       </Paper>
     </Box>
@@ -229,7 +312,6 @@ const StrategyRow = ({
   strategy: IStrategy;
   handleRemoveStrategy: (id: string) => void;
 }) => {
-  const [open, setOpen] = useState(false);
   const {
     strategyName,
     sellExchange,
@@ -237,15 +319,10 @@ const StrategyRow = ({
     sellSymbol,
     buySymbol,
     _id,
-    bestInSpread,
-    secondInSpread,
-    bestOutSpread,
-    secondOutSpread,
     maxOrderVol,
     maxVolOfPosition,
     isIncrease,
     isReduce,
-    requiredOrderVol,
   } = strategy;
 
   const isStopped = !isIncrease && !isReduce;
@@ -253,17 +330,9 @@ const StrategyRow = ({
   const baseToken = sellSymbol.split("/")[0];
   const dispatch = useDispatch<AppDispatch>();
 
-  // const handleOk = (strategyName: string) => {
-  //   api.post("/api/v1/bot-master", {strategyName}).then(async () => {
-  //     dispatch(fetchStrategies());
-  //     setOpen(false);
-  //   });
-  // };
   return (
     <TableRow key={_id}>
-      <TableCell>
-        {strategyName}
-      </TableCell>
+      <TableCell>{strategyName}</TableCell>
       <TableCell>
         <Typography
           sx={{
@@ -283,12 +352,6 @@ const StrategyRow = ({
       <TableCell>
         {buySymbol === sellSymbol ? buySymbol : `${sellSymbol}/${buySymbol}`}
       </TableCell>
-      <TableCell>
-        {bestInSpread}% | {secondInSpread}%
-      </TableCell>
-      <TableCell>
-        {bestOutSpread}% | {secondOutSpread}%
-      </TableCell>
       <TableCell>{maxOrderVol}</TableCell>
 
       <TableCell>{numeral(maxVolOfPosition).format("0,0.[000]")}</TableCell>
@@ -302,145 +365,51 @@ const StrategyRow = ({
         )}
       </TableCell>
       <TableCell>
-        <IconButton
-          onClick={() => dispatch(setUpdateStrategy({ open: true, baseToken }))}
-          size="small"
-          sx={{
-            color: "text.secondary",
-            "&:hover": { color: "primary.main" },
-          }}
-        >
-          <DriveFileRenameOutlineIcon />
-        </IconButton>
-        <IconButton
-          onClick={() => handleRemoveStrategy(_id)}
-          size="small"
-          sx={{
-            color: "text.secondary",
-            "&:hover": { color: "primary.main" },
-          }}
-        >
-          <DeleteForeverIcon />
-        </IconButton>
+        <Box display="flex" gap={2}>
+          <Tooltip title="Launch">
+            <IconButton
+              onClick={() => {
+                dispatch(setLaunchStrategy({ open: true, baseToken }))
+              }}
+              size="small"
+              sx={{
+                color: "text.secondary",
+                "&:hover": { color: "primary.main" },
+              }}
+            >
+              <RocketLaunchIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Update">
+            <IconButton
+              onClick={() =>
+                dispatch(setUpdateStrategy({ open: true, baseToken }))
+              }
+              size="small"
+              sx={{
+                color: "text.secondary",
+                "&:hover": { color: "primary.main" },
+              }}
+            >
+              <DriveFileRenameOutlineIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Delete">
+            <IconButton
+              onClick={() => handleRemoveStrategy(_id)}
+              size="small"
+              sx={{
+                color: "text.secondary",
+                "&:hover": { color: "primary.main" },
+              }}
+            >
+              <DeleteForeverIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </TableCell>
-      <Dialog
-        sx={{ "& .MuiDialog-paper": { width: "80%", maxHeight: 435 } }}
-        maxWidth="xs"
-        open={open}
-      >
-        <DialogTitle>Confirmation Strategy</DialogTitle>
-        <DialogContent dividers>
-          <Box
-            display="flex"
-            flexDirection="row"
-            sx={{
-              alignItems: "center",
-              width: "100%",
-              justifyContent: "space-between",
-            }}
-          >
-            <Typography>Strategy name</Typography>
-            <Typography>{strategyName}</Typography>
-          </Box>
-          <Box height={16} />
-          {isReduce ? (
-            <Box
-              display="flex"
-              flexDirection="row"
-              sx={{
-                alignItems: "center",
-                width: "100%",
-                justifyContent: "space-between",
-                padding: 2,
-                background: "rgb(246 70 93 / 10%)",
-              }}
-            >
-              <Typography>Close</Typography>
-              <Typography>
-                [{bestOutSpread} | {secondOutSpread}]
-              </Typography>
-            </Box>
-          ) : null}
-          {isStopped ? (
-            <Typography
-              sx={{
-                alignItems: "center",
-                width: "100%",
-                justifyContent: "space-between",
-                padding: 2,
-                background: "rgb(246 70 93 / 10%)",
-              }}
-            >
-              Stop this strategy
-            </Typography>
-          ) : null}
-          {isIncrease ? (
-            <Box
-              display="flex"
-              flexDirection="row"
-              sx={{
-                alignItems: "center",
-                width: "100%",
-                justifyContent: "space-between",
-                padding: 2,
-                background: "rgb(14 203 129 / 10%)",
-              }}
-            >
-              <Typography>Open</Typography>
-              <Typography>
-                [{bestInSpread} | {secondInSpread}]
-              </Typography>
-            </Box>
-          ) : null}
-          <Box height={16} />
-          <Box
-            display="flex"
-            flexDirection="row"
-            sx={{
-              alignItems: "center",
-              width: "100%",
-              justifyContent: "space-between",
-            }}
-          >
-            <Typography>Max vol of strategy (USDT)</Typography>
-            <Typography>
-              {numeral(maxVolOfPosition).format("0,0.[000]")}
-            </Typography>
-          </Box>
-          <Box height={16} />
-          <Box
-            display="flex"
-            flexDirection="row"
-            sx={{
-              alignItems: "center",
-              width: "100%",
-              justifyContent: "space-between",
-            }}
-          >
-            <Typography>Max vol per order (USDT)</Typography>
-            <Typography>{maxOrderVol}</Typography>
-          </Box>
-          <Box height={16} />
-          <Box
-            display="flex"
-            flexDirection="row"
-            sx={{
-              alignItems: "center",
-              width: "100%",
-              justifyContent: "space-between",
-            }}
-          >
-            <Typography>Required vol per order (USDT)</Typography>
-            <Typography>{requiredOrderVol}</Typography>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button autoFocus onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-          {/* <Button onClick={handleOk}>Ok</Button> */}
-        </DialogActions>
-      </Dialog>
     </TableRow>
   );
 };
@@ -450,7 +419,7 @@ const TableCell = styled(TableCellMui)(() => ({
 }));
 
 const StatusBadge = ({ status }: { status: string }) => {
-  const colorMap: Record<string, {bgColor: string, textColor: string}> = {
+  const colorMap: Record<string, { bgColor: string; textColor: string }> = {
     online: { bgColor: "#e8f5e9", textColor: "#2e7d32" }, // Light Green
     stopped: { bgColor: "#ffebee", textColor: "#c62828" }, // Light Red
     stopping: { bgColor: "#fff3e0", textColor: "#ef6c00" }, // Light Orange
@@ -491,3 +460,48 @@ const StatusBadge = ({ status }: { status: string }) => {
     </Box>
   );
 };
+
+const CustomTablePagination = styled(TablePagination)`
+  & .${classes.toolbar} {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 16px;
+
+    @media (min-width: 768px) {
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+
+  & .${classes.selectLabel} {
+    margin: 0;
+  }
+
+  & .${classes.displayedRows} {
+    margin: 0;
+
+    @media (min-width: 768px) {
+      margin-left: auto;
+    }
+  }
+
+  & .${classes.spacer} {
+    display: none;
+  }
+
+  & .${classes.actions} {
+    display: flex;
+    gap: 0.25rem;
+    button {
+      height: 24px;
+    }
+  }
+  & .${classes.select} {
+    height: 24px;
+  }
+  & .${classes.select} {
+    height: 24px;
+  }
+`;

@@ -39,6 +39,10 @@ export interface StrategiesState {
     open: boolean;
     baseToken?: string;
   };
+  launchStrategy: {
+    open: boolean;
+    baseToken?: string;
+  };
   updateStrategy: {
     open: boolean;
     baseToken?: string;
@@ -59,6 +63,9 @@ export const fetchStrategies = createAsyncThunk(
 const initialState: StrategiesState = {
   data: [],
   newStrategy: {
+    open: false,
+  },
+  launchStrategy: {
     open: false,
   },
   updateStrategy: {
@@ -83,6 +90,15 @@ export const StrategiesSlice = createSlice({
       }>
     ) => {
       state.newStrategy = action.payload;
+    },
+    setLaunchStrategy: (
+      state,
+      action: PayloadAction<{
+        open: boolean;
+        baseToken?: string;
+      }>
+    ) => {
+      state.launchStrategy = action.payload;
     },
     setUpdateStrategy: (
       state,
@@ -113,13 +129,15 @@ export const StrategiesSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { setStrategies, setNewStrategy, setUpdateStrategy } =
+export const { setStrategies, setNewStrategy, setUpdateStrategy, setLaunchStrategy } =
   StrategiesSlice.actions;
 
 export const selectNewStrategy = (state: { strategies: StrategiesState }) =>
   state.strategies.newStrategy;
 export const selectUpdateStrategy = (state: { strategies: StrategiesState }) =>
   state.strategies.updateStrategy;
+export const selectLaunchStrategy = (state: { strategies: StrategiesState }) =>
+  state.strategies.launchStrategy;
 
 export const selectStrategies = (state: { strategies: StrategiesState }) =>
   state.strategies.data;
