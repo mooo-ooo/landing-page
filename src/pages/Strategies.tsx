@@ -334,7 +334,6 @@ const StrategyRow = ({
 
   const isStopped = !isIncrease && !isReduce;
 
-  const baseToken = sellSymbol.split("/")[0];
   const dispatch = useDispatch<AppDispatch>();
 
   return (
@@ -376,7 +375,7 @@ const StrategyRow = ({
           <Tooltip title="Launch">
             <IconButton
               onClick={() => {
-                dispatch(setLaunchStrategy({ open: true, baseToken }))
+                dispatch(setLaunchStrategy({ open: true, baseToken: strategyName }))
               }}
               size="small"
               sx={{
@@ -391,7 +390,7 @@ const StrategyRow = ({
           <Tooltip title="Update">
             <IconButton
               onClick={() =>
-                dispatch(setUpdateStrategy({ open: true, baseToken }))
+                dispatch(setUpdateStrategy({ open: true, baseToken: strategyName }))
               }
               size="small"
               sx={{
