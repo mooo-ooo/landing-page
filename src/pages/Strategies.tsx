@@ -22,6 +22,7 @@ import {
   TablePagination,
   tablePaginationClasses as classes,
 } from "@mui/base/TablePagination";
+import { removeHeadSegment } from "../helpers";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import SearchIcon from "@mui/icons-material/Search";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
@@ -50,6 +51,13 @@ import {
 } from "../redux/strategy/strategySlice";
 import api from "../lib/axios";
 
+interface IBot {
+  status: string;
+  name: string;
+  id: string;
+  monit: { cpu: number; memory: number };
+}
+
 const Strategies: FC = () => {
   const isWeb = useMediaQuery("(min-width:600px)");
   const groupStore = useSelector(selectGroup);
@@ -60,14 +68,7 @@ const Strategies: FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const strategies = useSelector(selectStrategies);
 
-  const [bots, setBots] = useState<
-    {
-      status: string;
-      name: string;
-      id: string;
-      monit: { cpu: number; memory: number };
-    }[]
-  >([]);
+  const [bots, setBots] = useState<IBot[]>([]);
 
   const handleChangePage = (
     _event: React.MouseEvent<HTMLButtonElement> | null,
@@ -86,7 +87,14 @@ const Strategies: FC = () => {
   const fetchBots = () => {
     if (groupStore.botMasterBaseUrl) {
       api.get("/api/v1/bot-master").then(async ({ data }) => {
-        setBots(data);
+        setBots(
+          data.map((item: IBot) => {
+            return {
+              ...item,
+              name: removeHeadSegment(item.name),
+            };
+          })
+        );
       });
     }
   };
@@ -99,10 +107,13 @@ const Strategies: FC = () => {
       dispatch(fetchStrategies());
     }
   }, [groupStore]);
+  
   const handleRemoveStrategy = (id: string) => {
     api.delete(`/api/v1/strategies?_id=${id}`).then(() => {
       dispatch(fetchStrategies());
       enqueueSnackbar(`Removed successfully`, { variant: "success" });
+    }).catch(() => {
+      enqueueSnackbar(`Something went wrong`, { variant: "error" });
     });
   };
 
@@ -112,6 +123,8 @@ const Strategies: FC = () => {
       enqueueSnackbar(`Removed ${strategyName} successfully`, {
         variant: "success",
       });
+    }).catch(() => {
+      enqueueSnackbar(`Something went wrong`, { variant: "error" });
     });
   };
 
@@ -189,7 +202,6 @@ const Strategies: FC = () => {
               </TableHead>
               <TableBody>
                 {bots.map(({ id, monit: { cpu, memory }, name, status }) => {
-                  const stratName = name.split("-")[1];
                   if (!isWeb) {
                     return (
                       <TableRow
@@ -204,7 +216,7 @@ const Strategies: FC = () => {
                           scope="row"
                           sx={{ fontWeight: "medium" }}
                         >
-                          {stratName}
+                          {name}
                         </TableCell>
                         <TableCell>
                           <StatusBadge status={status} />
@@ -213,7 +225,7 @@ const Strategies: FC = () => {
                         <TableCell align="right">
                           <IconButton
                             onClick={() =>
-                              handleRemoveBot(stratName.toUpperCase())
+                              handleRemoveBot(name.toUpperCase())
                             }
                             size="small"
                             sx={{
@@ -238,7 +250,7 @@ const Strategies: FC = () => {
                         scope="row"
                         sx={{ fontWeight: "medium" }}
                       >
-                        {stratName}
+                        {name}
                       </TableCell>
                       <TableCell>{id}</TableCell>
                       <TableCell>
@@ -253,7 +265,7 @@ const Strategies: FC = () => {
                       <TableCell align="right">
                         <IconButton
                           onClick={() =>
-                            handleRemoveBot(stratName.toUpperCase())
+                            handleRemoveBot(name)
                           }
                           size="small"
                           sx={{

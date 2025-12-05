@@ -8,6 +8,7 @@ import { useSelector } from "react-redux";
 import readableNumber from "human-readable-numbers";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
+import { removeHeadSegment } from "../helpers";
 import {
   type IStrategy,
   selectStrategies,
@@ -29,10 +30,10 @@ const StrategiesStatus = () => {
         return setStrategies(
           data
             ?.map(({ name }) => {
-              const baseToken = name.split("-")[1];
+              const strategyName = removeHeadSegment(name);
               // 1. The result of .map() is (IStrategy | undefined)[]
               return strategiesStore.find(
-                (strategy) => strategy.strategyName === baseToken
+                (strategy) => strategy.strategyName === strategyName
               );
             })
             .filter((i): i is IStrategy => Boolean(i))

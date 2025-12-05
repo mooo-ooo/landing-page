@@ -7,6 +7,15 @@ export const calculateSpread = (highPrice: number, lowPrice: number) => {
   return gapPercentage
 }
 
+export function removeHeadSegment(inputString: string): string {
+  const index = inputString.indexOf("-");
+
+  // If a hyphen is found AND it's not the last character, return the slice starting
+  // immediately after the hyphen. Otherwise, return the original string.
+  return index !== -1 && index < inputString.length - 1
+    ? inputString.slice(index + 1)
+    : inputString;
+}
 
 export const percentageChange = (a: number, b: number) => (b / a) * 100 - 100
 
