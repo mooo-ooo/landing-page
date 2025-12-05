@@ -18,6 +18,7 @@ import {
   Grid,
   CardContent,
 } from "@mui/material";
+import ConfirmationDialog from '../components/ConfirmationDialog'
 import {
   TablePagination,
   tablePaginationClasses as classes,
@@ -70,6 +71,51 @@ const Strategies: FC = () => {
 
   const [bots, setBots] = useState<IBot[]>([]);
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{
+    type: 'strategy' | 'bot';
+    id: string; // Strategy _id or Bot name
+  } | null>(null);
+
+  // Update handlers to open the dialog instead of executing immediately:
+
+  // New function to open the dialog for a strategy
+  const confirmRemoveStrategy = (id: string) => {
+    setPendingAction({ type: 'strategy', id });
+    setIsDialogOpen(true);
+  };
+
+  // New function to open the dialog for a bot
+  const confirmRemoveBot = (strategyName: string) => {
+    setPendingAction({ type: 'bot', id: strategyName });
+    setIsDialogOpen(true);
+  };
+
+  const handleConfirmAction = () => {
+  if (pendingAction) {
+    if (pendingAction.type === 'strategy') {
+      handleRemoveStrategy(pendingAction.id);
+    } else if (pendingAction.type === 'bot') {
+      // Bot name is case-sensitive, ensure the correct name is passed
+      const botName = pendingAction.id; 
+      // The original bot removal logic uses .toUpperCase() for strategies 
+      // (though the bot name itself is case-sensitive and should be passed as is)
+      // I'll use the original logic from your provided code which seemed to rely on strategyName.toUpperCase() 
+      // for the API call in the table (which is what we're replacing).
+      // Let's stick to the name used when opening the dialog.
+      handleRemoveBot(botName);
+    }
+  }
+  // Close the dialog and reset the pending action
+  setIsDialogOpen(false);
+  setPendingAction(null);
+};
+
+const handleDialogClose = () => {
+  setIsDialogOpen(false);
+  setPendingAction(null);
+};
+
   const handleChangePage = (
     _event: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number
@@ -107,7 +153,7 @@ const Strategies: FC = () => {
       dispatch(fetchStrategies());
     }
   }, [groupStore]);
-  
+
   const handleRemoveStrategy = (id: string) => {
     api.delete(`/api/v1/strategies?_id=${id}`).then(() => {
       dispatch(fetchStrategies());
@@ -225,7 +271,7 @@ const Strategies: FC = () => {
                         <TableCell align="right">
                           <IconButton
                             onClick={() =>
-                              handleRemoveBot(name.toUpperCase())
+                              confirmRemoveBot(name.toUpperCase())
                             }
                             size="small"
                             sx={{
@@ -265,7 +311,7 @@ const Strategies: FC = () => {
                       <TableCell align="right">
                         <IconButton
                           onClick={() =>
-                            handleRemoveBot(name)
+                            confirmRemoveBot(name)
                           }
                           size="small"
                           sx={{
@@ -361,7 +407,7 @@ const Strategies: FC = () => {
                 <StrategyRow
                   strategy={strategy}
                   key={strategy._id}
-                  handleRemoveStrategy={handleRemoveStrategy}
+                  handleRemoveStrategy={confirmRemoveStrategy}
                 />
               ))}
             </TableBody>
@@ -397,6 +443,22 @@ const Strategies: FC = () => {
           />
         ))
       )}
+      {/* ➡️ ADD THE CONFIRMATION DIALOG HERE */}
+      <ConfirmationDialog
+        open={isDialogOpen}
+        onClose={handleDialogClose}
+        onConfirm={handleConfirmAction}
+        title={
+          pendingAction?.type === 'bot'
+            ? `Stop and Remove Bot: ${pendingAction.id}`
+            : 'Confirm Strategy Deletion'
+        }
+        content={
+          pendingAction?.type === 'bot'
+            ? `Are you sure you want to stop the running bot named "${pendingAction.id}"? This will remove it from the master process.`
+            : 'Are you sure you want to permanently delete this strategy configuration? This action cannot be undone.'
+        }
+      />
     </Box>
   );
 };
