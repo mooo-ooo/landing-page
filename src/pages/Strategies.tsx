@@ -439,7 +439,7 @@ const handleDialogClose = () => {
         displayedStrategies.map((strategy) => (
           <StrategyCard
             strategy={strategy}
-            handleRemoveStrategy={handleRemoveStrategy}
+            handleRemoveStrategy={confirmRemoveStrategy}
           />
         ))
       )}
