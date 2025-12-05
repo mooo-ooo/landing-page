@@ -401,7 +401,7 @@ function Layout() {
         <ListItem disablePadding>
           <LinkStyled to="/dashboard">
             <ListItemButton>
-              <Typography>Dashboard</Typography>
+              <Typography fontSize={16}>Dashboard</Typography>
             </ListItemButton>
           </LinkStyled>
         </ListItem>
@@ -409,7 +409,7 @@ function Layout() {
         <ListItem disablePadding>
           <LinkStyled to="/wallets">
             <ListItemButton>
-              <Typography>Wallets</Typography>
+              <Typography fontSize={16}>Wallets</Typography>
             </ListItemButton>
           </LinkStyled>
         </ListItem>
@@ -417,14 +417,14 @@ function Layout() {
         <ListItem disablePadding>
           <LinkStyled to="/strategies">
             <ListItemButton>
-              <Typography>Strategies</Typography>
+              <Typography fontSize={16}>Strategies</Typography>
             </ListItemButton>
           </LinkStyled>
         </ListItem>
         <Divider />
         <ListItem disablePadding>
           <ListItemButton onClick={handleLogout}>
-            <Typography>Logout</Typography>
+            <Typography fontSize={16}>Logout</Typography>
           </ListItemButton>
         </ListItem>
       </List>
