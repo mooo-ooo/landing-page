@@ -78,10 +78,8 @@ function UpdateStrategyDialog(props: UpdateStrategyProps) {
 
   useEffect(() => {
     if (baseToken && strategies.length) {
-      const found = strategies.find(({ sellSymbol, buySymbol }: IStrategy) => {
-        return (
-          buySymbol === sellSymbol && buySymbol === `${baseToken}/USDT:USDT`
-        );
+      const found = strategies.find(({ strategyName }: IStrategy) => {
+        return baseToken === strategyName
       });
       if (found) {
         setStrategy(found);
