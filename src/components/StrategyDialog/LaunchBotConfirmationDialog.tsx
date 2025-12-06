@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment } from "react";
-
+import { AxiosError } from "axios";
 import {
   Box,
   Dialog,
@@ -8,10 +8,11 @@ import {
   DialogTitle,
   Typography,
   IconButton,
+  TextField,
 } from "@mui/material";
 import type { IStrategy } from "../../redux/strategy/strategySlice";
 import { useTheme } from "@mui/material/styles";
-import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
+import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import CloseIcon from "@mui/icons-material/Close";
@@ -33,37 +34,55 @@ function LaunchBotConfirmationDialog(props: NewStrategyProps) {
   const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
   const { baseToken, onClose, open } = props;
+  const [token, setToken] = useState("");
+
+  const handleChangeToken = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setToken(event.target.value);
+  };
   const { enqueueSnackbar } = useSnackbar();
   const [strategy, setStrategy] = useState<Partial<IStrategy>>({});
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   const [loading, setLoading] = useState(false);
-  
+
   useEffect(() => {
-    dispatch(fetchStrategies()).unwrap().then(
-      (res: IStrategy[]) => {
+    dispatch(fetchStrategies())
+      .unwrap()
+      .then((res: IStrategy[]) => {
         setStrategy(
           res.find(
             ({ strategyName }) =>
               baseToken?.toLowerCase() === strategyName.toLowerCase()
           )!
         );
-      }
-    );
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseToken]);
 
   const handleSubmit = async () => {
     setLoading(true);
     api
-      .post("/api/v1/bot-master", {strategyName: strategy.strategyName})
+      .post("/api/v1/bot-master", {
+        strategyName: strategy.strategyName,
+        token,
+      })
       .then(() => {
-        enqueueSnackbar(`Launch ${strategy.strategyName} successfully`, { variant: "success" });
+        enqueueSnackbar(`Launch ${strategy.strategyName} successfully`, {
+          variant: "success",
+        });
         dispatch(fetchStrategies());
         onClose();
       })
       .catch((err) => {
-        enqueueSnackbar(err.response?.data?.message || 'Something went wrong', { variant: "error" })
-        console.log(err);
+        if (err instanceof AxiosError) {
+          enqueueSnackbar(err.response?.data?.message || "Failed to launch bot", {
+            variant: "error",
+          });
+        } else {
+          enqueueSnackbar("An unexpected error occurred", {
+            variant: "error",
+          });
+        }
       })
       .finally(() => setLoading(false));
   };
@@ -76,7 +95,7 @@ function LaunchBotConfirmationDialog(props: NewStrategyProps) {
       open={open}
     >
       <DialogTitle sx={{ fontSize: 16, background: "#1e2026" }}>
-        Review and launch your Bot 
+        Review and launch your Bot
       </DialogTitle>
       <IconButton
         aria-label="close"
@@ -143,45 +162,48 @@ function LaunchBotConfirmationDialog(props: NewStrategyProps) {
             >
               <Typography>Open</Typography>
               <Box display="flex" gap={1}>
-                <Typography>
-                {strategy.bestInSpread}% 
-              </Typography>
-              <ArrowRightAltIcon />
-              <Typography>
-                {strategy.secondInSpread}%
-              </Typography>
+                <Typography>{strategy.bestInSpread}%</Typography>
+                <ArrowRightAltIcon />
+                <Typography>{strategy.secondInSpread}%</Typography>
               </Box>
-              
             </Box>
           ) : null}
           <Box height={16} />
-          {strategy.isReduce ? <Box
-            display="flex"
-            flexDirection="row"
-            sx={{
-              alignItems: "center",
-              width: "100%",
-              justifyContent: "space-between",
-            }}
-          >
-            <Typography>Min vol of strategy (USDT) (2 sides)</Typography>
-            <Typography>
-              {numeral((strategy?.minVolOfPosition || 0) * 2).format("0,0.[000]")}
-            </Typography>
-          </Box> : <Box
-            display="flex"
-            flexDirection="row"
-            sx={{
-              alignItems: "center",
-              width: "100%",
-              justifyContent: "space-between",
-            }}
-          >
-            <Typography>Max vol of strategy (USDT) (2 sides)</Typography>
-            <Typography>
-              {numeral((strategy?.maxVolOfPosition || 0) * 2).format("0,0.[000]")}
-            </Typography>
-          </Box>}
+          {strategy.isReduce ? (
+            <Box
+              display="flex"
+              flexDirection="row"
+              sx={{
+                alignItems: "center",
+                width: "100%",
+                justifyContent: "space-between",
+              }}
+            >
+              <Typography>Min vol of strategy (USDT) (2 sides)</Typography>
+              <Typography>
+                {numeral((strategy?.minVolOfPosition || 0) * 2).format(
+                  "0,0.[000]"
+                )}
+              </Typography>
+            </Box>
+          ) : (
+            <Box
+              display="flex"
+              flexDirection="row"
+              sx={{
+                alignItems: "center",
+                width: "100%",
+                justifyContent: "space-between",
+              }}
+            >
+              <Typography>Max vol of strategy (USDT) (2 sides)</Typography>
+              <Typography>
+                {numeral((strategy?.maxVolOfPosition || 0) * 2).format(
+                  "0,0.[000]"
+                )}
+              </Typography>
+            </Box>
+          )}
           <Box height={16} />
           <Box
             display="flex"
@@ -215,14 +237,29 @@ function LaunchBotConfirmationDialog(props: NewStrategyProps) {
           width="100%"
           display="flex"
           alignItems="center"
-          justifyContent="flex-end"
+          justifyContent="space-between"
           py={1}
           gap={16}
           px="16px"
         >
+          <TextField
+            label="2FA Code"
+            name="token"
+            value={token}
+            onChange={handleChangeToken}
+            required
+            sx={{ mb: 2 }}
+            placeholder="Enter code from your authenticator app"
+            inputProps={{
+              maxLength: 6,
+              pattern: "[0-9]*",
+              inputMode: "numeric",
+            }}
+          />
           <LoadingButton
             startIcon={<RocketLaunchIcon />}
             variant="contained"
+            disabled={token.length !== 6}
             loading={loading}
             onClick={handleSubmit}
           >
