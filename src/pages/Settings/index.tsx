@@ -79,7 +79,7 @@ function Settings() {
                 <ListItemIcon>
                   <AdbIcon />
                 </ListItemIcon>
-                <ListItemText primary="Bot settings" />
+                <ListItemText primary="Hedging Bot" />
               </ListItemButton>
             </ListItem>
           </List>

@@ -3,7 +3,7 @@ import { AxiosError } from "axios";
 import api from "../../lib/axios";
 import SaveIcon from "@mui/icons-material/Save";
 import type { AppDispatch } from "../../redux/store";
-import { TextField, Button, Typography, Alert, Box } from "@mui/material";
+import { TextField, Button, Typography, Alert, Box , AlertTitle} from "@mui/material";
 import { selectGroup, fetchGroup } from "../../redux/group/groupSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { pick } from "lodash";
@@ -81,93 +81,121 @@ function Telegram() {
         </Alert>
       )}
 
-      <Box sx={{ mb: 4 }}>
-        <Box mb={2}>
-          <Typography color="textSecondary">
-            This group provides important announcements that require immediate
-            action to protect your positions and capital
-          </Typography>
-          <Typography color="textSecondary">- withdrawing funds</Typography>
-          <Typography color="textSecondary">- receiving money</Typography>
-          <Typography color="textSecondary">
-            - balancing your position's volume
-          </Typography>
-          <Typography color="textSecondary">
-            - adding, updating api keys
-          </Typography>
+      <Box display="flex" flexDirection="row" gap="24px">
+        <Box>
+          <Box mb={2}>
+            <Typography>
+              This group provides important announcements that require immediate
+              action to protect your positions and capital
+            </Typography>
+          </Box>
+
+          <Typography color="textSecondary">Important group token</Typography>
+          <TextField
+            fullWidth
+            name="telePriorityToken"
+            value={formData.telePriorityToken}
+            onChange={handleChange}
+            InputProps={{
+              autoComplete: "off",
+            }}
+            sx={{ mb: 4 }}
+          />
+          
+          <Typography color="textSecondary">Important bot id</Typography>
+          <TextField
+            fullWidth
+            name="telePriorityId"
+            value={formData.telePriorityId}
+            onChange={handleChange}
+            InputProps={{
+              autoComplete: "off",
+            }}
+            sx={{ mb: 4 }}
+          />
+          <Alert severity="info">
+            <AlertTitle>Actions</AlertTitle>
+            <Box>
+            <Typography fontStyle="italic" color="textSecondary">- Withdrawing assets</Typography>
+            <Typography fontStyle="italic" color="textSecondary">- Receiving assets</Typography>
+            <Typography fontStyle="italic" color="textSecondary">
+              - Updating api keys
+            </Typography>
+          </Box>
+          </Alert>
+          
         </Box>
 
+        <Box sx={{ borderLeft: "1px solid rgba(255, 255, 255, 0.12)" }} paddingLeft="24px">
+          <Typography mb={2}>
+            This group provides notifications about order spread rates, good
+            deals available on the market, and your current leverage.
+          </Typography>
+
+          <Typography color="textSecondary">Log group token</Typography>
+          <TextField
+            fullWidth
+            name="teleLogToken"
+            value={formData.teleLogToken}
+            onChange={handleChange}
+            InputProps={{
+              autoComplete: "off",
+            }}
+            sx={{ mb: 4 }}
+          />
+
+          <Typography color="textSecondary">Log bot id</Typography>
+          <TextField
+            fullWidth
+            name="teleLogId"
+            value={formData.teleLogId}
+            onChange={handleChange}
+            InputProps={{
+              autoComplete: "off",
+            }}
+            sx={{ mb: 4 }}
+          />
+
+          <Alert severity="info">
+            <AlertTitle>Actions</AlertTitle>
+            <Box>
+            <Typography fontStyle="italic" color="textSecondary">- Exchange leverage (cross)</Typography>
+            <Typography fontStyle="italic" color="textSecondary">- Open/close spread</Typography>
+            <Typography fontStyle="italic" color="textSecondary">
+              - Positions / Equites
+            </Typography>
+          </Box>
+          </Alert>
+        </Box>
+      </Box>
+      <Box
+        borderTop="1px solid rgba(255, 255, 255, 0.12)"
+        paddingTop="16px"
+        display="flex"
+        width="100%"
+        justifyContent="space-between"
+        alignItems="center"
+        mt={1}
+      >
         <TextField
-          fullWidth
-          label="Important group token"
-          name="telePriorityToken"
-          value={formData.telePriorityToken}
-          onChange={handleChange}
-          InputProps={{
-            autoComplete: "off",
-          }}
-          sx={{ mb: 2 }}
-        />
-        <TextField
-          fullWidth
-          label="Important bot id"
-          name="telePriorityId"
-          value={formData.telePriorityId}
-          onChange={handleChange}
-          InputProps={{
-            autoComplete: "off",
-          }}
-          sx={{ mb: 2 }}
-        />
-        <Box height={16} />
-        <Typography mb={2} color="textSecondary">
-          This group provides notifications about order spread rates, good deals
-          available on the market, and your current leverage.
-        </Typography>
-        <TextField
-          fullWidth
-          label="Log group token"
-          name="teleLogToken"
-          value={formData.teleLogToken}
-          onChange={handleChange}
-          InputProps={{
-            autoComplete: "off",
-          }}
-          sx={{ mb: 2 }}
-        />
-        <TextField
-          fullWidth
-          label="Log bot id"
-          name="teleLogId"
-          value={formData.teleLogId}
-          onChange={handleChange}
-          InputProps={{
-            autoComplete: "off",
-          }}
-          sx={{ mb: 2 }}
-        />
-        <TextField
-          fullWidth
           label="2FA Token"
           name="token"
+          sx={{ width: "350px" }}
           value={formData.token}
           onChange={handleChange}
           InputProps={{
             autoComplete: "off",
           }}
-          sx={{ mb: 2 }}
         />
-        <Box display="flex" width="100%" justifyContent="flex-end">
-          <Button
-            type="submit"
-            variant="contained"
-            startIcon={<SaveIcon />}
-            disabled={isLoading}
-            onClick={handleUpdate}
-          >
-            {isLoading ? "Saving..." : "Save"}
-          </Button>
-        </Box>
+        <Button
+          type="submit"
+          variant="contained"
+          startIcon={<SaveIcon />}
+          disabled={isLoading || formData.token.length !== 6}
+          onClick={handleUpdate}
+        >
+          {isLoading ? "Saving..." : "Save"}
+        </Button>
       </Box>
     </Box>
   );

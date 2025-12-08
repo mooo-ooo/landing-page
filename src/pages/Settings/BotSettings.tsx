@@ -34,7 +34,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 import numeral from "numeral";
-import { green, red } from "../../constants/colors";
+import { green, red, yellow } from "../../constants/colors";
 import { useSelector, useDispatch } from "react-redux";
 import type { IFuture } from "../../redux/balances/balancesSlice";
 import { selectPositions } from "../../redux/positions/positionsSlice";
@@ -212,7 +212,7 @@ function BotSettings() {
         <Typography variant="body1" color="textSecondary">
           Your positions are checked every 3 seconds.
         </Typography>
-        <Typography color={green} fontStyle="italic">
+        <Typography fontStyle="italic" color="textSecondary">
           (Very important, need to understand clearly before choosing to run
           this bot, please do your own research)
         </Typography>
@@ -226,7 +226,7 @@ function BotSettings() {
           <Typography sx={{ fontWeight: "bold" }} gutterBottom>
             1. Force-closing Bot
           </Typography>
-          <Typography color={red} gutterBottom>
+          <Typography color={yellow} gutterBottom>
             If the position's volume on two exchanges deviates by more than the
             "volumeThreshold", both positions will be force-closed.
           </Typography>
@@ -295,7 +295,7 @@ function BotSettings() {
           <Typography sx={{ fontWeight: "bold" }} gutterBottom>
             2. Hedging Bot
           </Typography>
-          <Typography color={red} gutterBottom>
+          <Typography color={yellow} gutterBottom>
             If the cross margin leverage limit{" "}
             <Typography component="span" sx={{ fontStyle: "italic" }}>
               (section 3)
@@ -380,7 +380,7 @@ function BotSettings() {
           </Box>
           <CustomTabPanel value={tabSelected} index={0}>
             <CardContent>
-              <Typography color={red} gutterBottom>
+              <Typography color={yellow} gutterBottom>
                 If the cross margin level of the positions exceeds the permitted
                 limit, the bot will search for the exchange with the highest
                 available margin and transfer the amount configured in section 2
@@ -510,7 +510,7 @@ function BotSettings() {
           </CustomTabPanel>
           <CustomTabPanel value={tabSelected} index={1}>
             <CardContent>
-              <Typography color={red} gutterBottom>
+              <Typography color={yellow} gutterBottom>
                 If the "distance to liquidation" exceeds the permitted limit,
                 the bot will search for the exchange with the highest available
                 margin and transfer the amount configured in section 2 (Hedging
