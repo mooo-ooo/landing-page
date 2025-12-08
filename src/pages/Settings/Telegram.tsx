@@ -3,7 +3,14 @@ import { AxiosError } from "axios";
 import api from "../../lib/axios";
 import SaveIcon from "@mui/icons-material/Save";
 import type { AppDispatch } from "../../redux/store";
-import { TextField, Button, Typography, Alert, Box , AlertTitle} from "@mui/material";
+import {
+  TextField,
+  Button,
+  Typography,
+  Alert,
+  Box,
+  AlertTitle,
+} from "@mui/material";
 import { selectGroup, fetchGroup } from "../../redux/group/groupSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { pick } from "lodash";
@@ -101,7 +108,7 @@ function Telegram() {
             }}
             sx={{ mb: 4 }}
           />
-          
+
           <Typography color="textSecondary">Important bot id</Typography>
           <TextField
             fullWidth
@@ -116,17 +123,23 @@ function Telegram() {
           <Alert severity="info">
             <AlertTitle>Actions</AlertTitle>
             <Box>
-            <Typography fontStyle="italic" color="textSecondary">- Withdrawing assets</Typography>
-            <Typography fontStyle="italic" color="textSecondary">- Receiving assets</Typography>
-            <Typography fontStyle="italic" color="textSecondary">
-              - Updating api keys
-            </Typography>
-          </Box>
+              <Typography fontStyle="italic" color="textSecondary">
+                - Withdrawing assets
+              </Typography>
+              <Typography fontStyle="italic" color="textSecondary">
+                - Receiving assets
+              </Typography>
+              <Typography fontStyle="italic" color="textSecondary">
+                - Updating api keys
+              </Typography>
+            </Box>
           </Alert>
-          
         </Box>
 
-        <Box sx={{ borderLeft: "1px solid rgba(255, 255, 255, 0.12)" }} paddingLeft="24px">
+        <Box
+          sx={{ borderLeft: "1px solid rgba(255, 255, 255, 0.12)" }}
+          paddingLeft="24px"
+        >
           <Typography mb={2}>
             This group provides notifications about order spread rates, good
             deals available on the market, and your current leverage.
@@ -159,43 +172,57 @@ function Telegram() {
           <Alert severity="info">
             <AlertTitle>Actions</AlertTitle>
             <Box>
-            <Typography fontStyle="italic" color="textSecondary">- Exchange leverage (cross)</Typography>
-            <Typography fontStyle="italic" color="textSecondary">- Open/close spread</Typography>
-            <Typography fontStyle="italic" color="textSecondary">
-              - Positions / Equites
-            </Typography>
-          </Box>
+              <Typography fontStyle="italic" color="textSecondary">
+                - Exchange leverage (cross)
+              </Typography>
+              <Typography fontStyle="italic" color="textSecondary">
+                - Open/close spread
+              </Typography>
+              <Typography fontStyle="italic" color="textSecondary">
+                - Positions / Equites
+              </Typography>
+            </Box>
           </Alert>
         </Box>
       </Box>
       <Box
         borderTop="1px solid rgba(255, 255, 255, 0.12)"
-        paddingTop="16px"
+        paddingTop="24px"
         display="flex"
         width="100%"
-        justifyContent="space-between"
+        justifyContent="flex-end"
         alignItems="center"
         mt={1}
       >
-        <TextField
-          label="2FA Token"
-          name="token"
-          sx={{ width: "350px" }}
-          value={formData.token}
-          onChange={handleChange}
-          InputProps={{
-            autoComplete: "off",
-          }}
-        />
-        <Button
-          type="submit"
-          variant="contained"
-          startIcon={<SaveIcon />}
-          disabled={isLoading || formData.token.length !== 6}
-          onClick={handleUpdate}
+        <Box
+          display="flex"
+          width="100%"
+          justifyContent={"space-between"}
+          sx={{ width: "50%" }}
         >
-          {isLoading ? "Saving..." : "Save"}
-        </Button>
+          <TextField
+            label="2FA Token"
+            name="token"
+            sx={{ width: "250px" }}
+            value={formData.token}
+            onChange={handleChange}
+            InputProps={{
+              autoComplete: "off",
+            }}
+          />
+          <Box display="flex" alignItems="flex-end">
+            <Button
+            type="submit"
+            variant="contained"
+            startIcon={<SaveIcon />}
+            disabled={isLoading || formData.token.length !== 6}
+            onClick={handleUpdate}
+          >
+            {isLoading ? "Saving..." : "Save"}
+          </Button>
+          </Box>
+          
+        </Box>
       </Box>
     </Box>
   );
