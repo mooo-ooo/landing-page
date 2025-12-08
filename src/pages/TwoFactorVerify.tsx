@@ -92,7 +92,7 @@ function TwoFactorVerify() {
         localStorage.removeItem('verification_id');
         // Store the new access token
         localStorage.setItem('token', response.data.accessToken);
-        navigate('/dashboard');
+        navigate('/');
       }
     } catch (err) {
       if (err instanceof AxiosError) {

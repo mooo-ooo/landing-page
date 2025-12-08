@@ -33,7 +33,6 @@ import { createPositionsTable } from "./helpers";
 import type { IStrategy } from "../../redux/strategy/strategySlice";
 import { selectBalances } from "../../redux/balances/balancesSlice";
 import { useBalances } from "../../redux/selector";
-import type { ISymbol } from "../../types";
 import TableDetailsWeb from "./TableDetails/TableDetailsWeb";
 import TableDetailsMobile from "./TableDetails/TableDetailsMobile";
 import sort from "lodash/orderBy";
@@ -52,7 +51,6 @@ function Positions({
   strategies,
 }: {
   strategies: IStrategy[];
-  symbols: ISymbol[];
   error: string | null;
   exchanges: string[];
   loadingFundingRates: boolean;

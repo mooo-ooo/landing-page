@@ -54,7 +54,7 @@ function App() {
                 <Route path="/2fa-verify" element={<TwoFactorVerify />} />
 
                 <Route path="/" element={<Layout />}>
-                  <Route index element={<Home />} />
+                  <Route index element={<Dashboard />} />
                   <Route path="/2fa" element={<TwoFactorAuth />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/wallets" element={<Wallets />} />

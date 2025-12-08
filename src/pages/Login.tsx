@@ -113,7 +113,7 @@ function Login() {
       if (response?.data?.accessToken) {
         // If 2FA is not required, proceed with normal login
         localStorage.setItem('token', response.data.accessToken);
-        navigate('/dashboard');
+        navigate('/');
         return;
       }
       if (response?.data?.verification_id) {

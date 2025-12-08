@@ -1,11 +1,9 @@
 import type { FC } from "react";
-import { useEffect, useState } from "react";
-import api from "../lib/axios";
-import { Typography, Box, Skeleton, IconButton } from "@mui/material";
+import { Typography, Box, Skeleton } from "@mui/material";
 import numeral from "numeral";
-import ReplayIcon from "@mui/icons-material/Replay";
 import { useSelector } from "react-redux";
 import { selectBalances } from "../redux/balances/balancesSlice";
+import { selectFundingLast7days } from "../redux/fundingFees/fundingFeesSlice";
 import { LinePlot, MarkPlot } from "@mui/x-charts/LineChart";
 import { ChartContainer } from "@mui/x-charts/ChartContainer";
 import { ChartsXAxis } from "@mui/x-charts/ChartsXAxis";
@@ -15,7 +13,6 @@ import { BarPlot } from "@mui/x-charts/BarChart";
 import { ChartsAxisHighlight } from "@mui/x-charts/ChartsAxisHighlight";
 
 interface FundingFeesChartProps {
-  loadingFundingRates: boolean;
   width?: number;
   height?: number;
   estimatedFundingFee: number;
@@ -25,75 +22,19 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
   estimatedFundingFee,
   height,
   width,
-  loadingFundingRates,
 }) => {
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const balances = useSelector(selectBalances);
+  const rewardHistory = useSelector(selectFundingLast7days);
   const totalMargin = Object.values(balances).reduce(
     (tot, { total = 0 }) => tot + total,
     0
   );
-  const [rewardHistory, setRewardHistory] = useState<
-    { date: string; value: number }[]
-  >([]);
-
-  const calculateFundingFees = async () => {
-    api
-      .get(`/api/v1/account/funding-fees/last-7-days?tz=${tz}&fromDate=${Date.now()}`)
-      .then((result: { data: { fundingByDay: Record<string, number> } }) => {
-        if (
-          result.data?.fundingByDay &&
-          Object.keys(result.data.fundingByDay).length > 0
-        ) {
-          const fundingByDay = result.data.fundingByDay;
-
-          const fullToShortMap: Record<string, string> = {
-            Monday: "Mon",
-            Tuesday: "Tue",
-            Wednesday: "Wed",
-            Thursday: "Thu",
-            Friday: "Fri",
-            Saturday: "Sat",
-            Sunday: "Sun",
-          };
-
-          const shortDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-          // Get today's index in short form: 0 = Sun, 1 = Mon, ..., 6 = Sat
-          const todayIndex = new Date().getDay();
-
-          // Create circular day order ending with today
-          const circularOrder = [
-            ...shortDays.slice((todayIndex + 1) % 7),
-            ...shortDays.slice(0, (todayIndex + 1) % 7),
-          ];
-
-          const mappedHistory = circularOrder.map((shortName) => {
-            const fullName = Object.keys(fullToShortMap).find(
-              (key) => fullToShortMap[key] === shortName
-            )!;
-            return {
-              date: shortName,
-              value: fundingByDay[fullName] || 0,
-            };
-          });
-          setRewardHistory(mappedHistory);
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        setRewardHistory([]);
-      });
-  }
-  useEffect(() => {
-    calculateFundingFees()
-  }, []);
 
   const apr = (estimatedFundingFee / totalMargin) * 3 * 365;
   const apy = convertAprToApy(apr, 12);
   return (
     <Box>
-      {loadingFundingRates ? (
+      {!rewardHistory?.length ? (
         <Skeleton animation="wave" />
       ) : (
         <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -103,14 +44,11 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
             <Typography ml={0.5}>
               {numeral(estimatedFundingFee).format("0,0")}
             </Typography>
-            <IconButton size="medium" onClick={calculateFundingFees}>
-              <ReplayIcon />
-            </IconButton>
           </Box>
           <Typography>APY: {numeral(apy * 100).format("0,0")}%</Typography>
         </Box>
       )}
-      {rewardHistory.length ? (
+      {rewardHistory?.length ? (
         <ChartContainer
           xAxis={[
             {

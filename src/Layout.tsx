@@ -44,6 +44,7 @@ import LaunchBotConfirmationDialog from "./components/StrategyDialog/LaunchBotCo
 import {
   fetchStrategies,
 } from "./redux/strategy/strategySlice";
+import { fetchLast7Days } from "./redux/fundingFees/fundingFeesSlice";
 import { setUser, setError, selectUser } from "./redux/user/userSlice";
 import {
   setSummaryBalance,
@@ -97,6 +98,7 @@ function Layout() {
 
   const fetchBalance = () => {
     setPositionsLoading(true);
+    dispatch(fetchLast7Days());
     Promise.all([
       api
         .get("/api/v1/account/equities")
@@ -399,9 +401,9 @@ function Layout() {
       
       <List>
         <ListItem disablePadding>
-          <LinkStyled to="/dashboard">
+          <LinkStyled to="/">
             <ListItemButton>
-              <Typography fontSize={16}>Dashboard</Typography>
+              <Typography fontSize={16}>Home</Typography>
             </ListItemButton>
           </LinkStyled>
         </ListItem>
@@ -438,17 +440,14 @@ function Layout() {
           <AppBar position="fixed" sx={{ background: "#181a20" }}>
             <Toolbar>
               <Box display="flex" justifyContent="space-between" gap="36px">
-                <img
-                  style={{ height: 18, marginRight: "12px" }}
-                  src="/logo.png"
-                  alt="logo"
-                />
-                <LinkStyled
-                  to="/dashboard"
-                  isActive={location.pathname === "/dashboard"}
-                >
-                  Dashboard
-                </LinkStyled>
+                <Link to="/">
+                  <img
+                    style={{ height: 18, marginRight: "12px" }}
+                    src="/logo.png"
+                    alt="logo"
+                  />
+                </Link>
+                
                 <LinkStyled
                   to="/strategies"
                   isActive={location.pathname === "/strategies"}

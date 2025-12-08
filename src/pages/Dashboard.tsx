@@ -15,13 +15,10 @@ import {
 } from "../redux/strategy/strategySlice";
 import type { AppDispatch } from "../redux/store";
 import { useSelector, useDispatch } from "react-redux";
-import type { ISymbol } from "../types";
-import api from "../lib/axios";
 
 const Dashboard: FC = () => {
   const isWeb = useMediaQuery('(min-width:600px)')
   const dispatch = useDispatch<AppDispatch>();
-  const [symbols, setSymbols] = useState<ISymbol[]>([]);
   const positionsError = useSelector(selectPositionsError);
   const balances = useSelector(selectBalances);
   const strategies = useSelector(selectStrategies);
@@ -37,9 +34,6 @@ const Dashboard: FC = () => {
 
   useEffect(() => {
     dispatch(fetchStrategies());
-    api
-      .get("/api/v1/symbols")
-      .then(({ data }: { data: ISymbol[] }) => setSymbols(data));
   }, []);
 
   const positions = useNormalizedPositions([]);
@@ -126,7 +120,6 @@ const Dashboard: FC = () => {
   const Mobile = (
     <Box ref={dashboardRef} display="flex" flexDirection="column" gap="12px" py="16px">
       <FundingFeesChart
-        loadingFundingRates={loadingFundingRates}
         width={dashboardWidth}
         height={300}
         estimatedFundingFee={estimatedFundingFee}
@@ -135,7 +128,6 @@ const Dashboard: FC = () => {
       {strategies.length ? <StrategiesStatus /> : null}
       <PositionsTable
         strategies={strategies}
-        symbols={symbols}
         positions={positionsWithFunding}
         loadingFundingRates={loadingFundingRates}
         exchanges={exchanges}
@@ -165,7 +157,6 @@ const Dashboard: FC = () => {
         <Grid size={3.5}>
           {dashboardWidth && exchangeMarginHeight ? (
             <FundingFeesChart
-              loadingFundingRates={loadingFundingRates}
               width={dashboardWidth / (12 / 3.5) || 250}
               height={fixedHeight}
               estimatedFundingFee={estimatedFundingFee}
@@ -183,7 +174,6 @@ const Dashboard: FC = () => {
       
       <PositionsTable
         strategies={strategies}
-        symbols={symbols}
         positions={positionsWithFunding}
         loadingFundingRates={loadingFundingRates}
         exchanges={exchanges}
