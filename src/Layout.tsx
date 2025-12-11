@@ -27,7 +27,6 @@ import {
   Security,
   Logout,
   Email,
-  ShowChart,
   MonetizationOn,
   ContentCopy,
   Group,
@@ -131,13 +130,7 @@ function Layout() {
         .then((response) => {
           const userData = response.data;
           dispatch(
-            setUser({
-              id: userData.id,
-              email: userData.email,
-              twoFactorEnabled: userData.twoFactorEnabled,
-              groupId: userData.groupId,
-              groupCode: userData.groupCode,
-            })
+            setUser(userData)
           );
           dispatch(fetchGroup());
           // Store groupId in localStorage for axios interceptor
@@ -303,7 +296,7 @@ function Layout() {
         sx={{ py: 1.5 }}
       >
         <VpnKey sx={{ mr: 2, fontSize: 20 }} />
-        Settings
+        Profile/Settings
       </MenuItem>
       <MenuItem
         onClick={() => {
@@ -333,16 +326,7 @@ function Layout() {
           </Typography>
         )}
       </MenuItem>
-      <MenuItem
-        onClick={() => {
-          handleMenuClose();
-          navigate("/equity");
-        }}
-        sx={{ py: 1.5 }}
-      >
-        <ShowChart sx={{ mr: 2, fontSize: 20 }} />
-        Equity
-      </MenuItem>
+      
       <MenuItem onClick={handleLogout} sx={{ py: 1.5 }}>
         <Logout sx={{ mr: 2, fontSize: 20 }} />
         Logout

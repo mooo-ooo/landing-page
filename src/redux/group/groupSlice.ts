@@ -15,6 +15,7 @@ export interface IGroup {
   tokenLeverageWarning: string
   volumeThreshold?: number
   botMasterBaseUrl?: string
+  isAllowedSharePortfolio?: boolean
 }
 export interface GroupState {
   data: IGroup;

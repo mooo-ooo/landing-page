@@ -8,7 +8,7 @@ const Orderbook = lazy(() => import('./index'))
 
 
 const OrderBookContainer = () => {
-  const status = useScript(`http://178.128.110.139:7001/ccxt.browser.js`, {
+  const status = useScript(`/ccxt.browser.js`, {
     removeOnUnmount: false,
   })
   const isReady = status === 'ready'

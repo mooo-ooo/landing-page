@@ -1,2 +1,2 @@
 export { useNormalizedPositions } from './useNormalizedPositions';
-export { useFundingRates } from './useFundingRates'
+export { useFundingRates, useSharedFundingRates } from './useFundingRates'

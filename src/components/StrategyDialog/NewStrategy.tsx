@@ -21,6 +21,7 @@ import {
   IconButton,
   Alert,
 } from "@mui/material";
+import { PROXY_URL } from '../../config'
 import type { IStrategy } from "../../redux/strategy/strategySlice";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -44,7 +45,7 @@ export interface NewStrategyProps {
 }
 
 const markPriceBaseUrl =
-  "http://178.128.110.139:8080/https://api.mexc.com/api/v3/ticker/price?symbol=";
+  `${PROXY_URL}/https://api.mexc.com/api/v3/ticker/price?symbol=`;
 
 function NewStrategyDialog(props: NewStrategyProps) {
   const theme = useTheme();

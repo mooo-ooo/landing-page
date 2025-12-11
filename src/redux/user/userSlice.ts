@@ -6,6 +6,7 @@ interface UserState {
     id: string;
     email: string;
     name: string;
+    username?: string;
     twoFactorEnabled: boolean;
     groupId: number;
     groupCode?: string;

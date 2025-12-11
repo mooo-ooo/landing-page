@@ -100,6 +100,7 @@ function Telegram() {
           <Typography color="textSecondary">Important group token</Typography>
           <TextField
             fullWidth
+            size="small"
             name="telePriorityToken"
             value={formData.telePriorityToken}
             onChange={handleChange}
@@ -111,6 +112,7 @@ function Telegram() {
 
           <Typography color="textSecondary">Important bot id</Typography>
           <TextField
+            size="small"
             fullWidth
             name="telePriorityId"
             value={formData.telePriorityId}
@@ -147,6 +149,7 @@ function Telegram() {
 
           <Typography color="textSecondary">Log group token</Typography>
           <TextField
+            size="small"
             fullWidth
             name="teleLogToken"
             value={formData.teleLogToken}
@@ -159,6 +162,7 @@ function Telegram() {
 
           <Typography color="textSecondary">Log bot id</Typography>
           <TextField
+            size="small"
             fullWidth
             name="teleLogId"
             value={formData.teleLogId}
@@ -201,6 +205,7 @@ function Telegram() {
           sx={{ width: "50%" }}
         >
           <TextField
+            size="small"
             label="2FA Token"
             name="token"
             sx={{ width: "250px" }}
