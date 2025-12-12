@@ -1,28 +1,35 @@
 import { useMemo, useRef, useEffect, useState, type FC } from "react";
-import { Box, Card, CardContent, Grid, Typography } from "@mui/material";
+import { Box, Card, CardContent, Grid, Typography, Divider } from "@mui/material";
 import useMediaQuery from '@mui/material/useMediaQuery'
 import PositionsTable from "../components/PositionsTable";
 import dayjs from "dayjs";
 import numeral from "numeral";
 import readableNumber from 'human-readable-numbers'
+import { yellow } from "../constants/colors";
 import { useSharedFundingRates } from "../hooks";
 import { normalizedSharedPositions } from "../hooks/useNormalizedPositions";
 import { type PostitionsState } from "../redux/positions/positionsSlice";
-import { selectBalances, type SummaryBalanceState } from "../redux/balances/balancesSlice";
+import { selectBalances } from "../redux/balances/balancesSlice";
+import type { ExchangeName } from "../types/exchange";
 import api from "../lib/axios";
 import { useSelector } from "react-redux";
 
-interface IProfile {username: string, equities: SummaryBalanceState, positions: PostitionsState}
+interface IEquity {
+  equity: number
+  available: number
+}
+
+interface IProfile {username: string, equities: Record<ExchangeName, IEquity>, positions: PostitionsState}
 
 const Share: FC = () => {
   const isWeb = useMediaQuery('(min-width:600px)')
   const balances = useSelector(selectBalances);
 
   const dashboardRef = useRef<HTMLDivElement>(null);
+  const [selectedProfile, setSelectedProfile] = useState<IProfile | null>(null);
   // const exchangeMarginRef = useRef<HTMLDivElement>(null);
   // const [dashboardWidth, setDashboardWidth] = useState<number>(0);
   // const [exchangeMarginHeight, setExchangeMarginHeight] = useState<number>(0);
-  const [sharedPosition, setSharedPosition] = useState<PostitionsState>();
   const [profiles, setProfiles] = useState<IProfile[]>([]);
 
   const exchanges = useMemo(() => {
@@ -31,9 +38,6 @@ const Share: FC = () => {
 
   
   useEffect(() => {
-    api.get(`api/v1/shared-profile/portfolio/${'xapy'}`).then(({data}) => {
-      setSharedPosition(data.positions as PostitionsState);
-    });
     api.get(`api/v1/shared-profile/portfolio`).then(({ data }) => {
       setProfiles(
         Object.keys(data).map((key) => ({
@@ -46,9 +50,9 @@ const Share: FC = () => {
   }, []);
 
   
-  const { fundingRates, loading: loadingFundingRates } = useSharedFundingRates(sharedPosition);
+  const { fundingRates, loading: loadingFundingRates } = useSharedFundingRates(selectedProfile?.positions);
   const positionsWithFunding = useMemo(() => {
-    const positions = sharedPosition ? normalizedSharedPositions(exchanges, sharedPosition) : [];
+    const positions = selectedProfile?.positions ? normalizedSharedPositions(exchanges, selectedProfile?.positions) : [];
     return positions.map((position) => {
       const updatedBuys = position.buys.map((buy) => ({
         ...buy,
@@ -72,7 +76,7 @@ const Share: FC = () => {
         sells: updatedSells,
       };
     });
-  }, [sharedPosition, fundingRates]);
+  }, [selectedProfile?.positions, fundingRates]);
 
 
   // const estimatedFundingFee = useMemo(() => {
@@ -158,13 +162,43 @@ const Share: FC = () => {
       gap="12px"
       py="16px"
     >
-      <Box mb={4 }>
+      <Typography variant="h4" mt={2} component="h1">
+        Shared Profiles
+      </Typography>
+      <Divider><Typography color="textSecondary">
+        Explore profiles shared by other users
+      </Typography></Divider>
+      
+      <Box my={1} display="flex" gap={2}>
         {profiles?.map((profile, index) => {
-          return <ProfileCard key={index} username={profile.username} equities={profile.equities} positions={profile.positions} />
+          return (
+            <Box
+              key={index}
+              onClick={() => {
+                setSelectedProfile(profile);
+              }}
+              padding={0}
+              sx={{
+                cursor: "pointer",
+                borderRadius: 2,
+                borderBottom:
+                  selectedProfile?.username === profile.username
+                    ? `3px solid ${yellow}`
+                    : "3px solid transparent",
+              }}
+            >
+              <ProfileCard
+                key={index}
+                username={profile.username}
+                equities={profile.equities}
+                positions={profile.positions}
+              />
+            </Box>
+          );
         })}
       </Box>
       {/* <Grid container spacing={4}> */}
-        {/* <Grid size={3.5}>
+      {/* <Grid size={3.5}>
           {dashboardWidth && exchangeMarginHeight ? (
             <EquitiesChart height={fixedHeight} />
           ) : null}
@@ -185,7 +219,7 @@ const Share: FC = () => {
           </div>
         </Grid>
       </Grid> */}
-      
+
       <PositionsTable
         strategies={[]}
         positions={positionsWithFunding}
@@ -197,10 +231,26 @@ const Share: FC = () => {
   );
 };
 
+const getFundlevelImage = (equity: number) => {
+  if (equity >= 1000000) {
+    return '/whale.png';
+  }
+  if (equity >= 100000) {
+    return '/shark.png';
+  }
+  if (equity >= 10000) {
+    return '/octopus.png';
+  }
+  if (equity >= 1000) {
+    return '/crab.png';
+  }
+  return '/crab.png';
+};
+
 const ProfileCard: FC<IProfile> = ({ username, equities, positions }) => {
   const mockLastUpdate = Date.now().toString();
-  const totalEquity = Object.values(equities).reduce((tot, { total }) => {
-    return tot + total;
+  const totalEquity = Object.values(equities).reduce((tot, { equity }) => {
+    return tot + equity;
   }, 0);
   const totalVol = Object.values(positions).flat().reduce(
     (tot, { size, markPrice }) => {
@@ -214,7 +264,6 @@ const ProfileCard: FC<IProfile> = ({ username, equities, positions }) => {
       elevation={6}
       key={username}
       sx={{
-        mb: 2,
         backgroundColor: "#0d1117", // Darker card background
         border: "1px solid #30363d",
         color: "white",
@@ -224,19 +273,26 @@ const ProfileCard: FC<IProfile> = ({ username, equities, positions }) => {
       <CardContent>
         <Grid container spacing={1}>
           {/* 1. Datetime & Type (Often prominent info) */}
-          <Grid size={6}>
-            <Box display="flex" justifyContent="space-between">
-              <Typography variant="body2" fontWeight="bold">
-                {dayjs(new Date(Number(mockLastUpdate))).format("DD/MM/YYYY HH:mm")}
-              </Typography>
-              <Typography variant="body2" textTransform="capitalize">
-                {username}
-              </Typography>
-            </Box>
-          </Grid>
+          <CardItem
+            size={4}
+            label="updated at"
+            valueComponent={
+              <Box display="flex" alignItems="center" gap={0.5}>
+                <Typography>{dayjs(new Date(Number(mockLastUpdate))).format("HH:mm")}</Typography>
+              </Box>
+            }
+          />
+
+          <CardItem
+            size={4}
+            label="username"
+            valueComponent={
+              <Typography variant="body2" fontWeight="bold">{username}</Typography>
+            }
+          />
 
           {/* 2. Status (Often needs prominence) */}
-          <Grid size={6}>
+          <Grid size={4}>
             <Box display="flex" justifyContent="flex-end" alignItems="center">
               <Box
                 sx={{
@@ -245,15 +301,12 @@ const ProfileCard: FC<IProfile> = ({ username, equities, positions }) => {
                   padding: "4px 8px",
                 }}
               >
-                <Typography
-                  variant="caption"
-                  fontWeight="bold"
-                  sx={{
-                    color: "white",
-                  }}
-                >
-                  whale
-                </Typography>
+                <img
+                  src={getFundlevelImage(totalEquity)}
+                  width={40}
+                  height={40}
+                  alt="Currency icon"
+                />
               </Box>
             </Box>
           </Grid>
