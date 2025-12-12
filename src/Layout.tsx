@@ -439,6 +439,12 @@ function Layout() {
                   Strategies
                 </LinkStyled>
                 <LinkStyled
+                  to="/shared-profile"
+                  isActive={location.pathname === "/shared-profile"}
+                >
+                  Shared Profile
+                </LinkStyled>
+                <LinkStyled
                   to="/tools"
                   isActive={location.pathname === "/signal"}
                 >

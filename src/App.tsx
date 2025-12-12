@@ -15,7 +15,7 @@ import Fundings from "./pages/Fundings";
 import Strategies from "./pages/Strategies";
 import TwoFactorAuth from "./pages/TwoFactorAuth";
 import TwoFactorVerify from "./pages/TwoFactorVerify";
-import Share from "./pages/Share";
+import SharedProfile from "./pages/SharedProfile";
 import { green } from "./constants/colors";
 import ApiKeys from "./pages/ApiKeys";
 const Orderbooks = lazy(() => import("./pages/Orderbooks/Container"));
@@ -58,7 +58,7 @@ function App() {
                   <Route index element={<Dashboard />} />
                   <Route path="/2fa" element={<TwoFactorAuth />} />
                   <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/shared" element={<Share />} />
+                  <Route path="/shared-profile" element={<SharedProfile />} />
                   <Route path="/wallets" element={<Wallets />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/strategies" element={<Strategies />} />

@@ -1,6 +1,4 @@
-import { useState } from "react";
-// import { AxiosError } from "axios";
-// import api from "../../lib/axios";
+import { useEffect, useState } from "react";
 import {
   Typography,
   Box,
@@ -17,14 +15,23 @@ import { useSelector } from "react-redux";
 import { selectGroup } from "../../redux/group/groupSlice";
 import { selectUser } from "../../redux/user/userSlice";
 import { enqueueSnackbar } from "notistack";
+import ShareProfileConfirmationDialog from "../../components/ProfileDialog/ShareProfileConfirmationDialog";
 
 
 
 function Profile() {
+  const [openShareProfileDialog, setOpenShareProfileDialog] = useState(false);
   const user = useSelector(selectUser);
   const groupStore = useSelector(selectGroup);
   const [isAllowedSharePortfolio, setIsAllowedSharePortfolio] = useState<boolean>(groupStore.isAllowedSharePortfolio || false);
 
+  const handleToggleSharePortfolio = async () => {
+    setOpenShareProfileDialog(true);
+  }
+
+  useEffect(() => {
+    setIsAllowedSharePortfolio(groupStore.isAllowedSharePortfolio || false);
+  }, [groupStore.isAllowedSharePortfolio]);
   return (
     <Box
       maxWidth="lg"
@@ -47,8 +54,8 @@ function Profile() {
             <Switch
               color="success"
               checked={isAllowedSharePortfolio}
-              onChange={(e) => {
-                setIsAllowedSharePortfolio(e.target.checked);
+              onChange={() => {
+                handleToggleSharePortfolio();
               }}
             />
           }
@@ -125,6 +132,7 @@ function Profile() {
           </Typography>
         </Grid>
       </Grid>
+      <ShareProfileConfirmationDialog allowed={!isAllowedSharePortfolio} open={openShareProfileDialog} onClose={() => setOpenShareProfileDialog(false)} />
     </Box>
   );
 }
