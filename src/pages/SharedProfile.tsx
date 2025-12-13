@@ -197,29 +197,30 @@ const Share: FC = () => {
         </Typography>
       </Divider>
 
-      <Box my={1} display="flex" gap={2}>
+      <Grid container spacing={2}>
         {profiles?.map((profile, index) => {
           return (
-            <Box
+            <Grid
               key={index}
               onClick={() => {
                 setSelectedProfile(profile);
               }}
+              size={3}
               padding={0}
               sx={{
                 cursor: "pointer",
                 borderRadius: 2,
                 borderBottom:
                   selectedProfile?.username === profile.username
-                    ? `3px solid ${yellow}`
+                    ? `3px solid #009688`
                     : "3px solid transparent",
               }}
             >
               <ProfileCard key={index} {...profile} />
-            </Box>
+            </Grid>
           );
         })}
-      </Box>
+      </Grid>
 
       <PositionsTable
         strategies={[]}
@@ -267,17 +268,16 @@ const ProfileCard: FC<IProfile> = ({
 
   return (
     <Card
-      elevation={6}
+      elevation={0}
       key={username}
       sx={{
         backgroundColor: "#0d1117", // Darker card background
         border: "1px solid #30363d",
         color: "white",
-        maxWidth: "300px",
       }}
     >
       <CardContent>
-        <Grid container spacing={1}>
+        <Grid container >
           {/* 1. Datetime & Type (Often prominent info) */}
           <CardItem
             size={4}
@@ -375,13 +375,16 @@ const ProfileCard: FC<IProfile> = ({
               ]}
               yAxis={[
                 {
-                  tickMinStep: 10, // Đảm bảo khoảng cách giá trị giữa các tick ít nhất là 10
+                  disableLine: true,
+                  disableTicks: true,
+                  tickLabelInterval: () => false,
+                  tickMinStep: 10,
                 },
               ]}
               xAxis={[
                 {
                   disableLine: true,
-                  disableTicks: true, // Ẩn các dấu tick
+                  disableTicks: true,
                   tickLabelInterval: () => false,
                   scaleType: "point",
                   data: rewardHistory.map(({ date }) => date),
