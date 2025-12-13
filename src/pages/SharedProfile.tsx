@@ -11,7 +11,6 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import PositionsTable from "../components/PositionsTable";
 import numeral from "numeral";
 import readableNumber from "human-readable-numbers";
-import { yellow } from "../constants/colors";
 import { useSharedFundingRates } from "../hooks";
 import { calculateDaysBack } from "../helpers";
 import { normalizedSharedPositions } from "../hooks/useNormalizedPositions";
