@@ -160,7 +160,7 @@ const Fundings: FC = () => {
     if (baseTok) params.append('baseToken', baseTok);
     if (sortBy) params.append('sortBy', sortBy);
     if (sortBy) params.append('order', order);
-    const url = `/api/v1/account/funding-fees?${params.toString()}`;
+    const url = `/api/v1/funding-fees?${params.toString()}`;
     // Prevent duplicate requests
     if (lastRequestRef.current === url) return;
     lastRequestRef.current = url;

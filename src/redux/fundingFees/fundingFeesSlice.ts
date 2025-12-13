@@ -18,7 +18,7 @@ export const fetchLast7Days = createAsyncThunk(
   async () => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     // 1. Destructure 'data' from the response for cleaner access.
-    return api.get(`/api/v1/account/funding-fees/last-7-days?tz=${tz}&fromDate=${Date.now()}`)
+    return api.get(`/api/v1/funding-fees/last-7-days?tz=${tz}&fromDate=${Date.now()}`)
     .then((result: { data: { fundingByDay: Record<string, number> } }) => {
       if (
         result.data?.fundingByDay &&
