@@ -19,6 +19,7 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import PositionsTable from "../components/PositionsTable";
 import { selectStrategies } from "../redux/strategy/strategySlice";
 import SortIcon from "@mui/icons-material/Sort";
+import { useTheme } from "@mui/material/styles";
 import numeral from "numeral";
 import readableNumber from "human-readable-numbers";
 import { useSharedFundingRates } from "../hooks";
@@ -51,9 +52,11 @@ interface IProfile {
 const filterBy = ["Fund", "Apr", "Earned", "Volume"];
 
 const Share: FC = () => {
+  const theme = useTheme();
   const isWeb = useMediaQuery("(min-width:600px)");
   const balances = useSelector(selectBalances);
   const strategies = useSelector(selectStrategies);
+  const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSort, setSelectedSort] = useState<string>("fund");
@@ -232,6 +235,9 @@ const Share: FC = () => {
         </Grid>
       )}
       <Dialog
+        fullScreen={fullScreen}
+        sx={{ "& .MuiDialog-paper": { width: "650px" } }}
+        maxWidth="xl"
         open={selectedProfile !== null}
         onClose={() => setSelectedProfile(null)}
       >
@@ -251,7 +257,7 @@ const Share: FC = () => {
           <CloseIcon />
         </IconButton>
         <DialogContent
-          sx={{ maxHeight: isWeb ? "80vh" : "90vh", background: "#1e2026" }}
+          sx={{ padding: isWeb ? 'inherit' : 0, maxHeight: isWeb ? "80vh" : "90vh", background: "#1e2026" }}
         >
           <PositionsTable
             strategies={strategies}
