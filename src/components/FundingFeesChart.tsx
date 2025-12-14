@@ -16,12 +16,14 @@ interface FundingFeesChartProps {
   width?: number;
   height?: number;
   estimatedFundingFee: number;
+  loadingFundingRates?: boolean;
 }
 
 const FundingFeesChart: FC<FundingFeesChartProps> = ({
   estimatedFundingFee,
   height,
   width,
+  loadingFundingRates
 }) => {
   const balances = useSelector(selectBalances);
   const rewardHistory = useSelector(selectFundingLast7days);
@@ -40,10 +42,14 @@ const FundingFeesChart: FC<FundingFeesChartProps> = ({
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Box display="flex" alignItems="center">
             <Typography mr={1}>Est.funding:</Typography>
-            <img height={16} src="/usdt.png" />
-            <Typography ml={0.5}>
-              {numeral(estimatedFundingFee).format("0,0")}
-            </Typography>
+            <Box mr={0.5} display='flex' alignItems='center'><img height={16} src="/usdt.png" /></Box>
+            {loadingFundingRates ? (
+              <Skeleton animation="wave" width={50} />
+            ) : (
+              <Typography>
+                {numeral(estimatedFundingFee).format("0,0")}
+              </Typography>
+            )}
           </Box>
           <Typography>APY: {numeral(apy * 100).format("0,0")}%</Typography>
         </Box>

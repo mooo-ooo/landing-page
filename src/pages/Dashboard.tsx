@@ -160,6 +160,7 @@ const Dashboard: FC = () => {
               width={dashboardWidth / (12 / 3.5) || 250}
               height={fixedHeight}
               estimatedFundingFee={estimatedFundingFee}
+              loadingFundingRates={loadingFundingRates}
             />
           ) : null}
         </Grid>
