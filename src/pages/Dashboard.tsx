@@ -122,6 +122,7 @@ const Dashboard: FC = () => {
       <FundingFeesChart
         width={dashboardWidth}
         height={300}
+        loadingFundingRates={loadingFundingRates}
         estimatedFundingFee={estimatedFundingFee}
       />
       {isWeb ? <ExchangeMargin /> : <ExchangeMarginMobile />}
