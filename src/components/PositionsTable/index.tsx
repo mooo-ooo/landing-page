@@ -62,8 +62,7 @@ function Positions({
     baseToken: string;
   }[];
 }) {
-  const isWebQuery = useMediaQuery("(min-width:600px)");
-  const isWeb = isSharedView ? false : isWebQuery;
+  const isWeb = useMediaQuery("(min-width:600px)");
   const balances = useSelector(selectBalances);
   const equity = Object.values(balances).reduce(
     (tot, { total = 0 }) => tot + total,

@@ -5,7 +5,6 @@ import {
   CardContent,
   Grid,
   Typography,
-  Divider,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -18,10 +17,10 @@ import {
 } from "@mui/material";
 import { green } from "../constants/colors";
 import CloseIcon from "@mui/icons-material/Close";
+import { Sort as SortIcon } from "@mui/icons-material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import PositionsTable from "../components/PositionsTable";
 import { selectStrategies } from "../redux/strategy/strategySlice";
-import { useTheme } from "@mui/material/styles";
 import numeral from "numeral";
 import readableNumber from "human-readable-numbers";
 import { useSharedFundingRates } from "../hooks";
@@ -54,11 +53,9 @@ interface IProfile {
 const filterBy = ["Fund", "Apr", "Earned", "Volume"];
 
 const Share: FC = () => {
-  const theme = useTheme();
   const isWeb = useMediaQuery("(min-width:600px)");
   const balances = useSelector(selectBalances);
   const strategies = useSelector(selectStrategies);
-  const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSort, setSelectedSort] = useState<string>("fund");
@@ -121,50 +118,22 @@ const Share: FC = () => {
     });
   }, [selectedProfile?.positions, fundingRates]);
 
-  // const estimatedFundingFee = useMemo(() => {
-  //   return positionsWithFunding
-  //     .map(({ buys, sells }) => {
-  //       return [...buys, ...sells];
-  //     })
-  //     .flat()
-  //     .reduce((tot, cur) => {
-  //       return (
-  //         tot +
-  //         cur.markPrice *
-  //           cur.size *
-  //           (cur.fundingRate || 0) *
-  //           (cur.side === "sell" ? 1 : -1)
-  //       );
-  //     }, 0);
-  // }, [positionsWithFunding]);
-
-  // const Mobile = (
-  //   <Box
-  //     ref={dashboardRef}
-  //     display="flex"
-  //     flexDirection="column"
-  //     gap="12px"
-  //     py="16px"
-  //   >
-  //     {/* <FundingFeesChart
-  //       width={dashboardWidth}
-  //       height={300}
-  //       estimatedFundingFee={estimatedFundingFee}
-  //     />
-  //     {isWeb ? <ExchangeMargin /> : <ExchangeMarginMobile />} */}
-  //     <PositionsTable
-  //       strategies={[]}
-  //       positions={positionsWithFunding}
-  //       loadingFundingRates={loadingFundingRates}
-  //       exchanges={exchanges}
-  //       error={null}
-  //     />
-  //   </Box>
-  // );
-
-  // if (!isWeb) {
-  //   return Mobile;
-  // }
+  const estimatedFundingFee = useMemo(() => {
+    return positionsWithFunding
+      .map(({ buys, sells }) => {
+        return [...buys, ...sells];
+      })
+      .flat()
+      .reduce((tot, cur) => {
+        return (
+          tot +
+          cur.markPrice *
+            cur.size *
+            (cur.fundingRate || 0) *
+            (cur.side === "sell" ? 1 : -1)
+        );
+      }, 0);
+  }, [positionsWithFunding]);
 
   return (
     <Box display="flex" flexDirection="column" gap="12px" py="16px">
@@ -176,11 +145,6 @@ const Share: FC = () => {
         Past performance does not indicate future results. Actual profit and
         loss may vary with market conditions.
       </Typography>
-      <Divider>
-        <Typography color="textSecondary">
-          Explore profiles shared by other users
-        </Typography>
-      </Divider>
       <Box height={16} />
 
       <Box
@@ -189,9 +153,21 @@ const Share: FC = () => {
         width="100%"
         alignItems="center"
       >
-        <Box display="flex" width="100%" alignItems="center" justifyContent='space-between'>
+        <Box
+          display="flex"
+          gap={4}
+          flexDirection={isWeb ? 'row' : 'column'} 
+          width="100%"
+          // alignItems="center"
+          justifyContent="space-between"
+        >
           <Box display="flex" alignItems="center">
-            <Stack direction="row" spacing={isWeb ? 2 : 0.5} alignItems="center">
+            <SortIcon sx={{ mr: 1 }} />
+            <Stack
+              direction="row"
+              spacing={isWeb ? 2 : 0.5}
+              alignItems="center"
+            >
               {filterBy.map((filter) => (
                 <Chip
                   key={filter}
@@ -202,33 +178,40 @@ const Share: FC = () => {
               ))}
             </Stack>
           </Box>
-          
-          <Autocomplete
-            freeSolo
-            sx={{ width: isWeb ? 300 : 150 }}
-            options={profiles.map((option) => option.username)}
-            onChange={(_, newValue: string | null) => {
-              const foundProfile = profiles.find((profile) => profile.username === newValue);
-              if (foundProfile) {
-                setSelectedProfile(foundProfile);
-              } else {
-                setSelectedProfile(null);
-              }
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Search username"
-                slotProps={{
-                  input: {
-                    ...params.InputProps,
-                    // size: "small",
-                    type: 'search',
-                  },
-                }}
-              />
-            )}
-          />
+
+          <Box display='flex' justifyContent='space-between' alignItems='center'>
+            {!isWeb ? <Typography mb={1} color="textSecondary">
+              Search by username
+            </Typography> : null}
+            <Autocomplete
+              freeSolo
+              sx={{ width: isWeb ? 300 : 150 }}
+              options={profiles.map((option) => option.username)}
+              onChange={(_, newValue: string | null) => {
+                const foundProfile = profiles.find(
+                  (profile) => profile.username === newValue
+                );
+                if (foundProfile) {
+                  setSelectedProfile(foundProfile);
+                } else {
+                  setSelectedProfile(null);
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={isWeb ? "Search username" : null}
+                  slotProps={{
+                    input: {
+                      ...params.InputProps,
+                      // size: "small",
+                      type: "search",
+                    },
+                  }}
+                />
+              )}
+            />
+          </Box>
         </Box>
       </Box>
 
@@ -265,9 +248,7 @@ const Share: FC = () => {
         </Grid>
       )}
       <Dialog
-        fullScreen={fullScreen}
-        sx={{ "& .MuiDialog-paper": { width: "650px" } }}
-        maxWidth="xl"
+        fullScreen={true}
         open={selectedProfile !== null}
         onClose={() => setSelectedProfile(null)}
       >
@@ -287,8 +268,26 @@ const Share: FC = () => {
           <CloseIcon />
         </IconButton>
         <DialogContent
-          sx={{ padding: isWeb ? 'inherit' : 0, maxHeight: isWeb ? "80vh" : "90vh", background: "#1e2026" }}
+          sx={{
+            padding: 0,
+            maxHeight: isWeb ? "100vh" : "90vh",
+            background: "#1e2026",
+          }}
         >
+          <Box ml={3} display="flex" alignItems="center" gap={1} mb={2}>
+            <Typography>
+            Estimated next funding fee:{" "}
+            {numeral(estimatedFundingFee).format("0,0.00")}
+            
+          </Typography>
+          <img
+              src={`https://assets.coincap.io/assets/icons/usdt@2x.png`}
+              width={20}
+              height={20}
+              alt="Currency icon"
+            />
+          </Box>
+          
           <PositionsTable
             strategies={strategies}
             positions={positionsWithFunding}
