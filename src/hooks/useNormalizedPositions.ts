@@ -164,7 +164,6 @@ export const useNormalizedPositions = (selectedExchanges: string[] = []) => {
  * Normalizes and filters a set of shared positions (PostitionsState).
  */
 export const normalizedSharedPositions = (
-  selectedExchanges: string[] = [],
   sharedPosition: PostitionsState
 ) => {
   // 1. Flatten all exchange positions and enrich with exchange name
@@ -192,5 +191,5 @@ export const normalizedSharedPositions = (
   );
 
   // 4. Apply filtering
-  return filterNormalizedPositions(groupedArray, selectedExchanges);
+  return groupedArray;
 };

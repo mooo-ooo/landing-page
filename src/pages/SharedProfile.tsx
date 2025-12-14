@@ -13,12 +13,14 @@ import {
   IconButton,
   Chip,
   Skeleton,
+  Autocomplete,
+  TextField
 } from "@mui/material";
+import { green } from "../constants/colors";
 import CloseIcon from "@mui/icons-material/Close";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import PositionsTable from "../components/PositionsTable";
 import { selectStrategies } from "../redux/strategy/strategySlice";
-import SortIcon from "@mui/icons-material/Sort";
 import { useTheme } from "@mui/material/styles";
 import numeral from "numeral";
 import readableNumber from "human-readable-numbers";
@@ -92,7 +94,7 @@ const Share: FC = () => {
   );
   const positionsWithFunding = useMemo(() => {
     const positions = selectedProfile?.positions
-      ? normalizedSharedPositions(exchanges, selectedProfile?.positions)
+      ? normalizedSharedPositions(selectedProfile?.positions)
       : [];
     return positions.map((position) => {
       const updatedBuys = position.buys.map((buy) => ({
@@ -188,17 +190,45 @@ const Share: FC = () => {
         alignItems="center"
       >
         <Box display="flex" width="100%" alignItems="center" justifyContent='space-between'>
-          <SortIcon />
-          <Stack direction="row" spacing={1}>
-            {filterBy.map((filter) => (
-              <Chip
-                key={filter}
-                label={filter}
-                variant={selectedSort === filter ? "outlined" : "filled"}
-                onClick={() => setSelectedSort(filter)}
+          <Box display="flex" alignItems="center">
+            <Stack direction="row" spacing={isWeb ? 2 : 0.5} alignItems="center">
+              {filterBy.map((filter) => (
+                <Chip
+                  key={filter}
+                  label={filter}
+                  variant={selectedSort === filter ? "outlined" : "filled"}
+                  onClick={() => setSelectedSort(filter)}
+                />
+              ))}
+            </Stack>
+          </Box>
+          
+          <Autocomplete
+            freeSolo
+            sx={{ width: isWeb ? 300 : 150 }}
+            options={profiles.map((option) => option.username)}
+            onChange={(_, newValue: string | null) => {
+              const foundProfile = profiles.find((profile) => profile.username === newValue);
+              if (foundProfile) {
+                setSelectedProfile(foundProfile);
+              } else {
+                setSelectedProfile(null);
+              }
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Search username"
+                slotProps={{
+                  input: {
+                    ...params.InputProps,
+                    // size: "small",
+                    type: 'search',
+                  },
+                }}
               />
-            ))}
-          </Stack>
+            )}
+          />
         </Box>
       </Box>
 
@@ -308,7 +338,7 @@ const ProfileCard: FC<IProfile> = ({
 
   return (
     <Card
-      elevation={0}
+      elevation={1}
       key={username}
       sx={{
         backgroundColor: "#0d1117", // Darker card background
@@ -333,9 +363,9 @@ const ProfileCard: FC<IProfile> = ({
 
           <CardItem
             size={4}
-            label="username"
+            label="Username"
             valueComponent={
-              <Typography variant="body2" fontWeight="bold">
+              <Typography variant="h6" fontWeight="bold">
                 {username}
               </Typography>
             }
@@ -353,21 +383,21 @@ const ProfileCard: FC<IProfile> = ({
               >
                 <img
                   src={getFundlevelImage(totalEquity)}
-                  width={40}
-                  height={40}
+                  width={30}
+                  height={30}
                   alt="Currency icon"
                 />
               </Box>
             </Box>
           </Grid>
           <Grid size={12}>
-            <hr style={{ border: "1px solid #30363d", margin: "8px 0" }} />
+            <hr style={{ border: "1px solid #30363d" }} />
           </Grid>
 
           {/* 4. To Address */}
           <CardItem
-            size={6}
-            label="Accrued Pnl (30d)"
+            size={8}
+            label="Accumulated Pnl (30d)"
             valueComponent={
               <Box display="flex" alignItems="center" gap={0.5}>
                 <img
@@ -385,10 +415,10 @@ const ProfileCard: FC<IProfile> = ({
 
           {/* 5. APR */}
           <CardItem
-            size={6}
+            size={4}
             label="APR (30d)"
             valueComponent={
-              <Typography>
+              <Typography color={green}>
                 {numeral(
                   (((365 / 30) * earnedFundingFees.totalFees) / totalEquity) *
                     100
@@ -491,7 +521,7 @@ const ChartGradient = () => {
         gradientUnits="userSpaceOnUse"
       >
         <stop offset="30%" stopColor="rgb(14, 203, 129" stopOpacity={1} />
-        <stop offset="100%" stopColor="#fff" stopOpacity={0.01} />
+        <stop offset="100%" stopColor="rgba(255, 255, 255, 0.13)" stopOpacity={0} />
       </linearGradient>
     </defs>
   );
@@ -506,8 +536,8 @@ const CardItem = ({
   valueComponent: React.ReactNode;
   size?: number;
 }) => (
-  <Grid size={size} sx={{ mb: 1 }}>
-    <Typography variant="caption" color="text.secondary">
+  <Grid size={size}>
+    <Typography variant="subtitle2" color="rgba(255, 255, 255, 0.4)">
       {label}
     </Typography>
     <Box sx={{ mt: 0.5 }}>{valueComponent}</Box>
