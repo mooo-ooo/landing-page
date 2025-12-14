@@ -49,10 +49,12 @@ function Positions({
   exchanges,
   error,
   strategies,
+  isSharedView = false,
 }: {
   strategies: IStrategy[];
   error: string | null;
   exchanges: string[];
+  isSharedView?: boolean;
   loadingFundingRates: boolean;
   positions: {
     buys: IPosition[];
@@ -60,7 +62,8 @@ function Positions({
     baseToken: string;
   }[];
 }) {
-  const isWeb = useMediaQuery("(min-width:600px)");
+  const isWebQuery = useMediaQuery("(min-width:600px)");
+  const isWeb = isSharedView ? false : isWebQuery;
   const balances = useSelector(selectBalances);
   const equity = Object.values(balances).reduce(
     (tot, { total = 0 }) => tot + total,
@@ -161,7 +164,7 @@ function Positions({
           border: "1px solid #30363d",
         }}
       >
-        <Accordion>
+        {!isSharedView ? <Accordion>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="panel1-content"
@@ -218,7 +221,7 @@ function Positions({
               ))}
             </Stack>
           </AccordionDetails>
-        </Accordion>
+        </Accordion> : null}
         <Table>
           <TableHead
             sx={{

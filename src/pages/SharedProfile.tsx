@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect, useState, type FC } from "react";
+import { useMemo, useEffect, useState, type FC } from "react";
 import {
   Box,
   Card,
@@ -6,9 +6,19 @@ import {
   Grid,
   Typography,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Stack,
+  IconButton,
+  Chip,
+  Skeleton,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import PositionsTable from "../components/PositionsTable";
+import { selectStrategies } from "../redux/strategy/strategySlice";
+import SortIcon from "@mui/icons-material/Sort";
 import numeral from "numeral";
 import readableNumber from "human-readable-numbers";
 import { useSharedFundingRates } from "../hooks";
@@ -19,9 +29,7 @@ import { selectBalances } from "../redux/balances/balancesSlice";
 import type { ExchangeName } from "../types/exchange";
 import api from "../lib/axios";
 import { useSelector } from "react-redux";
-import {
-  LineChart,
-} from "@mui/x-charts";
+import { LineChart } from "@mui/x-charts";
 import { useDrawingArea } from "@mui/x-charts/hooks";
 
 interface IEquity {
@@ -40,11 +48,15 @@ interface IProfile {
   };
 }
 
+const filterBy = ["Fund", "Apr", "Earned", "Volume"];
+
 const Share: FC = () => {
   const isWeb = useMediaQuery("(min-width:600px)");
   const balances = useSelector(selectBalances);
+  const strategies = useSelector(selectStrategies);
 
-  const dashboardRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedSort, setSelectedSort] = useState<string>("fund");
   const [selectedProfile, setSelectedProfile] = useState<IProfile | null>(null);
   const [profiles, setProfiles] = useState<IProfile[]>([]);
 
@@ -53,17 +65,23 @@ const Share: FC = () => {
   }, [balances]);
 
   useEffect(() => {
-    api.get(`api/v1/shared-profile/portfolio`).then(({ data }) => {
-      setProfiles(
-        Object.keys(data).map((key) => ({
-          username: key,
-          equities: data[key].equities || {},
-          positions: data[key].positions || {},
-          earnedFundingFees: data[key].earnedFundingFees || {},
-          createdAt: data[key].createdAt || Date.now(),
-        }))
-      );
-    });
+    setIsLoading(true);
+    api
+      .get(`api/v1/shared-profile/portfolio`)
+      .then(({ data }) => {
+        setProfiles(
+          Object.keys(data).map((key) => ({
+            username: key,
+            equities: data[key].equities || {},
+            positions: data[key].positions || {},
+            earnedFundingFees: data[key].earnedFundingFees || {},
+            createdAt: data[key].createdAt || Date.now(),
+          }))
+        );
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   const { fundingRates, loading: loadingFundingRates } = useSharedFundingRates(
@@ -115,119 +133,136 @@ const Share: FC = () => {
   //     }, 0);
   // }, [positionsWithFunding]);
 
-  // Measure dashboard width and ExchangeMargin height
-  // useEffect(() => {
-  //   const updateDimensions = () => {
-  //     if (dashboardRef.current) {
-  //       setDashboardWidth(dashboardRef.current.offsetWidth);
-  //     }
-  //   };
+  // const Mobile = (
+  //   <Box
+  //     ref={dashboardRef}
+  //     display="flex"
+  //     flexDirection="column"
+  //     gap="12px"
+  //     py="16px"
+  //   >
+  //     {/* <FundingFeesChart
+  //       width={dashboardWidth}
+  //       height={300}
+  //       estimatedFundingFee={estimatedFundingFee}
+  //     />
+  //     {isWeb ? <ExchangeMargin /> : <ExchangeMarginMobile />} */}
+  //     <PositionsTable
+  //       strategies={[]}
+  //       positions={positionsWithFunding}
+  //       loadingFundingRates={loadingFundingRates}
+  //       exchanges={exchanges}
+  //       error={null}
+  //     />
+  //   </Box>
+  // );
 
-  //   updateDimensions();
-  //   window.addEventListener("resize", updateDimensions);
-
-  //   return () => window.removeEventListener("resize", updateDimensions);
-  // }, []);
-
-  // // Measure ExchangeMargin height after it loads data
-  // useEffect(() => {
-  //   if (!exchangeMarginRef.current) return;
-
-  //   const resizeObserver = new ResizeObserver((entries) => {
-  //     for (const entry of entries) {
-  //       if (entry.target === exchangeMarginRef.current) {
-  //         setExchangeMarginHeight(entry.contentRect.height);
-  //       }
-  //     }
-  //   });
-
-  //   resizeObserver.observe(exchangeMarginRef.current);
-
-  //   return () => resizeObserver.disconnect();
-  // }, []);
-
-  // const fixedHeight =
-  //   exchangeMarginHeight > 700 || exchangeMarginHeight < 250
-  //     ? 300
-  //     : exchangeMarginHeight - 24;
-
-  const Mobile = (
-    <Box
-      ref={dashboardRef}
-      display="flex"
-      flexDirection="column"
-      gap="12px"
-      py="16px"
-    >
-      {/* <FundingFeesChart
-        width={dashboardWidth}
-        height={300}
-        estimatedFundingFee={estimatedFundingFee}
-      />
-      {isWeb ? <ExchangeMargin /> : <ExchangeMarginMobile />} */}
-      <PositionsTable
-        strategies={[]}
-        positions={positionsWithFunding}
-        loadingFundingRates={loadingFundingRates}
-        exchanges={exchanges}
-        error={null}
-      />
-    </Box>
-  );
-
-  if (!isWeb) {
-    return Mobile;
-  }
+  // if (!isWeb) {
+  //   return Mobile;
+  // }
 
   return (
-    <Box
-      ref={dashboardRef}
-      display="flex"
-      flexDirection="column"
-      gap="12px"
-      py="16px"
-    >
+    <Box display="flex" flexDirection="column" gap="12px" py="16px">
       <Typography variant="h4" mt={2} component="h1">
         Shared Profiles
+      </Typography>
+      <Typography fontStyle="italic" color="textSecondary">
+        * Apr is calculated based on funding fees earned over the last 30 days.
+        Past performance does not indicate future results. Actual profit and
+        loss may vary with market conditions.
       </Typography>
       <Divider>
         <Typography color="textSecondary">
           Explore profiles shared by other users
         </Typography>
       </Divider>
+      <Box height={16} />
 
-      <Grid container spacing={2}>
-        {profiles?.map((profile, index) => {
-          return (
-            <Grid
-              key={index}
-              onClick={() => {
-                setSelectedProfile(profile);
-              }}
-              size={3}
-              padding={0}
-              sx={{
-                cursor: "pointer",
-                borderRadius: 2,
-                borderBottom:
-                  selectedProfile?.username === profile.username
-                    ? `3px solid #009688`
-                    : "3px solid transparent",
-              }}
-            >
-              <ProfileCard key={index} {...profile} />
-            </Grid>
-          );
-        })}
-      </Grid>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        width="100%"
+        alignItems="center"
+      >
+        <Box display="flex" width="100%" alignItems="center" justifyContent='space-between'>
+          <SortIcon />
+          <Stack direction="row" spacing={1}>
+            {filterBy.map((filter) => (
+              <Chip
+                key={filter}
+                label={filter}
+                variant={selectedSort === filter ? "outlined" : "filled"}
+                onClick={() => setSelectedSort(filter)}
+              />
+            ))}
+          </Stack>
+        </Box>
+      </Box>
 
-      <PositionsTable
-        strategies={[]}
-        positions={positionsWithFunding}
-        loadingFundingRates={loadingFundingRates}
-        exchanges={exchanges}
-        error={null}
-      />
+      {isLoading ? (
+        <Box sx={{ width: "100%" }}>
+          <Skeleton height={64} />
+          <Skeleton animation="wave" height={64} />
+          <Skeleton animation={false} height={64} />
+        </Box>
+      ) : (
+        <Grid container spacing={2}>
+          {profiles?.map((profile, index) => {
+            return (
+              <Grid
+                key={index}
+                onClick={() => {
+                  setSelectedProfile(profile);
+                }}
+                size={isWeb ? 3 : 12}
+                padding={0}
+                sx={{
+                  cursor: "pointer",
+                  borderRadius: 2,
+                  borderBottom:
+                    selectedProfile?.username === profile.username
+                      ? `3px solid #009688`
+                      : "3px solid transparent",
+                }}
+              >
+                <ProfileCard key={index} {...profile} />
+              </Grid>
+            );
+          })}
+        </Grid>
+      )}
+      <Dialog
+        open={selectedProfile !== null}
+        onClose={() => setSelectedProfile(null)}
+      >
+        <DialogTitle sx={{ fontSize: 16, background: "#1e2026" }}>
+          {selectedProfile?.username}'s positions
+        </DialogTitle>
+        <IconButton
+          aria-label="close"
+          onClick={() => setSelectedProfile(null)}
+          sx={(theme) => ({
+            position: "absolute",
+            right: 8,
+            top: 8,
+            color: theme.palette.grey[500],
+          })}
+        >
+          <CloseIcon />
+        </IconButton>
+        <DialogContent
+          sx={{ maxHeight: isWeb ? "80vh" : "90vh", background: "#1e2026" }}
+        >
+          <PositionsTable
+            strategies={strategies}
+            positions={positionsWithFunding}
+            loadingFundingRates={loadingFundingRates}
+            exchanges={exchanges}
+            error={null}
+            isSharedView={true}
+          />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
@@ -276,7 +311,7 @@ const ProfileCard: FC<IProfile> = ({
       }}
     >
       <CardContent>
-        <Grid container >
+        <Grid container>
           {/* 1. Datetime & Type (Often prominent info) */}
           <CardItem
             size={4}
@@ -323,7 +358,7 @@ const ProfileCard: FC<IProfile> = ({
             <hr style={{ border: "1px solid #30363d", margin: "8px 0" }} />
           </Grid>
 
-           {/* 4. To Address */}
+          {/* 4. To Address */}
           <CardItem
             size={6}
             label="Accrued Pnl (30d)"
@@ -342,7 +377,7 @@ const ProfileCard: FC<IProfile> = ({
             }
           />
 
-          {/* 5. TxId */}
+          {/* 5. APR */}
           <CardItem
             size={6}
             label="APR (30d)"
@@ -357,6 +392,7 @@ const ProfileCard: FC<IProfile> = ({
             }
           />
 
+          {/* Chart */}
           <Grid size={12}>
             <LineChart
               height={120}
@@ -394,7 +430,7 @@ const ProfileCard: FC<IProfile> = ({
             </LineChart>
           </Grid>
 
-          {/* 3. Amount, Exchange, Chain */}
+          {/* 3. Equity */}
           <CardItem
             size={5}
             label="Equity"
@@ -428,8 +464,6 @@ const ProfileCard: FC<IProfile> = ({
               </Typography>
             }
           />
-
-         
         </Grid>
       </CardContent>
     </Card>
