@@ -407,6 +407,13 @@ function Layout() {
             </ListItemButton>
           </LinkStyled>
         </ListItem>
+        <ListItem disablePadding>
+          <LinkStyled to="/shared-profile">
+            <ListItemButton>
+              <Typography fontSize={16}>Shared Profile</Typography>
+            </ListItemButton>
+          </LinkStyled>
+        </ListItem>
         <Divider />
         <ListItem disablePadding>
           <ListItemButton onClick={handleLogout}>
@@ -438,12 +445,7 @@ function Layout() {
                 >
                   Strategies
                 </LinkStyled>
-                <LinkStyled
-                  to="/shared-profile"
-                  isActive={location.pathname === "/shared-profile"}
-                >
-                  Shared Profile
-                </LinkStyled>
+                
                 <LinkStyled
                   to="/tools"
                   isActive={location.pathname === "/signal"}
@@ -467,6 +469,12 @@ function Layout() {
                   isActive={location.pathname === "/fundings"}
                 >
                   Funding Fees
+                </LinkStyled>
+                <LinkStyled
+                  to="/shared-profile"
+                  isActive={location.pathname === "/shared-profile"}
+                >
+                  Shared Profile
                 </LinkStyled>
               </Box>
               <Box sx={{ flexGrow: 1 }} />
