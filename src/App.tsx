@@ -12,7 +12,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Wallets from "./pages/Wallets";
 import Fundings from "./pages/Fundings";
-import Landing from "./pages/Landing";
+import LandingPage from "./pages/LandingPage";
 import Strategies from "./pages/Strategies";
 import TwoFactorAuth from "./pages/TwoFactorAuth";
 import TwoFactorVerify from "./pages/TwoFactorVerify";
@@ -52,7 +52,7 @@ function App() {
             <Suspense fallback={<>loading...</>}>
               <Routes>
                 <Route path="/login" element={<Login />} />
-                <Route path="/landing" element={<Landing />} />
+                <Route path="/landing" element={<LandingPage />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/2fa-verify" element={<TwoFactorVerify />} />
 

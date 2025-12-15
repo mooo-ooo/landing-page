@@ -8,6 +8,7 @@ import {
   Grid,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import SharedProfile from "./SharedProfile";
 
 export const red = "rgb(246, 70, 93)";
 export const green = "rgb(14, 203, 129)";
@@ -47,6 +48,7 @@ const LandingPageHeader = () => {
           flexGrow: 1,
           minHeight: "100vh",
           backgroundColor: "rgb(13, 13, 13)",
+          paddingBottom: 10
         }}
       >
         {/* --- 2. Navigation Bar (AppBar) --- */}
@@ -67,6 +69,7 @@ const LandingPageHeader = () => {
             >
               {navItems.map((item) => (
                 <Button
+                  color="inherit"
                   key={item}
                   sx={{ mx: 1, textTransform: "none", fontWeight: 500 }}
                 >
@@ -213,6 +216,9 @@ const LandingPageHeader = () => {
               return <Box><img style={{ height: '32px'}} src={`/exchanges/${exchange}.png`} /></Box>
             })}
           </Box>
+        </Container>
+        <Container maxWidth="lg" sx={{ background: 'linear-gradient(180deg,#0f0f0fa6 10%,#242323)', pt: 10, pb: 5, mt: 10 }}>
+          <SharedProfile />
         </Container>
       </Box>
     </ThemeProvider>
