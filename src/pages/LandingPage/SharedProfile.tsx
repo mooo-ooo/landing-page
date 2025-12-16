@@ -60,7 +60,7 @@ const Share: FC = () => {
     setIsLoading(true);
     console.log('debiug')
     api
-      .get(`api/v1/shared-profile/portfolio`)
+      .get(`api/v1/public/portfolio`)
       .then(({ data }) => {
         setProfiles(
           Object.keys(data).filter(key => key === 'xapy').map((key) => ({
@@ -76,8 +76,6 @@ const Share: FC = () => {
         setIsLoading(false);
       });
   }, []);
-
-  console.log({profiles})
 
   const { fundingRates, loading: loadingFundingRates } = useSharedFundingRates(
     selectedProfile?.positions
@@ -157,7 +155,7 @@ const Share: FC = () => {
               fontWeight: 500,
             }}
           >
-            View a real shared portfolio, data is snapshotted every 5 minutes,
+            View a real shared portfolio, data is snapshotted every 1 hour,
             click to view his detailed positions.
           </Typography>
 

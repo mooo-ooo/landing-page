@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import SharedProfile from "./SharedProfile";
+import Features from './Features'
 
 export const red = "rgb(246, 70, 93)";
 export const green = "rgb(14, 203, 129)";
@@ -88,9 +89,6 @@ const LandingPageHeader = () => {
                   color: "#ffffff",
                   textTransform: "none",
                   fontWeight: 600,
-                  // '&:hover': {
-                  //   bgcolor: 'rgb(14, 203, 129)', // A slightly lighter green on hover
-                  // }
                 }}
               >
                 Launch App
@@ -186,7 +184,7 @@ const LandingPageHeader = () => {
             position='absolute'
             top='10px'
             sx={{
-              color: darkTheme.palette.text.secondary,
+              color: 'white',
               fontWeight: 800,
               mt: 3,
               mb: 1.5,
@@ -220,6 +218,43 @@ const LandingPageHeader = () => {
         <Container maxWidth="lg" sx={{ background: 'linear-gradient(180deg,#0f0f0fa6 10%,#242323)', pt: 10, pb: 5, mt: 10 }}>
           <SharedProfile />
         </Container>
+        <Container maxWidth="lg" sx={{ pb: 5, mt: 10 }}>
+          <Typography
+            variant="h3"
+            component="h2"
+            textAlign="center"
+            width='100%'
+            sx={{
+              color: 'white',
+              fontWeight: 800,
+              mt: 3,
+              mb: 4,
+              px: { xs: 0, sm: 4, md: 8 },
+            }}
+          >
+            Features
+          </Typography>
+          <Features />
+        </Container>
+        <Container maxWidth="lg" sx={{ pb: 5, mt: 10 }}>
+            <Box display='flex' flexDirection='column' gap={12} alignItems='center'>
+              <Typography
+                variant="h5"
+                textAlign='center'
+                sx={{
+                  // color: darkTheme.palette.text.secondary,
+                  mt: 3,
+                  mb: 1.5,
+                  px: { xs: 0, sm: 4, md: 8 },
+                }}
+              >
+                We engineer proprietary systems tailored to your needs. If you want to run the system on your own server, customize the UI, or implement your own unique ideas, contact us now.
+              </Typography>
+              <img style={{ maxWidth: '650px'}} src="/underline.png" />
+            </Box>
+            
+        </Container>
+        
       </Box>
     </ThemeProvider>
   );
