@@ -6,10 +6,14 @@ import {
   Box,
   Container,
   Grid,
+  Stack,
 } from "@mui/material";
+import MarkunreadIcon from '@mui/icons-material/Markunread';
+import TelegramIcon from "@mui/icons-material/Telegram";
+import YouTubeIcon from "@mui/icons-material/YouTube";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import SharedProfile from "./SharedProfile";
-import Features from './Features'
+import Features from "./Features";
 
 export const red = "rgb(246, 70, 93)";
 export const green = "rgb(14, 203, 129)";
@@ -49,7 +53,7 @@ const LandingPageHeader = () => {
           flexGrow: 1,
           minHeight: "100vh",
           backgroundColor: "rgb(13, 13, 13)",
-          paddingBottom: 10
+          paddingBottom: 10,
         }}
       >
         {/* --- 2. Navigation Bar (AppBar) --- */}
@@ -176,15 +180,23 @@ const LandingPageHeader = () => {
           </Grid>
         </Container>
 
-        <Container sx={{ textAlign: "center", pb: 15, position: 'relative', padding: '0px !important', paddingBottom: 20 }}>
+        <Container
+          sx={{
+            textAlign: "center",
+            pb: 15,
+            position: "relative",
+            padding: "0px !important",
+            paddingBottom: 20,
+          }}
+        >
           <Typography
             variant="h3"
             component="h2"
-            width='100%'
-            position='absolute'
-            top='10px'
+            width="100%"
+            position="absolute"
+            top="10px"
             sx={{
-              color: 'white',
+              color: "white",
               fontWeight: 800,
               mt: 3,
               mb: 1.5,
@@ -193,29 +205,57 @@ const LandingPageHeader = () => {
           >
             Exchanges
           </Typography>
-          <Box sx={{ mixBlendMode: 'screen'}} paddingBottom={20}>
-            <video muted style={{ objectFit: 'cover', width: '100%', height: '100%'}} playsInline autoPlay loop>
+          <Box sx={{ mixBlendMode: "screen" }} paddingBottom={20}>
+            <video
+              muted
+              style={{ objectFit: "cover", width: "100%", height: "100%" }}
+              playsInline
+              autoPlay
+              loop
+            >
               <source src="/bg-wave.mp4" type="video/mp4" />
             </video>
           </Box>
-          
-          <Box sx={{
-            background: 'linear-gradient(180deg,#0f0f0f00,#0f0f0fd9 10%,#242323)',
-            position: 'absolute',
-            top: '250px',
-            borderRadius: '20px',
-            left: '50%',
-            padding: '24px',
-            transform: 'translate(-50%)',
-            minWidth: '90%',
-            justifyContent: 'center'
-          }} gap={8} display='flex' flexWrap='wrap' flexDirection='row'>
-            {exchanges.map(exchange => {
-              return <Box><img style={{ height: '32px'}} src={`/exchanges/${exchange}.png`} /></Box>
+
+          <Box
+            sx={{
+              background:
+                "linear-gradient(180deg,#0f0f0f00,#0f0f0fd9 10%,#242323)",
+              position: "absolute",
+              top: "250px",
+              borderRadius: "20px",
+              left: "50%",
+              padding: "24px",
+              transform: "translate(-50%)",
+              minWidth: "90%",
+              justifyContent: "center",
+            }}
+            gap={8}
+            display="flex"
+            flexWrap="wrap"
+            flexDirection="row"
+          >
+            {exchanges.map((exchange) => {
+              return (
+                <Box>
+                  <img
+                    style={{ height: "32px" }}
+                    src={`/exchanges/${exchange}.png`}
+                  />
+                </Box>
+              );
             })}
           </Box>
         </Container>
-        <Container maxWidth="lg" sx={{ background: 'linear-gradient(180deg,#0f0f0fa6 10%,#242323)', pt: 10, pb: 5, mt: 10 }}>
+        <Container
+          maxWidth="lg"
+          sx={{
+            background: "linear-gradient(180deg,#0f0f0fa6 10%,#242323)",
+            pt: 10,
+            pb: 5,
+            mt: 10,
+          }}
+        >
           <SharedProfile />
         </Container>
         <Container maxWidth="lg" sx={{ pb: 5, mt: 10 }}>
@@ -223,9 +263,9 @@ const LandingPageHeader = () => {
             variant="h3"
             component="h2"
             textAlign="center"
-            width='100%'
+            width="100%"
             sx={{
-              color: 'white',
+              color: "white",
               fontWeight: 800,
               mt: 3,
               mb: 4,
@@ -237,28 +277,87 @@ const LandingPageHeader = () => {
           <Features />
         </Container>
         <Container maxWidth="lg" sx={{ pb: 5, mt: 10 }}>
-            <Box display='flex' flexDirection='column' gap={12} alignItems='center'>
-              <Typography
-                variant="h5"
-                textAlign='center'
-                sx={{
-                  // color: darkTheme.palette.text.secondary,
-                  mt: 3,
-                  mb: 1.5,
-                  px: { xs: 0, sm: 4, md: 8 },
-                }}
-              >
-                We engineer proprietary systems tailored to your needs. If you want to run the system on your own server, customize the UI, or implement your own unique ideas, contact us now.
-              </Typography>
-              <img style={{ maxWidth: '650px'}} src="/underline.png" />
-            </Box>
-            
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+          >
+            <Typography
+              variant="h6"
+              textAlign="center"
+              sx={{
+                // color: darkTheme.palette.text.secondary,
+                mt: 3,
+                mb: 1.5,
+                px: { xs: 0, sm: 4, md: 8 },
+              }}
+            >
+              We engineer proprietary systems tailored to your needs. If you
+              want to run the system on your own server, customize the UI, or
+              implement your own unique ideas, contact us now.
+            </Typography>
+            <Box display='flex' alignItems='center'>
+              <MarkunreadIcon sx={{ color: green}} />
+              <Typography variant="h6" color={green}>contact@xapy.io</Typography></Box>
+            <Box height={64} />
+            <img style={{ maxWidth: "650px" }} src="/underline.png" />
+          </Box>
         </Container>
-        
+        <Container>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            justifyContent='center'
+            sx={{ mt: 3, mb: 3 }}
+          >
+            <Button
+              color="inherit"
+              variant="contained"
+              startIcon={<YouTubeIcon />}
+              href="https://www.youtube.com/@XAPY-io"
+              target="_blank"
+              sx={{
+                color: "white",
+                fontWeight: 600,
+                "&:hover": {
+                  bgcolor: "#CC0000",
+                },
+              }}
+            >
+              YouTube Channel
+            </Button>
+
+            <Button
+              color="inherit"
+              variant="contained"
+              startIcon={<TelegramIcon />}
+              href="https://t.me/xapyFAQ/1"
+              target="_blank" // Mở trong tab mới
+              sx={{
+                color: "white",
+                fontWeight: 600,
+                "&:hover": {
+                  bgcolor: "#006699",
+                },
+              }}
+            >
+              Telegram Group
+            </Button>
+          </Stack>
+        </Container>
       </Box>
     </ThemeProvider>
   );
 };
 
-const exchanges: string[] = ['coinex', 'huobi', 'bitget', 'gate', 'bybit', 'binance', 'kucoin', 'okx']
+const exchanges: string[] = [
+  "coinex",
+  "huobi",
+  "bitget",
+  "gate",
+  "bybit",
+  "binance",
+  "kucoin",
+  "okx",
+];
 export default LandingPageHeader;

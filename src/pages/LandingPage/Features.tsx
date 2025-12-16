@@ -33,12 +33,35 @@ const Features: FC = () => {
             </Typography>
             <Typography textAlign='left'>After customizing the open spread and maximum volumes, you can use the UI to deploy your strategy to open or close positions.</Typography>
           </Item>
-          {/* <Item>
-            <img style={{ width: "100%" }} src="/features/keys.png" />
-            <Typography>Connect crypto exchange API keys</Typography>
-          </Item> */}
         </Stack>
       </Grid>
+      <Grid size={12}>
+        <Item sx={{ height: "100%", boxSizing: "border-box" }}>
+          <img style={{ width: "100%" }} src="/features/orderbook.png" />
+          <Typography mb={2} variant="h6" color="white">
+            Orderbook
+          </Typography>
+          <Typography textAlign='left'>Check the open and close spread between exchanges. We connect using WebSocket to give you the fastest price updates and current funding rates, allowing you to examine the spread between perpetual and spot pairs. Additionally, we also provide two weeks of funding history.</Typography>
+        </Item>
+      </Grid>
+      {/* <Grid size={3}>
+        <Item sx={{ height: "100%", boxSizing: "border-box" }}>
+          <img style={{ width: "100%" }} src="/features/hedgingbot.png" />
+          <Typography mb={2} variant="h6" color="white">
+            Hedging bot
+          </Typography>
+          <Typography textAlign='left'>A cron job runs every 5 seconds to monitor your positions. If the liquidation price or leverage level reaches the set limit, the bot will either transfer funds to hedge the position or close the lacking position to maintain balance.</Typography>
+        </Item>
+      </Grid> */}
+      {/* <Grid size={5}>
+        <Item sx={{ height: "100%", boxSizing: "border-box" }}>
+          <img style={{ width: "100%" }} src="/features/tele.png" />
+          <Typography mb={2} variant="h6" color="white">
+            Hedging bot
+          </Typography>
+          <Typography textAlign='left'>When the threshold is reached, you will receive an emergency notification via Telegram. You must also create and provide us with a Telegram group for receiving these notifications.</Typography>
+        </Item>
+      </Grid> */}
     </Grid>
   );
 };
