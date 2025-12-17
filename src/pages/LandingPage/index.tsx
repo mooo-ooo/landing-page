@@ -7,13 +7,16 @@ import {
   Container,
   Grid,
   Stack,
+  Divider
 } from "@mui/material";
 import MarkunreadIcon from '@mui/icons-material/Markunread';
 import TelegramIcon from "@mui/icons-material/Telegram";
 import YouTubeIcon from "@mui/icons-material/YouTube";
+import XIcon from '@mui/icons-material/X';
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import SharedProfile from "./SharedProfile";
 import Features from "./Features";
+import QuickStart from './QuickStart'
 
 export const red = "rgb(246, 70, 93)";
 export const green = "rgb(14, 203, 129)";
@@ -277,6 +280,24 @@ const LandingPageHeader = () => {
           <Features />
         </Container>
         <Container maxWidth="lg" sx={{ pb: 5, mt: 10 }}>
+          <Typography
+            variant="h3"
+            component="h2"
+            textAlign="center"
+            width="100%"
+            sx={{
+              color: "white",
+              fontWeight: 800,
+              mt: 3,
+              mb: 4,
+              px: { xs: 0, sm: 4, md: 8 },
+            }}
+          >
+            Quick start
+          </Typography>
+          <QuickStart />
+        </Container>
+        <Container maxWidth="lg" sx={{ pb: 5, mt: 10 }}>
           <Box
             display="flex"
             flexDirection="column"
@@ -311,6 +332,7 @@ const LandingPageHeader = () => {
             sx={{ mt: 3, mb: 3 }}
           >
             <Button
+              size="large"
               color="inherit"
               variant="contained"
               startIcon={<YouTubeIcon />}
@@ -328,6 +350,7 @@ const LandingPageHeader = () => {
             </Button>
 
             <Button
+              size="large"
               color="inherit"
               variant="contained"
               startIcon={<TelegramIcon />}
@@ -343,10 +366,51 @@ const LandingPageHeader = () => {
             >
               Telegram Group
             </Button>
+            <Button
+              size="large"
+              color="inherit"
+              variant="contained"
+              startIcon={<XIcon />}
+              href="https://x.com/XapyApp"
+              target="_blank" // Mở trong tab mới
+              sx={{
+                color: 'white',
+                borderColor: 'rgba(255,255,255,0.2)',
+                textTransform: 'none',
+                '&:hover': {
+                  borderColor: 'white',
+                  bgcolor: 'rgba(255, 255, 255, 0.1)'
+                },
+              }}
+            >
+              Follow on X
+            </Button>
           </Stack>
         </Container>
+        <Footer />
       </Box>
     </ThemeProvider>
+  );
+};
+
+const Footer = () => {
+  return (
+    <Box component="footer" sx={{ mt: 'auto', py: 6, textAlign: 'center' }}>
+      <Container maxWidth="lg">
+        <Divider sx={{ mb: 4, borderColor: 'rgba(255, 255, 255, 0.08)' }} />
+        
+        <Typography 
+          variant="body2" 
+          sx={{ 
+            color: 'rgba(255, 255, 255, 0.5)', 
+            fontFamily: 'monospace', // Giữ phong cách kỹ thuật như trong ảnh
+            letterSpacing: '1px'
+          }}
+        >
+          Copyright © 2025 — All Rights Reserved — XAPY.io
+        </Typography>
+      </Container>
+    </Box>
   );
 };
 

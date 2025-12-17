@@ -35,7 +35,7 @@ const Features: FC = () => {
           </Item>
         </Stack>
       </Grid>
-      <Grid size={12}>
+      {/* <Grid size={12}>
         <Item sx={{ height: "100%", boxSizing: "border-box" }}>
           <img style={{ width: "100%" }} src="/features/orderbook.png" />
           <Typography mb={2} variant="h6" color="white">
@@ -43,7 +43,7 @@ const Features: FC = () => {
           </Typography>
           <Typography textAlign='left'>Check the open and close spread between exchanges. We connect using WebSocket to give you the fastest price updates and current funding rates, allowing you to examine the spread between perpetual and spot pairs. Additionally, we also provide two weeks of funding history.</Typography>
         </Item>
-      </Grid>
+      </Grid> */}
       {/* <Grid size={3}>
         <Item sx={{ height: "100%", boxSizing: "border-box" }}>
           <img style={{ width: "100%" }} src="/features/hedgingbot.png" />
@@ -79,7 +79,7 @@ const Item = styled(Box)(({ theme }) => ({
   // Target the 'img' tag inside this Item
   '& img': {
     marginBottom: 12,
-    opacity: 0.6, // Default opacity
+    opacity: 0.4, // Default opacity
     transition: 'opacity 0.3s ease-in-out', // Smooth transition
     width: "100%", // Ensures image remains responsive
   },
