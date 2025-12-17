@@ -1,14 +1,14 @@
 import { type FC } from "react";
 import { Stack, Grid, Box, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
-// import useMediaQuery from "@mui/material/useMediaQuery";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 const Features: FC = () => {
-  // const isWeb = useMediaQuery("(min-width:600px)");
+  const isWeb = useMediaQuery("(min-width:600px)");
 
   return (
     <Grid container spacing={4}>
-      <Grid size={4}>
+      <Grid size={isWeb ? 4 : 12}>
         <Item sx={{ height: "100%", boxSizing: "border-box" }}>
           <img style={{ width: "100%" }} src="/features/dashboard.png" />
           <Typography mb={2} variant="h6" color="white">
@@ -17,7 +17,7 @@ const Features: FC = () => {
           <Typography textAlign='left'>Monitor your positions from multiple devices, supporting web and mobile, view 'liquidation price distance,' 'funding history,' and much more.</Typography>
         </Item>
       </Grid>
-      <Grid size={8}>
+      <Grid size={isWeb ? 8 : 12}>
         <Stack spacing={2}>
           <Item>
             <img style={{ width: "100%" }} src="/features/wallets.png" />

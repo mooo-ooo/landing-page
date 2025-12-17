@@ -6,8 +6,9 @@ import {
   Stepper,
   Typography,
   Box,
+  StepContent,
 } from "@mui/material";
-// import useMediaQuery from "@mui/material/useMediaQuery";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 const steps: string[] = [
   "Sign up and Setup Account",
@@ -15,7 +16,7 @@ const steps: string[] = [
   "Start Funding Farming",
 ];
 
-const stepContent: {title: string, desc: string}[] = [
+const stepContent: { title: string; desc: string }[] = [
   {
     title: "Security First",
     desc: "Register your account on crypto exchanges and enable all security measures. Crucially, enable cross-exchange deposit address whitelisting between the exchanges you want to connect. Simultaneously, register an account and enable 2FA on XAPY.io.",
@@ -30,14 +31,42 @@ const stepContent: {title: string, desc: string}[] = [
   },
 ];
 const QuickStart: FC = () => {
+  const isMobile = !useMediaQuery("(min-width:600px)");
   const [activeStep, setActiveStep] = useState(0);
   const handleStep = (step: number) => () => {
     setActiveStep(step);
   };
 
+  const Content = (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 4,
+        background: "linear-gradient(180deg,#0f0f0fa6 10%,#242323)",
+        borderRadius: 2,
+        minHeight: "160px",
+      }}
+    >
+      <Typography variant="h5" sx={{ color: "white", mb: 2, fontWeight: 600 }}>
+        {stepContent[activeStep]?.title}
+      </Typography>
+
+      <Typography
+        variant="body1"
+        sx={{
+          color: "rgba(255, 255, 255, 0.7)",
+          lineHeight: 1.7,
+        }}
+      >
+        {stepContent[activeStep]?.desc}
+      </Typography>
+    </Paper>
+  );
+
   return (
     <Fragment>
       <Stepper
+        orientation={isMobile ? "vertical" : "horizontal"}
         sx={{
           "& .MuiStepIcon-root": {
             color: "grey.400", // Default color (inactive)
@@ -53,42 +82,16 @@ const QuickStart: FC = () => {
         {steps.map((step, index) => (
           <Step key={step}>
             <StepButton color="inherit" onClick={handleStep(index)}>
-              <Typography
-              variant="h6"
-              textAlign="center"
-            >{step}</Typography>
-              
+              <Typography variant="h6" textAlign="center">
+                {step}
+              </Typography>
             </StepButton>
+            {isMobile ? <StepContent>{Content}</StepContent> : null}
           </Step>
         ))}
       </Stepper>
       <Box height={16} />
-      <Paper
-        elevation={0}
-        sx={{
-          p: 4,
-          background: "linear-gradient(180deg,#0f0f0fa6 10%,#242323)",
-          borderRadius: 2,
-          minHeight: "160px",
-        }}
-      >
-        <Typography
-          variant="h5"
-          sx={{ color: "white", mb: 2, fontWeight: 600 }}
-        >
-          {stepContent[activeStep]?.title}
-        </Typography>
-
-        <Typography
-          variant="body1"
-          sx={{
-            color: "rgba(255, 255, 255, 0.7)",
-            lineHeight: 1.7,
-          }}
-        >
-          {stepContent[activeStep]?.desc}
-        </Typography>
-      </Paper>
+      {isMobile ? null : Content}
     </Fragment>
   );
 };

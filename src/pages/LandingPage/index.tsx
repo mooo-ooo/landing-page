@@ -9,6 +9,7 @@ import {
   Stack,
   Divider
 } from "@mui/material";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import MarkunreadIcon from '@mui/icons-material/Markunread';
 import TelegramIcon from "@mui/icons-material/Telegram";
 import YouTubeIcon from "@mui/icons-material/YouTube";
@@ -39,8 +40,22 @@ const darkTheme = createTheme({
   },
 });
 
+const handleScroll = (elementId: string) => {
+  const element = document.getElementById(elementId);
+  if (element) {
+    const headerOffset = 80; 
+    const elementPosition = element.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: "smooth"
+    });
+  }
+};
+
 const LandingPageHeader = () => {
-  const navItems = ["Features", "Integrations", "Docs"];
+  const isMobile = !useMediaQuery("(min-width:600px)");
 
   // Data for the 4-column feature list
   const featureBlocks = [
@@ -56,11 +71,11 @@ const LandingPageHeader = () => {
           flexGrow: 1,
           minHeight: "100vh",
           backgroundColor: "rgb(13, 13, 13)",
-          paddingBottom: 10,
+          paddingBottom: 4,
         }}
       >
         {/* --- 2. Navigation Bar (AppBar) --- */}
-        <AppBar position="static" color="primary" elevation={0}>
+        <AppBar position="fixed"  color="primary" elevation={0}>
           <Toolbar component={Container} maxWidth="lg">
             {/* Logo */}
             <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -75,19 +90,32 @@ const LandingPageHeader = () => {
             <Box
               sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}
             >
-              {navItems.map((item) => (
-                <Button
-                  color="inherit"
-                  key={item}
-                  sx={{ mx: 1, textTransform: "none", fontWeight: 500 }}
-                >
-                  {item}
-                </Button>
-              ))}
+              <Button
+                color="inherit"
+                onClick={() => handleScroll('features')}
+                sx={{ mx: 1, textTransform: "none", fontWeight: 500 }}
+              >
+                Features
+              </Button>
+              <Button
+                color="inherit"
+                onClick={() => handleScroll('integrations')}
+                sx={{ mx: 1, textTransform: "none", fontWeight: 500 }}
+              >
+                Integrations
+              </Button>
+              <Button
+                color="inherit"
+                href="https://docs.xapy.io/"
+                target="_blank"
+                sx={{ mx: 1, textTransform: "none", fontWeight: 500 }}
+              >
+                Docs
+              </Button>
             </Box>
 
             {/* Action Buttons (Right) */}
-            <Box sx={{ display: "flex", alignItems: "center" }}>
+            {isMobile ? null : <Box sx={{ display: "flex", alignItems: "center" }}>
               <Button
                 variant="outlined"
                 sx={{
@@ -97,10 +125,12 @@ const LandingPageHeader = () => {
                   textTransform: "none",
                   fontWeight: 600,
                 }}
+                href="https://app.xapy.io/register"
+                target="_blank"
               >
                 Launch App
               </Button>
-            </Box>
+            </Box>}
           </Toolbar>
         </AppBar>
 
@@ -143,6 +173,8 @@ const LandingPageHeader = () => {
           <Button
             variant="outlined"
             size="large"
+            href="https://app.xapy.io/register"
+            target="_blank"
             sx={{
               // bgcolor: yellow,
               color: "white",
@@ -158,16 +190,20 @@ const LandingPageHeader = () => {
           </Button>
 
           {/* --- 4. Feature Blocks --- */}
-          <Grid maxWidth="lg" container justifyContent="center" sx={{ mt: 10 }}>
+          <Grid maxWidth="lg" container id="integrations" justifyContent="center" sx={{ mt: 10 }}>
             {featureBlocks.map((feature, index) => (
               <Grid
-                size={12 / featureBlocks.length}
+                size={isMobile ? 12 : 12 / featureBlocks.length}
                 key={feature}
                 sx={{
                   padding: 3,
                   position: "relative",
                   borderRight:
-                    index < featureBlocks.length - 1
+                    !isMobile && index < featureBlocks.length - 1
+                      ? "1px solid #333"
+                      : "none", // Separator lines
+                  borderBottom:
+                    isMobile && index < featureBlocks.length - 1
                       ? "1px solid #333"
                       : "none", // Separator lines
                 }}
@@ -190,6 +226,7 @@ const LandingPageHeader = () => {
             position: "relative",
             padding: "0px !important",
             paddingBottom: 20,
+            height: isMobile ? '500px' : 'unset'
           }}
         >
           <Typography
@@ -225,7 +262,7 @@ const LandingPageHeader = () => {
               background:
                 "linear-gradient(180deg,#0f0f0f00,#0f0f0fd9 10%,#242323)",
               position: "absolute",
-              top: "250px",
+              top: isMobile ? '150px' : "250px",
               borderRadius: "20px",
               left: "50%",
               padding: "24px",
@@ -261,7 +298,7 @@ const LandingPageHeader = () => {
         >
           <SharedProfile />
         </Container>
-        <Container maxWidth="lg" sx={{ pb: 5, mt: 10 }}>
+        <Container id="features" maxWidth="lg" sx={{ pb: 5, mt: 10 }}>
           <Typography
             variant="h3"
             component="h2"
@@ -321,7 +358,7 @@ const LandingPageHeader = () => {
               <MarkunreadIcon sx={{ color: green}} />
               <Typography variant="h6" color={green}>contact@xapy.io</Typography></Box>
             <Box height={64} />
-            <img style={{ maxWidth: "650px" }} src="/underline.png" />
+            <img style={{ maxWidth: isMobile ? '90%' : "650px" }} src="/underline.png" />
           </Box>
         </Container>
         <Container>
@@ -355,7 +392,7 @@ const LandingPageHeader = () => {
               variant="contained"
               startIcon={<TelegramIcon />}
               href="https://t.me/xapyFAQ/1"
-              target="_blank" // Mở trong tab mới
+              target="_blank"
               sx={{
                 color: "white",
                 fontWeight: 600,
@@ -372,7 +409,7 @@ const LandingPageHeader = () => {
               variant="contained"
               startIcon={<XIcon />}
               href="https://x.com/XapyApp"
-              target="_blank" // Mở trong tab mới
+              target="_blank"
               sx={{
                 color: 'white',
                 borderColor: 'rgba(255,255,255,0.2)',
@@ -395,7 +432,7 @@ const LandingPageHeader = () => {
 
 const Footer = () => {
   return (
-    <Box component="footer" sx={{ mt: 'auto', py: 6, textAlign: 'center' }}>
+    <Box component="footer" sx={{ mt: 'auto', pt: 6, textAlign: 'center' }}>
       <Container maxWidth="lg">
         <Divider sx={{ mb: 4, borderColor: 'rgba(255, 255, 255, 0.08)' }} />
         
