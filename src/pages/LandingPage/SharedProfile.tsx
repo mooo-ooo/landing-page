@@ -57,24 +57,42 @@ const Share: FC = () => {
   }, [balances]);
 
   useEffect(() => {
-    setIsLoading(true);
-    console.log('debiug')
-    axios
-      .get(`api/v1/public/portfolio`)
-      .then(({ data }) => {
-        setProfiles(
-          Object.keys(data).filter(key => key === 'xapy').map((key) => ({
-            username: key,
-            equities: data[key].equities || {},
-            positions: data[key].positions || {},
-            earnedFundingFees: data[key].earnedFundingFees || {},
-            createdAt: data[key].createdAt || Date.now(),
-          }))
+    // Use an AbortController to prevent memory leaks if the component unmounts
+    const controller = new AbortController();
+
+    const fetchPortfolio = async () => {
+      setIsLoading(true);
+      try {
+        const { data: { data } } = await axios.get(
+          `https://api.xapy.io/api/v1/public/portfolio`, 
+          { signal: controller.signal }
         );
-      })
-      .finally(() => {
+
+        // Extract 'xapy' directly rather than filtering/mapping the whole object
+        const xapyData = data?.xapy;
+
+        if (xapyData) {
+          setProfiles([{
+            username: 'xapy',
+            equities: xapyData.equities ?? {},
+            positions: xapyData.positions ?? {},
+            earnedFundingFees: xapyData.earnedFundingFees ?? {},
+            createdAt: xapyData.createdAt ?? Date.now(),
+          }]);
+        }
+      } catch (error) {
+        if (!axios.isCancel(error)) {
+          console.error("Failed to fetch portfolio:", error);
+          // Optional: setErrorMessage("Failed to load data");
+        }
+      } finally {
         setIsLoading(false);
-      });
+      }
+    };
+
+    fetchPortfolio();
+
+    return () => controller.abort(); // Cleanup
   }, []);
 
   const { fundingRates, loading: loadingFundingRates } = useSharedFundingRates(
