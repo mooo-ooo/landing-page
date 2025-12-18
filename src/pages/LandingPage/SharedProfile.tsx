@@ -23,7 +23,7 @@ import { normalizedSharedPositions } from "../../hooks/useNormalizedPositions";
 import { type PostitionsState } from "../../redux/positions/positionsSlice";
 import { selectBalances } from "../../redux/balances/balancesSlice";
 import type { ExchangeName } from "../../types/exchange";
-import api from "../../lib/axios";
+import axios from "axios";
 import { useSelector } from "react-redux";
 import { LineChart } from "@mui/x-charts";
 import { useDrawingArea } from "@mui/x-charts/hooks";
@@ -59,7 +59,7 @@ const Share: FC = () => {
   useEffect(() => {
     setIsLoading(true);
     console.log('debiug')
-    api
+    axios
       .get(`api/v1/public/portfolio`)
       .then(({ data }) => {
         setProfiles(

@@ -108,7 +108,7 @@ const LandingPageHeader = () => {
                 color="inherit"
                 href="https://docs.xapy.io/"
                 target="_blank"
-                sx={{ mx: 1, textTransform: "none", fontWeight: 500 }}
+                sx={{ textTransform: "none", fontWeight: 500 }}
               >
                 Docs
               </Button>
@@ -253,7 +253,7 @@ const LandingPageHeader = () => {
               autoPlay
               loop
             >
-              <source src="/bg-wave.mp4" type="video/mp4" />
+              <source src={isMobile ? "/bg-wave-mb.mp4" : "/bg-wave.mp4"} type="video/mp4" />
             </video>
           </Box>
 
@@ -279,7 +279,7 @@ const LandingPageHeader = () => {
               return (
                 <Box>
                   <img
-                    style={{ height: "32px" }}
+                    style={{ height: isMobile? '24px' : "32px" }}
                     src={`/exchanges/${exchange}.png`}
                   />
                 </Box>
