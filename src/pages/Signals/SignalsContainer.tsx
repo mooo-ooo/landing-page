@@ -27,6 +27,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TableSortLabel,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import readableNumber from "human-readable-numbers";
@@ -38,7 +39,7 @@ import AutoGraphIcon from "@mui/icons-material/AutoGraph";
 import ExchangesFilter from "./ExchangesFilter";
 import { green, red } from "../../constants/colors";
 import CloseIcon from "@mui/icons-material/Close";
-import Spread from './Spread'
+import Spread from "./Spread";
 import {
   type ArbitrageOpportunity,
   type WorkerInput,
@@ -66,11 +67,41 @@ const FILTER_OPTIONS = [
   { id: "AccumulatedApr", label: "Accumulated APR" },
 ];
 
-const XAPY_SUGGEST = ["BTC", "ETH", "DOGE", "SOL", "BNB", "LINK", "XRP", "MYX"];
+type SortKey = "baseToken" | "vol24h" | "currentApr" | "cumulativeAPR";
+type SortOrder = "asc" | "desc";
+
+const XAPY_SUGGEST = [
+  "BTC",
+  "ETH",
+  "DOGE",
+  "SOL",
+  "BNB",
+  "LINK",
+  "XRP",
+  "AVAX",
+  "ETC",
+  "PEPE",
+  "ADA",
+  "UNI",
+  "SHIB",
+  "HYPE",
+  "SUI",
+  "LTC",
+  "TRX",
+  "ENA",
+  "AAVE",
+  "XAUT",
+  "TON",
+  "DOT",
+  "FIL",
+  "ARB",
+];
 
 const MY_FAV_KEY = "SIGNAL_MY_FAV_TOKENS";
 
 const SignalsContainer: React.FC = () => {
+  const [sortKey, setSortKey] = useState<SortKey>("cumulativeAPR");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   // 1. Manage the two lists
   const [activeTab, setActiveTab] = useState<"suggest" | "fav">("suggest");
   const [myFavTokens, setMyFavTokens] = useState<string[]>(() => {
@@ -113,6 +144,12 @@ const SignalsContainer: React.FC = () => {
       )
   );
 
+  const handleSort = (key: SortKey) => {
+    const isAsc = sortKey === key && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortKey(key);
+  };
+
   const [filters, setFilters] = useState([
     { field: FILTER_OPTIONS[0].id, operator: ">", value: "" },
   ]);
@@ -121,7 +158,7 @@ const SignalsContainer: React.FC = () => {
   >([]);
 
   const filteredOpportunities = useMemo(() => {
-    return arbitrageOpportunities.filter((opp) => {
+    const filtered = arbitrageOpportunities.filter((opp) => {
       // Every filter condition must be met (AND logic)
       return filters.every((filter) => {
         // If no value is entered, don't apply this specific filter
@@ -174,7 +211,35 @@ const SignalsContainer: React.FC = () => {
         }
       });
     });
-  }, [arbitrageOpportunities, filters]);
+    return [...filtered].sort((a, b) => {
+      let aVal: number | string = 0;
+      let bVal: number | string = 0;
+
+      switch (sortKey) {
+        case "vol24h":
+          // Sort by the average volume of both exchanges
+          aVal = (a.buyVol24h + a.sellVol24h) / 2;
+          bVal = (b.buyVol24h + b.sellVol24h) / 2;
+          break;
+        case "currentApr":
+          aVal = (a.sellExchangeRate - a.buyExchangeRate) / 2;
+          bVal = (b.sellExchangeRate - b.buyExchangeRate) / 2;
+          break;
+        case "cumulativeAPR":
+          aVal = a.cumulativeAPR;
+          bVal = b.cumulativeAPR;
+          break;
+        case "baseToken":
+          aVal = a.baseToken;
+          bVal = b.baseToken;
+          break;
+      }
+
+      if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [arbitrageOpportunities, filters, sortKey, sortOrder]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -280,7 +345,7 @@ const SignalsContainer: React.FC = () => {
               exclusive
               onChange={handleWeekChange}
               size="small"
-              color="primary"
+              color="standard"
             >
               <ToggleButton value={1} sx={{ px: 2 }}>
                 1W
@@ -307,8 +372,8 @@ const SignalsContainer: React.FC = () => {
             />
           </Box>
 
-          <Stack spacing={2} flexGrow={1}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          <Stack flexGrow={1}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               Specify exact numeric values for each parameter.
             </Typography>
             {filters.map((filter, index) => (
@@ -419,7 +484,7 @@ const SignalsContainer: React.FC = () => {
             ) : (
               <Box sx={{ height: 52, display: "flex", alignItems: "center" }}>
                 <Typography variant="body2" color="text.secondary">
-                  Using AI-curated high-volatility tokens from Xapy.
+                  Using high-volatility tokens from Xapy.
                 </Typography>
               </Box>
             )}
@@ -461,9 +526,15 @@ const SignalsContainer: React.FC = () => {
                   Exchanges
                 </TableCell>
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  24h Volume (USDT)
+                  <TableSortLabel
+                    active={sortKey === "vol24h"}
+                    direction={sortKey === "vol24h" ? sortOrder : "asc"}
+                    onClick={() => handleSort("vol24h")}
+                  >
+                    24h Volume
+                  </TableSortLabel>
                 </TableCell>
-                
+
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   Funding Time
                 </TableCell>
@@ -474,7 +545,13 @@ const SignalsContainer: React.FC = () => {
                   align="left"
                   sx={{ color: "white", fontWeight: "bold" }}
                 >
-                  Current Funding (%)
+                  <TableSortLabel
+                    active={sortKey === "currentApr"}
+                    direction={sortKey === "currentApr" ? sortOrder : "asc"}
+                    onClick={() => handleSort("currentApr")}
+                  >
+                    Current Funding
+                  </TableSortLabel>
                 </TableCell>
                 <TableCell
                   align="right"
@@ -488,7 +565,15 @@ const SignalsContainer: React.FC = () => {
                       gap: 0.5,
                     }}
                   >
-                    APR last {weeks} week(s)
+                    <TableSortLabel
+                      active={sortKey === "cumulativeAPR"}
+                      direction={
+                        sortKey === "cumulativeAPR" ? sortOrder : "asc"
+                      }
+                      onClick={() => handleSort("cumulativeAPR")}
+                    >
+                      APR last {weeks} week(s)
+                    </TableSortLabel>
                     <Tooltip title="Annual Percentage Rate projected from historical data">
                       <PercentIcon sx={{ fontSize: 16 }} />
                     </Tooltip>
@@ -544,27 +629,40 @@ const SignalsContainer: React.FC = () => {
                       </Box>
                     </TableCell>
                     <TableCell align="center">
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                        }}
+                      >
                         {/* Countdown for the Sell Exchange */}
                         <Box display="flex" alignItems="center" gap={1}>
-                          <CountdownTimer targetTime={opp.nextFundingTime.sell} />
+                          <CountdownTimer
+                            targetTime={opp.nextFundingTime.sell}
+                          />
                         </Box>
 
                         {/* Countdown for the Buy Exchange */}
                         <Box display="flex" alignItems="center" gap={1}>
-                          <CountdownTimer targetTime={opp.nextFundingTime.buy} />
+                          <CountdownTimer
+                            targetTime={opp.nextFundingTime.buy}
+                          />
                         </Box>
                       </Box>
                     </TableCell>
                     <TableCell align="left">
-                      <Spread 
-                        symbol={opp.baseToken} 
-                        buyExchange={opp.buyExchange as ExchangeName} 
-                        sellExchange={opp.sellExchange as ExchangeName} 
+                      <Spread
+                        symbol={opp.baseToken}
+                        buyExchange={opp.buyExchange as ExchangeName}
+                        sellExchange={opp.sellExchange as ExchangeName}
                       />
                     </TableCell>
                     <TableCell align="left">
-                      <Typography sx={{ fontWeight: "800" }} color={fundingAPR > 0 ? green : red}>
+                      <Typography
+                        sx={{ fontWeight: "800" }}
+                        color={fundingAPR > 0 ? green : red}
+                      >
                         {fundingAPR.toFixed(0)}%
                       </Typography>
                     </TableCell>
@@ -634,7 +732,6 @@ const TableCell = styled(TableCellMui)({ padding: "8px 16px" });
 
 export default SignalsContainer;
 
-
 const CountdownTimer: React.FC<{ targetTime: number }> = ({ targetTime }) => {
   const [timeLeft, setTimeLeft] = useState<string>("");
 
@@ -659,7 +756,10 @@ const CountdownTimer: React.FC<{ targetTime: number }> = ({ targetTime }) => {
   }, [targetTime]);
 
   return (
-    <Typography variant="caption" sx={{ fontFamily: "monospace", color: "text.secondary" }}>
+    <Typography
+      variant="caption"
+      sx={{ fontFamily: "monospace", color: "text.secondary" }}
+    >
       {timeLeft}
     </Typography>
   );

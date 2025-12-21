@@ -107,11 +107,11 @@ export const getMarketDepth = async (
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(
-        `Failed to fetch CandleStick from ${exchange}: ${error.message}`
+        `Failed to fetch Market depth from ${exchange}-${symbol}: ${error.message}`
       );
     }
     throw new Error(
-      `Failed to fetch CandleStick from ${exchange}: Unknown error`
+      `Failed to fetch Market depth from ${exchange}: Unknown error`
     );
   }
 };

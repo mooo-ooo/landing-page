@@ -59,7 +59,7 @@ ctx.addEventListener('message', async (event: MessageEvent<WorkerInput>) => {
   if (type !== 'PROCESS_MARKET') {
     return
   }
-  console.log('Exchanges', exchanges)
+  // console.log('Exchanges', exchanges)
   const taskPromises = tokens.flatMap(token => 
     exchanges.map(async (exchange): Promise<FundingData | null> => {
       try {
