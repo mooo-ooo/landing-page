@@ -564,14 +564,13 @@ const SignalsContainer: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell align="left">
-                      <Typography color={fundingAPR > 0 ? green : red}>
+                      <Typography sx={{ fontWeight: "800" }} color={fundingAPR > 0 ? green : red}>
                         {fundingAPR.toFixed(0)}%
                       </Typography>
                     </TableCell>
 
                     <TableCell align="right">
                       <Typography
-                        variant="h6"
                         color="success.main"
                         sx={{ fontWeight: "800" }}
                       >

@@ -135,7 +135,7 @@ export const getExchangeFundingRate = async (
           }) => {
             return {
               symbol,
-              rate: Number(latest_funding_rate) * 100,
+              rate: Number(latest_funding_rate),
               fundingTime: latest_funding_time,
               interval:
                 (next_funding_time - latest_funding_time) / 1000 / 60 / 60,
