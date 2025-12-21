@@ -1,11 +1,12 @@
-import axios from 'axios';
-import type { ExchangeName } from '../types/exchange';
-import { PROXY_URL } from '../config'
+import axios from "axios";
+import type { ExchangeName } from "../types/exchange";
+import { PROXY_URL } from "../config";
 
 export interface FundingRate {
   symbol: string;
   rate: number;
   interval: number | null;
+  fundingTime: number;
 }
 
 export interface FundingRateResponse {
@@ -38,70 +39,111 @@ export interface HuobiFundingRateResponse {
 
 export const getExchangeFundingRate = async (
   exchange: ExchangeName,
-  symbol: string,
+  symbol: string
 ): Promise<FundingRate> => {
   try {
     switch (exchange) {
-      case 'okx': {
-        const { data } = await axios.get<OkxFundingRateResponse>(
-          `https://www.okx.com/api/v5/public/funding-rate?instId=${symbol}-USDT-SWAP`,
+      case "okx": {
+        const { data } = await axios.get(
+          `https://www.okx.com/api/v5/public/funding-rate?instId=${symbol}-USDT-SWAP`
         );
-        if (data.code !== '0') {
+        if (data.code !== "0") {
           throw new Error(`OKX API error: ${data.code}`);
         }
         if (!data.data[0]) {
-          throw new Error('OKX API returned no data');
+          throw new Error("OKX API returned no data");
         }
+
         return {
           symbol,
           rate: parseFloat(data.data[0].fundingRate),
-          interval: 8
+          interval:
+            (parseFloat(data.data[0].nextFundingTime) -
+              parseFloat(data.data[0].fundingTime)) /
+            1000 /
+            60 /
+            60,
+          fundingTime: parseFloat(data.data[0].fundingTime),
         };
       }
-      case 'gate': {
+      case "gate": {
         const { data } = await axios.get(
-          `${PROXY_URL}/https://api.gateio.ws/api/v4/futures/usdt/contracts/${symbol}_USDT`,
+          `${PROXY_URL}/https://api.gateio.ws/api/v4/futures/usdt/contracts/${symbol}_USDT`
         );
+
         return {
           symbol,
           rate: parseFloat(data.funding_rate),
-          interval: data.funding_interval / 60 / 60
+          interval: data.funding_interval / 60 / 60,
+          fundingTime: parseFloat(data.funding_next_apply) * 1000,
         };
       }
-      case 'bitget': {
+      case "bitget": {
         const { data } = await axios.get(
-          `https://api.bitget.com/api/v2/mix/market/current-fund-rate?symbol=${symbol}USDT&productType=usdt-futures`,
+          `https://api.bitget.com/api/v2/mix/market/current-fund-rate?symbol=${symbol}USDT&productType=usdt-futures`
         );
-        if (data.code !== '00000') {
+        if (data.code !== "00000") {
           throw new Error(`Bitget API error: ${data.code}`);
         }
         if (!data.data[0]) {
-          throw new Error('Bitget API returned no data');
+          throw new Error("Bitget API returned no data");
         }
+
         return {
           symbol,
           rate: parseFloat(data.data[0].fundingRate),
-          interval: Number(data.data[0].fundingRateInterval)
+          interval: Number(data.data[0].fundingRateInterval),
+          fundingTime: Number(data.data[0].nextUpdate),
         };
       }
-      case 'huobi': {
+      case "huobi": {
         const { data } = await axios.get<HuobiFundingRateResponse>(
           `${PROXY_URL}/https://api.hbdm.com/linear-swap-api/v1/swap_funding_rate?contract_code=${symbol}-USDT`,
           {
             headers: {
-              'X-Requested-With': 'XMLHttpRequest',
+              "X-Requested-With": "XMLHttpRequest",
             },
-          },
+          }
         );
-        if (data.status !== 'ok') {
-          throw new Error('Huobi API returned error status');
+        if (data.status !== "ok") {
+          throw new Error("Huobi API returned error status");
         }
 
         return {
           symbol,
           rate: parseFloat(data.data.funding_rate),
-          interval: null
+          interval: null,
+          fundingTime: Number(data.data.funding_time),
         };
+      }
+
+      case "coinex": {
+        const {
+          data: { data },
+        } = await axios.get(
+          `${PROXY_URL}/https://api.coinex.com/v2/futures/funding-rate?market=${symbol}USDT`
+        );
+        const results = data.map(
+          ({
+            next_funding_time,
+            latest_funding_rate,
+            latest_funding_time,
+          }: {
+            latest_funding_rate: string;
+            latest_funding_time: number;
+            next_funding_time: number;
+          }) => {
+            return {
+              symbol,
+              rate: Number(latest_funding_rate) * 100,
+              fundingTime: latest_funding_time,
+              interval:
+                (next_funding_time - latest_funding_time) / 1000 / 60 / 60,
+            };
+          }
+        );
+        // console.log(results[0])
+        return results[0];
       }
       default: {
         throw new Error(`Unsupported exchange: ${exchange}`);
@@ -109,8 +151,12 @@ export const getExchangeFundingRate = async (
     }
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(`Failed to fetch funding rate from ${exchange}: ${error.message}`);
+      throw new Error(
+        `Failed to fetch funding rate from ${exchange}: ${error.message}`
+      );
     }
-    throw new Error(`Failed to fetch funding rate from ${exchange}: Unknown error`);
+    throw new Error(
+      `Failed to fetch funding rate from ${exchange}: Unknown error`
+    );
   }
-}; 
+};

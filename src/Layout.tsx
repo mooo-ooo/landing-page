@@ -447,16 +447,10 @@ function Layout() {
                 </LinkStyled>
                 
                 <LinkStyled
-                  to="/tools"
-                  isActive={location.pathname === "/signal"}
+                  to="/signals"
+                  isActive={location.pathname === "/signals"}
                 >
                   Signal
-                </LinkStyled>
-                <LinkStyled
-                  to="/orderbooks"
-                  isActive={location.pathname === "/orderbooks"}
-                >
-                  Orderbooks
                 </LinkStyled>
                 <LinkStyled
                   to="/wallets"

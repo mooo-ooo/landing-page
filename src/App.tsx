@@ -9,6 +9,7 @@ import Layout from "./Layout";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Signals from "./pages/Signals/SignalsContainer"
 import Dashboard from "./pages/Dashboard";
 import Wallets from "./pages/Wallets";
 import Fundings from "./pages/Fundings";
@@ -67,6 +68,8 @@ function App() {
                   <Route path="/fundings" element={<Fundings />} />
                   <Route path="/api-keys" element={<ApiKeys />} />
                   <Route path="orderbooks" element={<Orderbooks />} />
+                  <Route path="signals" element={<Signals />} />
+                  
                   <Route path="*" element={<Home />} />
                 </Route>
               </Routes>
