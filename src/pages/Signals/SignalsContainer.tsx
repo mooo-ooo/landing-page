@@ -45,6 +45,7 @@ import {
   type WorkerInput,
   type WorkerOutput,
 } from "../../workers/funding.worker";
+import CountdownTimer from './CountdownTime'
 import MyArbitrageWorker from "../../workers/funding.worker.ts?worker";
 import { type ExchangeName } from "../../types/exchange";
 
@@ -61,6 +62,7 @@ const EXCHANGES: ExchangeName[] = [
   "coinex",
 ];
 const FILTER_OPTIONS = [
+  { id: "token", label: "Token Name" }, // New option
   { id: "currentApr", label: "Current APR" },
   { id: "vol24h", label: "24h Volume" },
   { id: "OI", label: "Open Interest" },
@@ -168,6 +170,10 @@ const SignalsContainer: React.FC = () => {
         const operator = filter.operator;
 
         switch (filter.field) {
+          case "token": {
+            // Case-insensitive search for token string
+            return opp.baseToken.toUpperCase().includes(filter.value.toUpperCase());
+          }
           case "vol24h": {
             // Both sides must meet the volume requirement for the signal to be valid
             const isBuyOk =
@@ -390,13 +396,7 @@ const SignalsContainer: React.FC = () => {
                   sx={{ minWidth: 160 }}
                 >
                   {FILTER_OPTIONS.map((opt) => (
-                    <MenuItem
-                      key={opt.id}
-                      value={opt.id}
-                      disabled={filters.some(
-                        (f, i) => f.field === opt.id && i !== index
-                      )}
-                    >
+                    <MenuItem key={opt.id} value={opt.id} disabled={filters.some((f, i) => f.field === opt.id && i !== index)}>
                       {opt.label}
                     </MenuItem>
                   ))}
@@ -404,19 +404,21 @@ const SignalsContainer: React.FC = () => {
 
                 <Select
                   size="small"
-                  value={filter.operator}
+                  value={filter.field === "token" ? "=" : filter.operator} // Force "=" for token
+                  disabled={filter.field === "token"} // Lock it for token
                   onChange={(e) =>
                     updateFilter(index, "operator", e.target.value)
                   }
                 >
                   <MenuItem value=">">&gt;</MenuItem>
                   <MenuItem value="<">&lt;</MenuItem>
+                  <MenuItem value="=">=</MenuItem>
                 </Select>
 
                 <TextField
                   size="small"
-                  type="number"
-                  placeholder="Value"
+                  type={filter.field === "token" ? "text" : "number"} // Change input type
+                  placeholder={filter.field === "token" ? "e.g. BTC" : "Value"}
                   value={filter.value}
                   onChange={(e) => updateFilter(index, "value", e.target.value)}
                 />
@@ -550,7 +552,7 @@ const SignalsContainer: React.FC = () => {
                     direction={sortKey === "currentApr" ? sortOrder : "asc"}
                     onClick={() => handleSort("currentApr")}
                   >
-                    Current Funding
+                    Current APR
                   </TableSortLabel>
                 </TableCell>
                 <TableCell
@@ -629,27 +631,52 @@ const SignalsContainer: React.FC = () => {
                       </Box>
                     </TableCell>
                     <TableCell align="center">
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 1,
-                        }}
-                      >
-                        {/* Countdown for the Sell Exchange */}
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <CountdownTimer
-                            targetTime={opp.nextFundingTime.sell}
-                          />
-                        </Box>
+                      <Stack direction="row" spacing={2}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 1,
+                          }}
+                        >
+                          {/* Countdown for the Sell Exchange */}
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <CountdownTimer
+                              targetTime={opp.nextFundingTime.sell}
+                            />
+                          </Box>
 
-                        {/* Countdown for the Buy Exchange */}
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <CountdownTimer
-                            targetTime={opp.nextFundingTime.buy}
-                          />
+                          {/* Countdown for the Buy Exchange */}
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <CountdownTimer
+                              targetTime={opp.nextFundingTime.buy}
+                            />
+                          </Box>
                         </Box>
-                      </Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 1,
+                          }}
+                        >
+                          {/* Volume for the Sell Side */}
+                          <Typography
+                            align="left"
+                            variant="caption"
+                          >
+                            {(opp.sellExchangeRate * 100).toFixed(2)}%
+                          </Typography>
+
+                          {/* Volume for the Buy Side */}
+                          <Typography
+                            align="left"
+                            variant="caption"
+                          >
+                            {(opp.buyExchangeRate * 100).toFixed(2)}%
+                          </Typography>
+                        </Box>
+                      </Stack>
                     </TableCell>
                     <TableCell align="left">
                       <Spread
@@ -663,7 +690,7 @@ const SignalsContainer: React.FC = () => {
                         sx={{ fontWeight: "800" }}
                         color={fundingAPR > 0 ? green : red}
                       >
-                        {fundingAPR.toFixed(0)}%
+                        {fundingAPR.toFixed(2)}%
                       </Typography>
                     </TableCell>
 
@@ -732,35 +759,4 @@ const TableCell = styled(TableCellMui)({ padding: "8px 16px" });
 
 export default SignalsContainer;
 
-const CountdownTimer: React.FC<{ targetTime: number }> = ({ targetTime }) => {
-  const [timeLeft, setTimeLeft] = useState<string>("");
 
-  useEffect(() => {
-    const calculateTime = () => {
-      const now = Date.now();
-      const diff = targetTime - now;
-
-      if (diff <= 0) return "Settling...";
-
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const secs = Math.floor((diff % (1000 * 60)) / 1000);
-
-      return `${hours}h ${mins}m ${secs}s`;
-    };
-
-    const timer = setInterval(() => setTimeLeft(calculateTime()), 1000);
-    setTimeLeft(calculateTime()); // Initial call
-
-    return () => clearInterval(timer);
-  }, [targetTime]);
-
-  return (
-    <Typography
-      variant="caption"
-      sx={{ fontFamily: "monospace", color: "text.secondary" }}
-    >
-      {timeLeft}
-    </Typography>
-  );
-};
