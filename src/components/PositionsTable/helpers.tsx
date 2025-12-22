@@ -322,7 +322,7 @@ export const createPositionsTable = ({
                       {/* {readableNumber.toHumanString(distToLiqBuy)}% */}
                     </Typography>
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
-                      {readableNumber.toHumanString(buys[0]?.liqPrice)}
+                      {buys[0]?.liqPrice ? readableNumber.toHumanString(buys[0]?.liqPrice) : 0}
                       $
                     </Typography>
                   </Box>

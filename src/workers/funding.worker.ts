@@ -2,6 +2,7 @@
 import { getExchangeFundingRate } from '../services/funding';
 import dayjs from 'dayjs';
 import { fundingRateHistory } from '../services/fundingRateHistory';
+// import { getOpenInterest } from '../services/openInterest';
 import get24hVolume from '../services/vol24h'
 import { type ExchangeName } from '../types/exchange';
 
@@ -25,6 +26,10 @@ export interface ArbitrageOpportunity {
     sell: number,
     buy: number
   }
+  openInterest?: {
+    buy: number
+    sell: number
+  }
 }
 
 export interface FundingData {
@@ -35,6 +40,7 @@ export interface FundingData {
   interval: number | null
   vol24h: number; // Added to individual exchange data
   history: HistoryPoint[];
+  openInterest?: number
 }
 
 export interface WorkerInput {
@@ -71,7 +77,7 @@ ctx.addEventListener('message', async (event: MessageEvent<WorkerInput>) => {
         // we can still show funding data (or vice versa).
         const [historyRes, volumeRes] = await Promise.allSettled([
           fundingRateHistory(exchange, token),
-          get24hVolume(exchange, token)
+          get24hVolume(exchange, token),
         ]);
 
         const history = historyRes.status === 'fulfilled' ? historyRes.value : [];
@@ -158,7 +164,8 @@ export const calculateBestArbitrage = (
           current: item.currentRate,
           vol24h: item.vol24h, // Current 24h volume fetched in Step 2
           nextFundingTime: item.nextFundingTime,
-          interval: item.interval
+          interval: item.interval,
+          openInterest: item.openInterest
         };
       })
       .filter((summary): summary is NonNullable<typeof summary> => summary !== null);
@@ -186,7 +193,11 @@ export const calculateBestArbitrage = (
         nextFundingTime: {
           sell: bestToSell.nextFundingTime,
           buy: bestToBuy.nextFundingTime,
-        }
+        },
+        // openInterest: {
+        //   buy: bestToBuy.openInterest,
+        //   sell: bestToSell.openInterest
+        // }
       });
     }
   }
