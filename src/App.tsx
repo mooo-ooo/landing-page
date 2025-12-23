@@ -13,6 +13,7 @@ import Signals from "./pages/Signals/SignalsContainer"
 import Dashboard from "./pages/Dashboard";
 import Wallets from "./pages/Wallets";
 import Fundings from "./pages/Fundings";
+import Authenticator from "./pages/Authenticator";
 import LandingPage from "./pages/LandingPage";
 import Strategies from "./pages/Strategies";
 import TwoFactorAuth from "./pages/TwoFactorAuth";
@@ -67,6 +68,7 @@ function App() {
                   <Route path="/strategies" element={<Strategies />} />
                   <Route path="/fundings" element={<Fundings />} />
                   <Route path="/api-keys" element={<ApiKeys />} />
+                  <Route path="/otps" element={<Authenticator />} />
                   <Route path="orderbooks" element={<Orderbooks />} />
                   <Route path="signals" element={<Signals />} />
                   

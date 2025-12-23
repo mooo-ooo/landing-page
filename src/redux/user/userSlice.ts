@@ -7,6 +7,7 @@ interface UserState {
     email: string;
     name: string;
     username?: string;
+    role: string
     twoFactorEnabled: boolean;
     groupId: number;
     groupCode?: string;
@@ -33,6 +34,7 @@ export const fetchUserData = createAsyncThunk(
       id,
       email,
       name,
+      role,
       twoFactorEnabled, // API's snake_case key
       groupId, // API's snake_case key
     } = data;
@@ -42,6 +44,7 @@ export const fetchUserData = createAsyncThunk(
       id,
       email,
       name,
+      role,
       twoFactorEnabled, // Mapped to camelCase
       groupId, // Mapped to camelCase
     };

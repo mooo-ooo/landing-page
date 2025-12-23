@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "./redux/store";
@@ -31,18 +31,16 @@ import {
   ContentCopy,
   Group,
 } from "@mui/icons-material";
-import MenuIcon from '@mui/icons-material/Menu'
-import useMediaQuery from '@mui/material/useMediaQuery'
+import MenuIcon from "@mui/icons-material/Menu";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import ReplayIcon from "@mui/icons-material/Replay";
 import { styled } from "@mui/system";
 import api from "./lib/axios";
 import numeral from "numeral";
 import NewStrategyDialog from "./components/StrategyDialog/NewStrategy";
 import UpdateStrategy from "./components/StrategyDialog/UpdateStrategy";
-import LaunchBotConfirmationDialog from "./components/StrategyDialog/LaunchBotConfirmationDialog"
-import {
-  fetchStrategies,
-} from "./redux/strategy/strategySlice";
+import LaunchBotConfirmationDialog from "./components/StrategyDialog/LaunchBotConfirmationDialog";
+import { fetchStrategies } from "./redux/strategy/strategySlice";
 import { fetchLast7Days } from "./redux/fundingFees/fundingFeesSlice";
 import { setUser, setError, selectUser } from "./redux/user/userSlice";
 import {
@@ -56,7 +54,7 @@ import {
   setUpdateStrategy,
   selectUpdateStrategy,
   setLaunchStrategy,
-  selectLaunchStrategy
+  selectLaunchStrategy,
 } from "./redux/strategy/strategySlice";
 import { fetchGroup } from "./redux/group/groupSlice";
 import {
@@ -67,7 +65,7 @@ import {
 } from "./redux/positions/positionsSlice";
 
 function Layout() {
-  const isWeb = useMediaQuery('(min-width:600px)')
+  const isWeb = useMediaQuery("(min-width:600px)");
   const didRun = useRef(false);
   const initialized = useRef(false);
   const location = useLocation();
@@ -75,17 +73,17 @@ function Layout() {
   const dispatch = useDispatch<AppDispatch>();
   const newStrategyProps = useSelector(selectNewStrategy);
   const updateStrategyProps = useSelector(selectUpdateStrategy);
-  const launchStrategy = useSelector(selectLaunchStrategy)
+  const launchStrategy = useSelector(selectLaunchStrategy);
   const user = useSelector((state: RootState) => state.user.data);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [openDrawer, setOpenDrawer] = useState(false)
+  const [openDrawer, setOpenDrawer] = useState(false);
   const [localError, setLocalError] = useState<string>();
   const [copySuccess, setCopySuccess] = useState(false);
   const isMenuOpen = Boolean(anchorEl);
   const balances = useSelector(selectBalances);
   const toggleDrawer = (newOpen: boolean) => () => {
-    setOpenDrawer(newOpen)
-  }
+    setOpenDrawer(newOpen);
+  };
   const positionLoading = useSelector(selectPositionsLoading);
   const { email, credit, groupCode, twoFactorEnabled } =
     useSelector(selectUser) || {};
@@ -129,9 +127,7 @@ function Layout() {
         .get("/api/v1/auth/me")
         .then((response) => {
           const userData = response.data;
-          dispatch(
-            setUser(userData)
-          );
+          dispatch(setUser(userData));
           dispatch(fetchGroup());
           // Store groupId in localStorage for axios interceptor
           if (userData.groupId) {
@@ -162,11 +158,11 @@ function Layout() {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      dispatch(fetchStrategies())
+      dispatch(fetchStrategies());
     }, 1000 * 60);
     if (!initialized.current) {
       initialized.current = true;
-      dispatch(fetchStrategies())
+      dispatch(fetchStrategies());
     }
 
     return () => clearInterval(intervalId);
@@ -180,6 +176,7 @@ function Layout() {
     }
   }, [user?.groupId]);
 
+  const isAdmin = user?.role === "admin";
   const handleClose = (
     _event?: React.SyntheticEvent | Event,
     reason?: string
@@ -326,7 +323,7 @@ function Layout() {
           </Typography>
         )}
       </MenuItem>
-      
+
       <MenuItem onClick={handleLogout} sx={{ py: 1.5 }}>
         <Logout sx={{ mr: 2, fontSize: 20 }} />
         Logout
@@ -344,29 +341,31 @@ function Layout() {
           aria-label="open drawer"
           onClick={toggleDrawer(true)}
         >
-          <MenuIcon sx={{ fontSize: 26}}/>
+          <MenuIcon sx={{ fontSize: 26 }} />
         </IconButton>
         <Box sx={{ flexGrow: 1 }} display="flex" justifyContent="center">
           <img style={{ height: 16 }} src="/logo.png" alt="logo" />
         </Box>
-        
-        <Typography>
-          ~{numeral(totalMargin).format("0,0.0")} USDT
-        </Typography>
+
+        <Typography>~{numeral(totalMargin).format("0,0.0")} USDT</Typography>
         <IconButton onClick={fetchBalance} color="primary">
           <ReplayIcon />
         </IconButton>
       </Toolbar>
       {positionLoading ? (
-        <Box sx={{ width: '100%' }}>
+        <Box sx={{ width: "100%" }}>
           <LinearProgress />
         </Box>
       ) : null}
     </AppBar>
-  )
+  );
 
   const DrawerList = (
-    <Box sx={{ width: 250, background: "rgb(30, 32, 38)", height: "inherit" }} role="presentation" onClick={toggleDrawer(false)}>
+    <Box
+      sx={{ width: 250, background: "rgb(30, 32, 38)", height: "inherit" }}
+      role="presentation"
+      onClick={toggleDrawer(false)}
+    >
       <List>
         <ListItem>
           <Email sx={{ mr: 2, fontSize: 20, color: "text.secondary" }} />
@@ -382,7 +381,7 @@ function Layout() {
           </Typography>
         </ListItem>
       </List>
-      
+
       <List>
         <ListItem disablePadding>
           <LinkStyled to="/">
@@ -407,6 +406,7 @@ function Layout() {
             </ListItemButton>
           </LinkStyled>
         </ListItem>
+        <Divider />
         <ListItem disablePadding>
           <LinkStyled to="/shared-profile">
             <ListItemButton>
@@ -415,6 +415,18 @@ function Layout() {
           </LinkStyled>
         </ListItem>
         <Divider />
+        {isAdmin ? (
+          <Fragment>
+            <ListItem disablePadding>
+              <LinkStyled to="/otps">
+                <ListItemButton>
+                  <Typography fontSize={16}>Authenticator</Typography>
+                </ListItemButton>
+              </LinkStyled>
+            </ListItem>
+            <Divider />
+          </Fragment>
+        ) : null}
         <ListItem disablePadding>
           <ListItemButton onClick={handleLogout}>
             <Typography fontSize={16}>Logout</Typography>
@@ -422,7 +434,7 @@ function Layout() {
         </ListItem>
       </List>
     </Box>
-  )
+  );
 
   return (
     <Box mt="60px">
@@ -438,14 +450,14 @@ function Layout() {
                     alt="logo"
                   />
                 </Link>
-                
+
                 <LinkStyled
                   to="/strategies"
                   isActive={location.pathname === "/strategies"}
                 >
                   Strategies
                 </LinkStyled>
-                
+
                 <LinkStyled
                   to="/signals"
                   isActive={location.pathname === "/signals"}
@@ -555,7 +567,6 @@ function Layout() {
     </Box>
   );
 }
-
 
 export default Layout;
 
