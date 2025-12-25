@@ -600,7 +600,7 @@ const SignalsContainer: React.FC = () => {
                   100;
                 return (
                   <TableRow key={opp.baseToken}>
-                    <TableCell onClick={() => handleNavigation(opp.baseToken)} style={{ cursor: 'pointer', color: '#3b82f6' }}>{opp.baseToken}</TableCell>
+                    <TableCell onClick={() => handleNavigation(opp.baseToken)} style={{ cursor: 'pointer', fontWeight: 'bold' }}>{opp.baseToken}</TableCell>
                     <TableCell>
                       <Box
                         sx={{
