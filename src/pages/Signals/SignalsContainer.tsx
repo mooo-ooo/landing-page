@@ -29,7 +29,8 @@ import {
   DialogActions,
   TableSortLabel,
 } from "@mui/material";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import EditIcon from "@mui/icons-material/Edit";
 import readableNumber from "human-readable-numbers";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -46,7 +47,7 @@ import {
   type WorkerInput,
   type WorkerOutput,
 } from "../../workers/funding.worker";
-import CountdownTimer from './CountdownTime'
+import CountdownTimer from "./CountdownTime";
 import MyArbitrageWorker from "../../workers/funding.worker.ts?worker";
 import { type ExchangeName } from "../../types/exchange";
 
@@ -115,7 +116,7 @@ const SignalsContainer: React.FC = () => {
   const navigate = useNavigate();
 
   const handleNavigation = (token: string) => {
-      navigate(`/orderbooks?token=${token}`);
+    navigate(`/orderbooks?token=${token}`);
   };
 
   // 2. Dialog State
@@ -179,7 +180,9 @@ const SignalsContainer: React.FC = () => {
         switch (filter.field) {
           case "token": {
             // Case-insensitive search for token string
-            return opp.baseToken.toUpperCase().includes(filter.value.toUpperCase());
+            return opp.baseToken
+              .toUpperCase()
+              .includes(filter.value.toUpperCase());
           }
           case "vol24h": {
             // Both sides must meet the volume requirement for the signal to be valid
@@ -304,7 +307,8 @@ const SignalsContainer: React.FC = () => {
     } as WorkerInput);
 
     worker.onmessage = (e: MessageEvent<WorkerOutput>) => {
-      if (e.data.status === "success") setArbitrageOpportunities(e.data.data as ArbitrageOpportunity[]);
+      if (e.data.status === "success")
+        setArbitrageOpportunities(e.data.data as ArbitrageOpportunity[]);
       else setError(e.data.errorMessage || "Failed to fetch data");
       setLoading(false);
       worker.terminate();
@@ -403,7 +407,13 @@ const SignalsContainer: React.FC = () => {
                   sx={{ minWidth: 160 }}
                 >
                   {FILTER_OPTIONS.map((opt) => (
-                    <MenuItem key={opt.id} value={opt.id} disabled={filters.some((f, i) => f.field === opt.id && i !== index)}>
+                    <MenuItem
+                      key={opt.id}
+                      value={opt.id}
+                      disabled={filters.some(
+                        (f, i) => f.field === opt.id && i !== index
+                      )}
+                    >
                       {opt.label}
                     </MenuItem>
                   ))}
@@ -600,7 +610,14 @@ const SignalsContainer: React.FC = () => {
                   100;
                 return (
                   <TableRow key={opp.baseToken}>
-                    <TableCell onClick={() => handleNavigation(opp.baseToken)} style={{ cursor: 'pointer', fontWeight: 'bold' }}>{opp.baseToken}</TableCell>
+                    <TableCell
+                      onClick={() => handleNavigation(opp.baseToken)}
+                      style={{ cursor: "pointer", fontWeight: "bold", textDecoration: 'underline', fontStyle: 'italic' }}
+                    >
+                      <Box gap={2} display='flex' alignItems='center'>{opp.baseToken}
+                      <OpenInNewIcon /></Box>
+                      
+                    </TableCell>
                     <TableCell>
                       <Box
                         sx={{
@@ -668,18 +685,12 @@ const SignalsContainer: React.FC = () => {
                           }}
                         >
                           {/* Volume for the Sell Side */}
-                          <Typography
-                            align="left"
-                            variant="caption"
-                          >
+                          <Typography align="left" variant="caption">
                             {(opp.sellExchangeRate * 100).toFixed(2)}%
                           </Typography>
 
                           {/* Volume for the Buy Side */}
-                          <Typography
-                            align="left"
-                            variant="caption"
-                          >
+                          <Typography align="left" variant="caption">
                             {(opp.buyExchangeRate * 100).toFixed(2)}%
                           </Typography>
                         </Box>
@@ -765,5 +776,3 @@ const SignalsContainer: React.FC = () => {
 const TableCell = styled(TableCellMui)({ padding: "8px 16px" });
 
 export default SignalsContainer;
-
-

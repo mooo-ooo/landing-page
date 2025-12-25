@@ -37,7 +37,7 @@ coinex.proxyUrl = PROXY_SERVER;
 mexc.proxyUrl = PROXY_SERVER;
 gate.proxyUrl = PROXY_SERVER;
 kucoin.proxyUrl = PROXY_SERVER;
-huobi.proxyUrl = 'http://178.128.110.139:8080/';
+huobi.proxyUrl = PROXY_SERVER;
 
 export type Exchange =
   | typeof binance

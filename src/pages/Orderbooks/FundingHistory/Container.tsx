@@ -10,10 +10,12 @@ import {
   Box,
   Alert,
   IconButton,
-  AlertTitle
+  AlertTitle,
 } from "@mui/material";
+import fetchVol24h from "../../../services/vol24h";
 import CloseIcon from "@mui/icons-material/Close";
 import Highcharts from "highcharts";
+import readableNumber from "human-readable-numbers";
 import HighchartsReact from "highcharts-react-official";
 import dayjs from "dayjs";
 import { styled } from "@mui/system";
@@ -38,13 +40,15 @@ export interface IStatistic {
 const PerformanceHistoryContainer: React.FC<{
   baseToken: string;
   exchanges: ExchangeName[];
-  setStatistic: (data: IStatistic[]) => void
+  setStatistic: (data: IStatistic[]) => void;
 }> = ({ baseToken, setStatistic, exchanges }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [vol24h, setVol24h] = useState<Record<string, number>>({});
   const [weeks] = useState(
     () => Number(localStorage.getItem(SIGNAL_WEEKS)) || 2
   );
+
   const [fundingHistory, setFundingHisotry] = useState<FundingHistoryResult[]>(
     []
   );
@@ -74,6 +78,34 @@ const PerformanceHistoryContainer: React.FC<{
     () => Array.from(new Set(fundingHistory.map((h) => h.exchange))),
     [fundingHistory]
   );
+
+  // Fetch 24h Volume for all active exchanges
+  useEffect(() => {
+    const fetchVolumes = async () => {
+      const volumeMap: Record<string, number> = {};
+
+      // Using Promise.all to fetch volumes in parallel
+      await Promise.all(
+        allExchanges.map(async (ex) => {
+          try {
+            // Replace this with your actual API/Service call
+            // Example: const ticker = await exchangeService.getTicker(ex, baseToken);
+            // volumeMap[ex] = ticker.quoteVolume;
+            const vol = await fetchVol24h(ex, baseToken);
+            // For now, using a placeholder logic:
+            volumeMap[ex] = vol;
+          } catch (err) {
+            console.error(`Failed to fetch volume for ${ex}`, err);
+          }
+        })
+      );
+      setVol24h(volumeMap);
+    };
+
+    if (allExchanges.length > 0) {
+      fetchVolumes();
+    }
+  }, [allExchanges, baseToken]);
 
   // Transform data for the Table: Group by Timestamp
   const tableData = useMemo(() => {
@@ -225,8 +257,8 @@ const PerformanceHistoryContainer: React.FC<{
   }, [fundingHistory]);
 
   useEffect(() => {
-    setStatistic(summaryData)
-  }, [summaryData, setStatistic])
+    setStatistic(summaryData);
+  }, [summaryData, setStatistic]);
 
   if (loading)
     return (
@@ -236,7 +268,7 @@ const PerformanceHistoryContainer: React.FC<{
     );
 
   return (
-    <Box >
+    <Box>
       {error ? (
         <Alert
           severity="error"
@@ -257,8 +289,15 @@ const PerformanceHistoryContainer: React.FC<{
         </Alert>
       ) : null}
       {/* 2. Chart Section */}
-      <Box borderRadius={1}
-              sx={{ border: "1px solid rgba(255, 255, 255, 0.12)", py: 2, px: 0, my: 2 }}>
+      <Box
+        borderRadius={1}
+        sx={{
+          border: "1px solid rgba(255, 255, 255, 0.12)",
+          py: 2,
+          px: 0,
+          my: 2,
+        }}
+      >
         <HighchartsReact highcharts={Highcharts} options={chartOptions} />
       </Box>
 
@@ -269,15 +308,42 @@ const PerformanceHistoryContainer: React.FC<{
       >
         <TableHead>
           <TableRow>
-            <TableCell> <Typography color="text.secondary">Time</Typography></TableCell>
+            <TableCell>
+              {" "}
+              <Typography color="text.secondary">Time</Typography>
+            </TableCell>
             {allExchanges.map((ex) => (
               <TableCell key={ex} align="right">
-                <Typography color="text.secondary">{ex.toUpperCase()}</Typography>
+                <Typography color="text.secondary">
+                  {ex.toUpperCase()}
+                </Typography>
               </TableCell>
             ))}
           </TableRow>
         </TableHead>
         <TableBody>
+          <TableRow sx={{ backgroundColor: "rgba(255, 255, 255, 0.03)" }}>
+            <TableCell>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ fontWeight: "bold" }}
+              >
+                VOL 24H
+              </Typography>
+            </TableCell>
+            {allExchanges.map((ex) => (
+              <TableCell key={`${ex}-vol`} align="right">
+                <Typography
+                  variant="body1"
+                  color="info"
+                  sx={{ fontFamily: "monospace", fontWeight: 'bold' }}
+                >
+                  {readableNumber.toHumanString(vol24h[ex])}
+                </Typography>
+              </TableCell>
+            ))}
+          </TableRow>
           {tableData.map((row) => (
             <TableRow key={row.time} hover>
               <TableCell sx={{ color: "gray" }}>{row.time}</TableCell>
@@ -286,7 +352,7 @@ const PerformanceHistoryContainer: React.FC<{
                 return (
                   <TableCell key={ex} align="right">
                     <Typography
-                    variant="body2"
+                      variant="body2"
                       sx={{
                         color: val > 0 ? green : val < 0 ? red : "inherit",
                       }}

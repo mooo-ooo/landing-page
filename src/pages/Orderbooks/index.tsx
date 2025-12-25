@@ -7,7 +7,8 @@ import {
   Button,
   Typography,
 } from "@mui/material";
-import { Group, Panel } from "react-resizable-panels";
+import { Group, Panel, Separator } from "react-resizable-panels";
+import { styled } from "@mui/material/styles";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 import Statistic from "./Statistic";
 import Orderbook from "./Orderbook";
@@ -18,6 +19,38 @@ import ExchangesFilter from "../Signals/ExchangesFilter";
 import type { ExchangeName } from "../../types/exchange";
 
 const firstId = new Date().getTime();
+
+const StyledHandle = styled(Separator)(() => ({
+  width: "10px", // Total hit area
+  display: "flex",
+  justifyContent: "center",
+  position: "relative",
+  cursor: "col-resize",
+  zIndex: 10,
+
+  // The dashed line
+  "&::after": {
+    content: '""',
+    width: "2px",
+    height: "100%",
+    // Creates a 4px dash and 4px gap
+    backgroundImage: `linear-gradient(to bottom, 
+      rgba(255, 255, 255, 0.2) 50%, 
+      transparent 50%)`,
+    backgroundSize: "2px 8px", // Width of 1px, repeats every 8px
+    backgroundRepeat: "repeat-y",
+    transition: "all 0.2s ease",
+  },
+
+  // Highlight effect on hover or drag
+  "&:hover::after, &[data-resize-handle-active]::after": {
+    backgroundImage: `linear-gradient(to bottom, 
+      rgba(255, 255, 255, 0.7) 50%, 
+      transparent 50%)`,
+    width: "2px", // Make it slightly thicker when active
+  },
+}));
+
 function OrderBook() {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -76,7 +109,7 @@ function OrderBook() {
       <Group>
         <Panel minSize={350}>
           <Box
-            sx={{ borderRight: "2px dashed rgba(255, 255, 255, 0.13)", p: 2 }}
+            sx={{ p: 2 }}
           >
             <Box
               gap={2}
@@ -85,21 +118,11 @@ function OrderBook() {
               sx={{ border: "1px solid rgba(255, 255, 255, 0.12)", p: 2 }}
               alignItems="flex-start"
             >
-              <ExchangesFilter<ExchangeName>
-                options={ALL_EXCHANGES}
-                value={selectedExchanges}
-                onChange={(exs) => {
-                  localStorage.setItem(SIGNAL_EXCHANGES, JSON.stringify(exs));
-                  setSelectedExchanges(exs as ExchangeName[]);
-                }}
-                getOptionLabel={(o) => o}
-              />
               <Stack
                 direction="row"
                 spacing={1}
                 alignItems="flex-end"
                 justifyContent="space-between"
-                flexGrow={1}
               >
                 <Box>
                   <Typography
@@ -120,13 +143,22 @@ function OrderBook() {
                   />
                 </Box>
 
-                <Button
-                  variant="outlined"
-                  onClick={handleCheck}
-                >
+                <Button variant="outlined" onClick={handleCheck}>
                   Check
                 </Button>
               </Stack>
+              <Box display='flex' flexGrow={1} justifyContent='flex-end'>
+                <ExchangesFilter<ExchangeName>
+                options={ALL_EXCHANGES}
+                value={selectedExchanges}
+                onChange={(exs) => {
+                  localStorage.setItem(SIGNAL_EXCHANGES, JSON.stringify(exs));
+                  setSelectedExchanges(exs as ExchangeName[]);
+                }}
+                getOptionLabel={(o) => o}
+              />
+              </Box>
+              
             </Box>
             <FundingHistory
               baseToken={activeToken}
@@ -135,6 +167,7 @@ function OrderBook() {
             />
           </Box>
         </Panel>
+        <StyledHandle />
         <Panel minSize={350}>
           <Box sx={{ p: 2 }} display="flex" flexDirection="column" gap="12px">
             <Statistic data={statistic} />
