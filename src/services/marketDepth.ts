@@ -18,6 +18,29 @@ export const getMarketDepth = async (
         const { data: { data } } = await axios.get(
           `${PROXY_URL}/https://api.coinex.com/v2/futures/depth?market=${symbol}USDT&limit=5&interval=0`
         );
+        // const { data: { data: orders } } = await axios.get(
+        //   `${PROXY_URL}/https://api.coinex.com/v2/futures/depth?market=${symbol}USDT&limit=50&interval=1000`
+        // );
+        // const toVol = (tot: number, [price, amount]: number[]) => {
+        //     return tot + (price * amount);
+        //   }
+        // const toAmount = (tot: number, [_, amount]: number[]) => {
+        //     return tot + Number(amount);
+        //   }
+        // const openInterest = {
+        //   bids: {
+        //     vol: orders.depth.bids.reduce(toVol, 0),
+        //     amount: orders.depth.bids.reduce(toAmount, 0),
+        //   },
+        //   asks: {
+        //     vol: orders.depth.asks.reduce(toVol, 0),
+        //     amount: orders.depth.asks.reduce(toAmount, 0),
+        //   }
+        // }
+        // // console.log('amount', symbol, openInterest.asks.vol + openInterest.bids.vol)
+        // // console.log('asks amount', symbol, openInterest.asks.amount)
+        // // console.log('bids amount', symbol, openInterest.bids.amount)
+        // console.log('vol', symbol, openInterest.asks.vol, openInterest.bids.vol)
         return {
           bids: data.depth.bids,
           asks: data.depth.asks,

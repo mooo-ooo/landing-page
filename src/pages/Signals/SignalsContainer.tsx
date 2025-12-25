@@ -29,6 +29,7 @@ import {
   DialogActions,
   TableSortLabel,
 } from "@mui/material";
+import { useNavigate } from 'react-router-dom';
 import EditIcon from "@mui/icons-material/Edit";
 import readableNumber from "human-readable-numbers";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -110,6 +111,12 @@ const SignalsContainer: React.FC = () => {
     const saved = localStorage.getItem(MY_FAV_KEY);
     return saved ? JSON.parse(saved) : ["BTC", "ETH", "SOL"];
   });
+
+  const navigate = useNavigate();
+
+  const handleNavigation = (token: string) => {
+      navigate(`/orderbooks?token=${token}`);
+  };
 
   // 2. Dialog State
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -297,7 +304,7 @@ const SignalsContainer: React.FC = () => {
     } as WorkerInput);
 
     worker.onmessage = (e: MessageEvent<WorkerOutput>) => {
-      if (e.data.status === "success") setArbitrageOpportunities(e.data.data);
+      if (e.data.status === "success") setArbitrageOpportunities(e.data.data as ArbitrageOpportunity[]);
       else setError(e.data.errorMessage || "Failed to fetch data");
       setLoading(false);
       worker.terminate();
@@ -593,7 +600,7 @@ const SignalsContainer: React.FC = () => {
                   100;
                 return (
                   <TableRow key={opp.baseToken}>
-                    <TableCell>{opp.baseToken}</TableCell>
+                    <TableCell onClick={() => handleNavigation(opp.baseToken)} style={{ cursor: 'pointer', color: '#3b82f6' }}>{opp.baseToken}</TableCell>
                     <TableCell>
                       <Box
                         sx={{

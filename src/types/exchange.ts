@@ -1,1 +1,1 @@
-export type ExchangeName = 'binance' | 'okx' | 'bybit' | 'huobi' | 'coinex' | 'gate' | 'bitget'; 
+export type ExchangeName = 'binance' | 'okx' | 'bybit' | 'huobi' | 'coinex' | 'gate' | 'bitget' | 'mexc' | 'kucoin'; 
