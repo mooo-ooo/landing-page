@@ -18,11 +18,11 @@ import {
 import { green } from "../constants/colors";
 import CloseIcon from "@mui/icons-material/Close";
 import { Sort as SortIcon } from "@mui/icons-material";
+import { toHumanString } from "../services/humanReadable";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import PositionsTable from "../components/PositionsTable";
 import { selectStrategies } from "../redux/strategy/strategySlice";
 import numeral from "numeral";
-import readableNumber from "human-readable-numbers";
 import { useSharedFundingRates } from "../hooks";
 import { calculateDaysBack } from "../helpers";
 import { normalizedSharedPositions } from "../hooks/useNormalizedPositions";
@@ -486,7 +486,7 @@ const ProfileCard: FC<IProfile> = ({
             label="Volumes"
             valueComponent={
               <Typography textTransform="capitalize">
-                {readableNumber.toHumanString(totalVol)}
+                {toHumanString(totalVol)}
               </Typography>
             }
           />

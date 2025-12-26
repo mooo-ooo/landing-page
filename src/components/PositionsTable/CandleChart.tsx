@@ -5,10 +5,10 @@ import * as Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import dayjs from "dayjs";
 import { getCandleSticks, type CandleStick } from "../../services/candlestick";
+import { toHumanString } from "../../services/humanReadable";
 import { fundingRateHistory } from "../../services/fundingRateHistory";
 import type { ExchangeName } from "../../types/exchange";
 import numeral from "numeral";
-import readableNumber from 'human-readable-numbers'
 
 function CandleChart({
   baseToken,
@@ -62,7 +62,7 @@ function CandleChart({
 
   useEffect(() => {
     getCandleSticks(sellExchanges[0], baseToken).then(setCandleSticks);
-  }, []);
+  }, [baseToken, sellExchanges]);
 
   useEffect(() => {
     if (candleSticks.length) {
@@ -114,7 +114,7 @@ function CandleChart({
         gridLineWidth: 0,
         labels: {
           formatter: ({ value }: { value: number }) => {
-            return readableNumber.toHumanString(value);
+            return toHumanString(value);
           },
           style: {
             color: "#FFF",

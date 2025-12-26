@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import readableNumber from "human-readable-numbers";
+import { toHumanString } from "../../services/humanReadable";
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { Box, Typography, Skeleton } from "@mui/material";
 import get24hVolume from "../../services/vol24h";
@@ -55,7 +55,7 @@ function Volume24h({
               height={20}
             />
             <Typography>
-              {readableNumber.toHumanString(vol24h.buyVol)}
+              {toHumanString(vol24h.buyVol)}
             </Typography>
           </Box>
         ) : null}
@@ -71,7 +71,7 @@ function Volume24h({
               height={20}
             />
             <Typography>
-              {readableNumber.toHumanString(vol24h.sellVol)}
+              {toHumanString(vol24h.sellVol)}
             </Typography>
           </Box>
         ) : null}

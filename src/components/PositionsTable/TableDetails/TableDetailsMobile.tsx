@@ -6,21 +6,16 @@ import Volume24h from "../Volume24h";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import CandleChart from "../CandleChart";
 import { useDispatch } from "react-redux";
-import readableNumber from "human-readable-numbers";
 import type { AppDispatch } from "../../../redux/store";
 import type { IPosition } from "../../../redux/positions/positionsSlice";
+import { toHumanString } from "../../../services/humanReadable";
 import {
   setUpdateStrategy,
   setNewStrategy,
   type IStrategy,
 } from "../../../redux/strategy/strategySlice";
 import {
-  // calculateAveragePrice,
-  // calculateWeightedAverageFundingRate,
-  // percentageChange,
   strip,
-  // type IPurchase,
-  // type ITransactionWithFundingRate,
 } from "../../../helpers";
 
 export interface IDetails {
@@ -33,23 +28,6 @@ export interface IDetails {
   totalVol: number;
   setShownBalanceOrderConfirmationDialog: (token: string) => void;
 }
-
-// const toWeightedAverageFundingRate = ({
-//   fundingRate,
-//   size,
-// }: IPosition): ITransactionWithFundingRate => {
-//   return {
-//     fundingRate,
-//     quantity: size,
-//   };
-// };
-
-// const toAveragePrice = ({ avgPrice, size }: IPosition): IPurchase => {
-//   return {
-//     price: avgPrice,
-//     quantity: size,
-//   };
-// };
 
 function TableDetailsMobile({
   foundStrategy,
@@ -64,10 +42,6 @@ function TableDetailsMobile({
   const dispatch = useDispatch<AppDispatch>();
   const totalSizeSell = sells.reduce((tot, { size }) => size + tot, 0);
   const totalSizeBuy = buys.reduce((tot, { size }) => size + tot, 0);
-
-  // const buyAvgPrice = calculateAveragePrice(buys.map(toAveragePrice));
-
-  // const sellAvgPrice = calculateAveragePrice(sells.map(toAveragePrice));
 
   const estimatedFee = [...sells, ...buys].reduce((tot, cur) => {
     return (
@@ -150,7 +124,7 @@ function TableDetailsMobile({
         <Typography color="textSecondary">Mark price:</Typography>
         <Typography>
           {sells?.length ? (
-            readableNumber.toHumanString(sells[0]?.markPrice) + ' USDT'
+            toHumanString(sells[0]?.markPrice) + ' USDT'
           ) : (
             <Skeleton animation="wave" />
           )}
@@ -160,7 +134,7 @@ function TableDetailsMobile({
         <Typography color="textSecondary">Total volume:</Typography>
         <Box>
           <Typography>
-            {readableNumber.toHumanString(volOfStrategy)}$
+            {toHumanString(volOfStrategy)}$
           </Typography>
           {spreadSize ? (
             <Box

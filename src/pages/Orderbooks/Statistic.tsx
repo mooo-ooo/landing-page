@@ -1,5 +1,5 @@
 import { Box, Paper, Grid, Typography } from "@mui/material";
-import { type IStatistic } from "./FundingHistory/Container";
+import { type IStatistic } from "./FundingHistory";
 import { red, green } from "../../constants/colors";
 
 function Statistic({ data }: { data: IStatistic[] }) {
@@ -8,10 +8,9 @@ function Statistic({ data }: { data: IStatistic[] }) {
       variant="outlined"
       sx={{
         p: 2,
-        borderRadius: 2,
+        borderRadius: 1,
         bgcolor: "background.paper",
-        borderStyle: "dashed",
-        mb: 2,
+        borderStyle: "solid",
       }}
     >
       {/* --- SUMMARY HEADER SECTION --- */}

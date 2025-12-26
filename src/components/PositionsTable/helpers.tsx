@@ -7,7 +7,7 @@ import ConstructionIcon from "@mui/icons-material/Construction";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import CoinIconLoader from '../../components/CoinIconLoader'
-import readableNumber from 'human-readable-numbers'
+import { toHumanString } from '../../services/humanReadable'
 import numeral from "numeral";
 import {
   calculateAveragePrice,
@@ -205,7 +205,7 @@ export const createPositionsTable = ({
         id: "volume",
         component: (
           <Box>
-            <Typography>{readableNumber.toHumanString(volOfStrategy)}$</Typography>
+            <Typography>{toHumanString(volOfStrategy)}$</Typography>
             {spreadSize ? (
               <Box
                 display="flex"
@@ -277,7 +277,7 @@ export const createPositionsTable = ({
           <Tooltip title={sells[0]?.exchange}>
             <Typography>
               {sells.length ? (
-                readableNumber.toHumanString(sells[0]?.markPrice)
+                toHumanString(sells[0]?.markPrice)
               ) : (
                 <Skeleton animation="wave" />
               )}
@@ -295,10 +295,10 @@ export const createPositionsTable = ({
                   <Box display="flex" justifyContent="space-between">
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
                       {numeral(distToLiqSell).format("0")}%
-                      {/* {readableNumber.toHumanString(distToLiqSell)}% */}
+                      {/* {toHumanString(distToLiqSell)}% */}
                     </Typography>
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
-                      {readableNumber.toHumanString(sells[0]?.liqPrice)}
+                      {toHumanString(sells[0]?.liqPrice)}
                       $
                     </Typography>
                   </Box>
@@ -319,10 +319,10 @@ export const createPositionsTable = ({
                   <Box display="flex" justifyContent="space-between">
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
                       {numeral(distToLiqBuy).format("0")}%
-                      {/* {readableNumber.toHumanString(distToLiqBuy)}% */}
+                      {/* {toHumanString(distToLiqBuy)}% */}
                     </Typography>
                     <Typography fontSize={isWeb ? "10px" : 'unset'}>
-                      {buys[0]?.liqPrice ? readableNumber.toHumanString(buys[0]?.liqPrice) : 0}
+                      {buys[0]?.liqPrice ? toHumanString(buys[0]?.liqPrice) : 0}
                       $
                     </Typography>
                   </Box>

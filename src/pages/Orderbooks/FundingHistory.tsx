@@ -7,27 +7,29 @@ import {
   TableRow,
   Typography,
   CircularProgress,
+  ToggleButtonGroup,
   Box,
   Alert,
   IconButton,
   AlertTitle,
+  ToggleButton,
 } from "@mui/material";
-import fetchVol24h from "../../../services/vol24h";
+import fetchVol24h from "../../services/vol24h";
 import CloseIcon from "@mui/icons-material/Close";
 import Highcharts from "highcharts";
-import readableNumber from "human-readable-numbers";
+import { toHumanString } from "../../services/humanReadable";
 import HighchartsReact from "highcharts-react-official";
 import dayjs from "dayjs";
 import { styled } from "@mui/system";
-import { green, red } from "../../../constants/colors";
+import { green, red } from "../../constants/colors";
 import {
   type FundingHistoryResult,
   type WorkerInput,
   type WorkerOutput,
-} from "../../../workers/funding.worker";
-import MyArbitrageWorker from "../../../workers/funding.worker.ts?worker";
-import { type ExchangeName } from "../../../types/exchange";
-import { SIGNAL_WEEKS } from "../../../constants";
+} from "../../workers/funding.worker";
+import MyArbitrageWorker from "../../workers/funding.worker.ts?worker";
+import { type ExchangeName } from "../../types/exchange";
+import { SIGNAL_WEEKS } from "../../constants";
 
 export interface IStatistic {
   label: string;
@@ -37,7 +39,7 @@ export interface IStatistic {
   buyEx: ExchangeName;
 }
 
-const PerformanceHistoryContainer: React.FC<{
+const FundingHistory: React.FC<{
   baseToken: string;
   exchanges: ExchangeName[];
   setStatistic: (data: IStatistic[]) => void;
@@ -45,7 +47,7 @@ const PerformanceHistoryContainer: React.FC<{
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [vol24h, setVol24h] = useState<Record<string, number>>({});
-  const [weeks] = useState(
+  const [weeks, setWeeks] = useState(
     () => Number(localStorage.getItem(SIGNAL_WEEKS)) || 2
   );
 
@@ -88,9 +90,6 @@ const PerformanceHistoryContainer: React.FC<{
       await Promise.all(
         allExchanges.map(async (ex) => {
           try {
-            // Replace this with your actual API/Service call
-            // Example: const ticker = await exchangeService.getTicker(ex, baseToken);
-            // volumeMap[ex] = ticker.quoteVolume;
             const vol = await fetchVol24h(ex, baseToken);
             // For now, using a placeholder logic:
             volumeMap[ex] = vol;
@@ -260,6 +259,16 @@ const PerformanceHistoryContainer: React.FC<{
     setStatistic(summaryData);
   }, [summaryData, setStatistic]);
 
+  function handleWeekChange(
+    _: React.MouseEvent<HTMLElement>,
+    newWeek: number | null
+  ) {
+    if (newWeek !== null) {
+      setWeeks(newWeek);
+      localStorage.setItem(SIGNAL_WEEKS, newWeek.toString());
+    }
+  }
+
   if (loading)
     return (
       <Box sx={{ display: "flex", justifyContent: "center", p: 5 }}>
@@ -293,83 +302,144 @@ const PerformanceHistoryContainer: React.FC<{
         borderRadius={1}
         sx={{
           border: "1px solid rgba(255, 255, 255, 0.12)",
-          py: 2,
           px: 0,
           my: 2,
+          position: "relative",
         }}
       >
+        <Box sx={{ position: "absolute", top: "10px", right: "10px", zIndex: 1 }}>
+          <ToggleButtonGroup
+            sx={{height: '24px'}}
+            value={weeks}
+            exclusive
+            onChange={handleWeekChange}
+            size="small"
+            color="standard"
+          >
+            <ToggleButton value={1} sx={{ px: 2 }}>
+              1W
+            </ToggleButton>
+            <ToggleButton value={2} sx={{ px: 2 }}>
+              2W
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
         <HighchartsReact highcharts={Highcharts} options={chartOptions} />
       </Box>
 
       {/* 3. Detailed Table Section */}
-      <Table
-        size="small"
-        sx={{ border: "1px solid rgba(255, 255, 255, 0.12)" }}
-      >
-        <TableHead>
-          <TableRow>
-            <TableCell>
-              {" "}
-              <Typography color="text.secondary">Time</Typography>
-            </TableCell>
-            {allExchanges.map((ex) => (
-              <TableCell key={ex} align="right">
-                <Typography color="text.secondary">
-                  {ex.toUpperCase()}
-                </Typography>
+      <Typography mb={1} fontWeight="600">
+        Funding rate history
+      </Typography>
+      <TableContainerScroll>
+        <Table
+          stickyHeader
+          size="small"
+          sx={{ border: "1px solid rgba(255, 255, 255, 0.12)" }}
+        >
+          <TableHead>
+            <TableRow>
+              <TableCell>
+                {" "}
+                <Typography color="text.secondary">Time</Typography>
               </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          <TableRow sx={{ backgroundColor: "rgba(255, 255, 255, 0.03)" }}>
-            <TableCell>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ fontWeight: "bold" }}
-              >
-                VOL 24H
-              </Typography>
-            </TableCell>
-            {allExchanges.map((ex) => (
-              <TableCell key={`${ex}-vol`} align="right">
-                <Typography
-                  variant="body1"
-                  color="info"
-                  sx={{ fontFamily: "monospace", fontWeight: 'bold' }}
-                >
-                  {readableNumber.toHumanString(vol24h[ex])}
-                </Typography>
-              </TableCell>
-            ))}
-          </TableRow>
-          {tableData.map((row) => (
-            <TableRow key={row.time} hover>
-              <TableCell sx={{ color: "gray" }}>{row.time}</TableCell>
-              {allExchanges.map((ex) => {
-                const val = row.rates[ex];
-                return (
-                  <TableCell key={ex} align="right">
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: val > 0 ? green : val < 0 ? red : "inherit",
-                      }}
-                    >
-                      {val !== undefined ? `${val.toFixed(3)}%` : "—"}
-                    </Typography>
-                  </TableCell>
-                );
-              })}
+              {allExchanges.map((ex) => (
+                <TableCell key={ex} align="right">
+                  <Typography color="text.secondary">
+                    {ex.toUpperCase()}
+                  </Typography>
+                </TableCell>
+              ))}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            <TableRow sx={{ backgroundColor: "rgba(255, 255, 255, 0.03)" }}>
+              <TableCell>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ fontWeight: "bold" }}
+                >
+                  VOL 24H
+                </Typography>
+              </TableCell>
+              {allExchanges.map((ex) => (
+                <TableCell key={`${ex}-vol`} align="right">
+                  <Typography
+                    variant="body1"
+                    sx={{ fontFamily: "monospace", fontWeight: "bold" }}
+                  >
+                    {toHumanString(vol24h[ex])}
+                  </Typography>
+                </TableCell>
+              ))}
+            </TableRow>
+            {tableData.map((row) => (
+              <TableRow key={row.time} hover>
+                <TableCell sx={{ color: "gray" }}>{row.time}</TableCell>
+                {allExchanges.map((ex) => {
+                  const val = row.rates[ex];
+                  return (
+                    <TableCell key={ex} align="right">
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: val > 0 ? green : val < 0 ? red : "inherit",
+                        }}
+                      >
+                        {val !== undefined ? `${val.toFixed(3)}%` : "—"}
+                      </Typography>
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        {tableData.length > 10 && (
+          <ScrollIndicator>
+            <Typography
+              variant="caption"
+              sx={{ color: "rgba(255,255,255,0.5)", fontSize: "10px" }}
+            >
+              SCROLL FOR MORE ↓
+            </Typography>
+          </ScrollIndicator>
+        )}
+      </TableContainerScroll>
     </Box>
   );
 };
 
 const TableCell = styled(TableCellMui)({ padding: "8px 16px" });
 
-export default PerformanceHistoryContainer;
+export default FundingHistory;
+
+const TableContainerScroll = styled(Box)({
+  maxHeight: "500px", // Set your desired fixed height here
+  overflowY: "auto",
+  position: "relative",
+  border: "1px solid rgba(255, 255, 255, 0.12)",
+  borderRadius: "4px",
+  // Custom scrollbar for better UI
+  "&::-webkit-scrollbar": { width: "6px" },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: "10px",
+  },
+});
+
+const ScrollIndicator = styled(Box)({
+  position: "sticky",
+  bottom: 0,
+  left: 0,
+  right: 0,
+  height: "40px",
+  background: "linear-gradient(transparent, rgba(0,0,0,0.8))",
+  pointerEvents: "none",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "flex-end",
+  paddingBottom: "4px",
+  zIndex: 2,
+});

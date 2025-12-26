@@ -32,7 +32,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import EditIcon from "@mui/icons-material/Edit";
-import readableNumber from "human-readable-numbers";
+import { toHumanString } from "../../services/humanReadable";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { styled } from "@mui/system";
@@ -329,7 +329,7 @@ const SignalsContainer: React.FC = () => {
         />
       </Stack>
 
-      <Typography component="h1" variant="h3" fontWeight="800">
+      <Typography variant="h4" component="h1" gutterBottom>
         Crypto Funding Arbitrage
       </Typography>
 
@@ -645,12 +645,12 @@ const SignalsContainer: React.FC = () => {
                       >
                         {/* Volume for the Sell Side */}
                         <Typography align="left">
-                          {readableNumber.toHumanString(opp.sellVol24h)}
+                          {toHumanString(opp.sellVol24h)}
                         </Typography>
 
                         {/* Volume for the Buy Side */}
                         <Typography align="left">
-                          {readableNumber.toHumanString(opp.buyVol24h)}
+                          {toHumanString(opp.buyVol24h)}
                         </Typography>
                       </Box>
                     </TableCell>

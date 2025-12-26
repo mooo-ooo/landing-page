@@ -5,7 +5,7 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import Marquee from "react-fast-marquee";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
 import { useSelector } from "react-redux";
-import readableNumber from "human-readable-numbers";
+import { toHumanString } from '../services/humanReadable'
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import { removeHeadSegment } from "../helpers";
@@ -84,7 +84,7 @@ const StrategiesStatus = () => {
               <Typography>{strategyName}</Typography>
               <Typography>
                 Vol:
-                {readableNumber.toHumanString(
+                {toHumanString(
                   isIncrease ? maxVolOfPosition * 2 : minVolOfPosition * 2
                 )}
               </Typography>

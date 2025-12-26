@@ -26,7 +26,7 @@ const exchangeConfigs: Record<string, ExchangeConfig> = {
       safeParseFloat(data?.result?.list?.[0]?.turnover24h),
   },
   okx: {
-    url: (symbol) => `${PROXY_URL}/https://www.okx.com/api/v5/market/ticker?instId=${symbol}-USDT-SWAP`,
+    url: (symbol) => `https://www.okx.com/api/v5/market/ticker?instId=${symbol}-USDT-SWAP`,
     // OKX returns volume in the base currency (volCcy24h), so we multiply by the last price
     extractor: (data) => {
       const item = data?.data?.[0];

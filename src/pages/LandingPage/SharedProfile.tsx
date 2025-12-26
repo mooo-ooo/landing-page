@@ -16,7 +16,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import PositionsTable from "../../components/PositionsTable";
 import numeral from "numeral";
-import readableNumber from "human-readable-numbers";
+import { toHumanString } from "../../services/humanReadable";
 import { useSharedFundingRates } from "../../hooks";
 import { calculateDaysBack } from "../../helpers";
 import { normalizedSharedPositions } from "../../hooks/useNormalizedPositions";
@@ -441,7 +441,7 @@ const ProfileCard: FC<IProfile> = ({
             label="Volumes"
             valueComponent={
               <Typography textAlign='left' textTransform="capitalize">
-                {readableNumber.toHumanString(totalVol)}
+                {toHumanString(totalVol)}
               </Typography>
             }
           />

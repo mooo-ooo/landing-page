@@ -169,7 +169,7 @@ function Orderbooks({
       }
     },
     // Delay in milliseconds or null to stop it
-    200
+    100
   );
 
   useEffect(() => {
@@ -465,7 +465,7 @@ function Orderbooks({
                   justifyContent="space-between"
                 >
                   <Button
-                    color="info"
+                    color="primary"
                     variant="outlined"
                     onClick={goWatch}
                     startIcon={<RotateLeftIcon />}

@@ -13,7 +13,7 @@ import AddBoxIcon from "@mui/icons-material/AddBox";
 import Statistic from "./Statistic";
 import Orderbook from "./Orderbook";
 import { useSearchParams } from "react-router-dom";
-import FundingHistory, { type IStatistic } from "./FundingHistory/Container";
+import FundingHistory, { type IStatistic } from "./FundingHistory";
 import { ALL_EXCHANGES, SIGNAL_EXCHANGES } from "../../constants";
 import ExchangesFilter from "../Signals/ExchangesFilter";
 import type { ExchangeName } from "../../types/exchange";
@@ -98,13 +98,8 @@ function OrderBook() {
 
   return (
     <Box display="flex" flexDirection="column" gap="12px" py="32px">
-      <Typography component="h1" variant="h3" fontWeight="800">
+      <Typography variant="h4" component="h1">
         Cross-Exchange Orderbook & Funding Analysis
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        Analyze real-time funding history and aggregate orderbook depth across
-        multiple exchanges. Compare buy/sell liquidity for any base token to
-        identify arbitrage opportunities or market trends.
       </Typography>
       <Group>
         <Panel minSize={350}>
@@ -169,7 +164,7 @@ function OrderBook() {
         </Panel>
         <StyledHandle />
         <Panel minSize={350}>
-          <Box sx={{ p: 2 }} display="flex" flexDirection="column" gap="12px">
+          <Box sx={{ p: 2 }} display="flex" flexDirection="column" gap="16px">
             <Statistic data={statistic} />
             {ids.map(({ id, disabled }) =>
               !disabled && statistic[0] ? (
