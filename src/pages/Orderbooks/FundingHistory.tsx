@@ -158,10 +158,6 @@ const FundingHistory: React.FC<{
       }
     });
 
-    // Reverse categories and data to show chronological order (Left to Right)
-    categories.reverse();
-    seriesData.reverse();
-
     return {
       chart: {
         type: "column",

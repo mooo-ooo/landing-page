@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Box,
   Card,
@@ -11,8 +11,8 @@ import {
   Skeleton,
   Snackbar,
   Alert,
-  Button,
   Divider,
+  Button,
 } from "@mui/material";
 import { red, green } from "../../constants/colors";
 import { useInterval } from "usehooks-ts";
@@ -26,7 +26,7 @@ import Select, { type SelectChangeEvent } from "@mui/material/Select";
 import numeral from "numeral";
 import useResizeObserver from "use-resize-observer";
 import { type Order, type OrderBook } from "./types";
-import { ExchangeMap, type Exchange } from "./constants";
+import { ExchangeMap } from "./constants";
 import { type Num } from "./types";
 
 // const favExchanges = "favExchanges";
@@ -37,15 +37,20 @@ const cachedExchangeSettings: string[] = JSON.parse(
   localStorage.getItem(disablesExchanges) || "[]"
 );
 
-const toPerpSymbol = (baseToken: string) =>
-  `${baseToken}/USDT:USDT`.toUpperCase();
+type MarketType = 'spot' | 'perp';
+
+const toSymbol = (token: string, type: MarketType) => {
+  if (!token) return "";
+  const base = token.toUpperCase();
+  return type === 'perp' ? `${base}/USDT:USDT` : `${base}/USDT`;
+};
 
 function Orderbooks({
   baseToken,
   depth = 2,
   id,
-  buyExchange,
-  sellExchange,
+  buyExchange = 'binance',
+  sellExchange = 'coinex',
   removeOrderbook,
 }: {
   sellExchange?: ExchangeName;
@@ -55,156 +60,110 @@ function Orderbooks({
   id: number;
   removeOrderbook: (id: number) => void;
 }) {
-  // Use the hook to measure the current width of the component's container
   const { ref, width = 1 } = useResizeObserver<HTMLDivElement>();
-
-  // Define "Mobile" logic based on the component's own width (e.g., < 600px)
   const isCompact = width < 450;
+
+  // --- 1. Draft State (UI selection only - not yet watching) ---
+  const [draftBuyEx, setDraftBuyEx] = useState<ExchangeName>(buyExchange);
+  const [draftSellEx, setDraftSellEx] = useState<ExchangeName>(sellExchange);
+  const [draftBuyType, setDraftBuyType] = useState<MarketType>('perp');
+  const [draftSellType, setDraftSellType] = useState<MarketType>('perp');
+
+  // --- 2. Active State (What is currently being polled) ---
+  const [activeBuyExName, setActiveBuyExName] = useState<ExchangeName>(buyExchange);
+  const [activeSellExName, setActiveSellExName] = useState<ExchangeName>(sellExchange);
+  const [activeBuySymbol, setActiveBuySymbol] = useState("");
+  const [activeSellSymbol, setActiveSellSymbol] = useState("");
+  
+  const [buyOrderBook, setBuyOrderBook] = useState<OrderBook>();
+  const [sellOrderBook, setSellOrderBook] = useState<OrderBook>();
+  const [funding, setFunding] = useState({ buy: 0, sell: 0 });
+  const [contractSize, setContractSize] = useState({ buy: 1, sell: 1 });
   const [error, setError] = useState<string>();
 
-  const [longOrderBook, setLongOrderBook] = useState<OrderBook>();
-  const [shortOrderBook, setShortOrderBook] = useState<OrderBook>();
-  const [funding, setFunding] = useState<{ buy: number; sell: number }>();
-  const [contractSize, setContractSize] = useState<{ buy: number; sell: number }>();
+  // Derived Exchange Info
+  const filteredExchanges = useMemo(() => 
+    Object.keys(ExchangeMap).filter(name => !cachedExchangeSettings.includes(name)
+  ), []);
 
-  const [buySymbol, setBuySymbol] = useState<string>(toPerpSymbol(baseToken));
-  const [sellSymbol, setSellSymbol] = useState<string>(toPerpSymbol(baseToken));
-  // console.log({buySymbol, sellSymbol})
-  const [longEx, setLongEx] = useState<Exchange>(buyExchange);
-  const [shortEx, setShortEx] = useState<Exchange>(sellExchange);
+  const refreshMetadata = useCallback(async (bExName: ExchangeName, sExName: ExchangeName) => {
+    if (!baseToken) return;
+    try {
+      const [fSell, fBuy, sSell, sBuy] = await Promise.all([
+        getExchangeFundingRate(sExName, baseToken),
+        getExchangeFundingRate(bExName, baseToken),
+        fetchContractSize(sExName, baseToken),
+        fetchContractSize(bExName, baseToken),
+      ]);
 
-  const [longExName, setLongExName] = useState<ExchangeName>(
-    buyExchange || "okx"
-  );
-  const [shortExName, setShortExName] = useState<ExchangeName>(
-    sellExchange || "bybit"
-  );
-
-  const fetchFunding = async () => {
-    const res = await Promise.all([
-      getExchangeFundingRate(sellExchange as ExchangeName, baseToken),
-      getExchangeFundingRate(buyExchange as ExchangeName, baseToken),
-    ]);
-    setFunding({
-      sell: res[0].rate,
-      buy: res[1].rate,
-    });
-  };
-
-  const fetchContractSizes = async () => {
-    const res = await Promise.all([
-      fetchContractSize(sellExchange as ExchangeName, baseToken),
-      fetchContractSize(buyExchange as ExchangeName, baseToken),
-    ]);
-    setContractSize({
-      sell: res[0],
-      buy: res[1],
-    });
-  };
+      setFunding({ sell: fSell.rate, buy: fBuy.rate });
+      setContractSize({ sell: sSell, buy: sBuy });
+    } catch (err) {
+      setError(err instanceof Error ? err?.message : String(err));
+    }
+  }, [baseToken]);
 
   useEffect(() => {
-    setShortExName(sellExchange as Exchange);
-    setLongExName(buyExchange as Exchange);
-    fetchFunding();
-    fetchContractSizes()
-  }, [sellExchange, buyExchange]);
+    refreshMetadata(activeBuyExName, activeSellExName)
+  }, [baseToken])
 
-  const [setting, setSetting] = useState({
-    buySymbol,
-    sellSymbol,
-    longExName,
-    shortExName,
-  });
+  // --- COMMIT ACTION ---
+  const goWatch = useCallback(() => {
+    const bEx = ExchangeMap[draftBuyEx];
+    const sEx = ExchangeMap[draftSellEx];
+
+    // Commit Draft to Active
+    setActiveBuyExName(draftBuyEx);
+    setActiveSellExName(draftSellEx);
+    setActiveBuySymbol(toSymbol(baseToken, bEx?.isPerp));
+    setActiveSellSymbol(toSymbol(baseToken, sEx?.isPerp));
+    
+    // UI Reset
+    setBuyOrderBook(undefined);
+    setSellOrderBook(undefined);
+    refreshMetadata(draftBuyEx, draftSellEx);
+  }, [baseToken, draftBuyEx, draftSellEx, refreshMetadata]);
+
+  // Initial load and Parent prop updates
+  useEffect(() => {
+    setDraftBuyEx(buyExchange);
+    setDraftSellEx(sellExchange);
+    // Explicitly call watch to initialize active state
+    goWatch();
+  }, [baseToken, buyExchange, sellExchange]);
 
   useEffect(() => {
-    if (baseToken.length) {
-      const symbol = `${baseToken}/USDT:USDT`;
-      setSetting((prev) => {
-        return {
-          ...prev,
-          buySymbol: symbol,
-          sellSymbol: symbol,
-        };
+    setActiveBuySymbol(toSymbol(baseToken, draftBuyType));
+    setActiveSellSymbol(toSymbol(baseToken, draftSellType));
+  }, [draftBuyType, draftSellType, baseToken])
+
+  // --- Polling Loop ---
+  useInterval(async () => {
+    const buyEx = ExchangeMap[activeBuyExName];
+    const sellEx = ExchangeMap[activeSellExName];
+    if (!buyEx || !sellEx || !baseToken) return;
+
+    try {
+      const [watchedBuy, watchedSell] = await Promise.all([
+        buyEx.watchOrderBook(activeBuySymbol) as OrderBook,
+        sellEx.watchOrderBook(activeSellSymbol) as OrderBook
+      ]);
+
+      const sliceOb = (ob: OrderBook) => ({
+        ...ob,
+        bids: ob.bids.slice(0, depth),
+        asks: ob.asks.slice(0, depth),
       });
+
+      // Verification to ensure we don't set data from an old symbol/token
+      if (watchedBuy?.symbol === activeBuySymbol) setBuyOrderBook(sliceOb(watchedBuy));
+      if (watchedSell?.symbol === activeSellSymbol) setSellOrderBook(sliceOb(watchedSell));
+    } catch (err) {
+      setError(err instanceof Error ? err?.message : String(err));
     }
-  }, [baseToken]);
+  }, 150);
 
-  useEffect(() => {
-    setShortEx(ExchangeMap[shortExName]);
-    setLongEx(ExchangeMap[longExName]);
-  }, [shortExName, longExName]);
-
-  useInterval(
-    async () => {
-      const watchedLongOrderbook = await longEx!
-        .watchOrderBook(`${buySymbol}`)
-        .catch((err: Error) => setError(err?.message));
-      const watchedShortOrderbook = await shortEx!
-        .watchOrderBook(`${sellSymbol}`)
-        .catch((err: Error) => setError(err?.message));
-
-      const slicedOrderbook = (ob: OrderBook): OrderBook => {
-        return {
-          ...ob,
-          bids: ob.bids.slice(0, depth),
-          asks: ob.asks.slice(0, depth),
-        };
-      };
-      if (watchedLongOrderbook?.symbol === buySymbol) {
-        setLongOrderBook((prev) => {
-          return {
-            ...prev,
-            ...slicedOrderbook(watchedLongOrderbook),
-          };
-        });
-      }
-
-      if (watchedShortOrderbook?.symbol === sellSymbol) {
-        setShortOrderBook((prev) => {
-          return {
-            ...prev,
-            ...slicedOrderbook(watchedShortOrderbook),
-          };
-        });
-      }
-    },
-    // Delay in milliseconds or null to stop it
-    100
-  );
-
-  useEffect(() => {
-    fetchFunding();
-    fetchContractSizes();
-    setSellSymbol(toPerpSymbol(baseToken));
-    setBuySymbol(toPerpSymbol(baseToken));
-  }, [baseToken]);
-
-  const goWatch = () => {
-    setShortExName(setting.shortExName);
-    setLongExName(setting.longExName);
-    setSellSymbol(setting.sellSymbol);
-    setBuySymbol(setting.buySymbol);
-    setShortOrderBook(undefined);
-    setLongOrderBook(undefined);
-  };
-
-  const handleClose = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setError(undefined);
-  };
-
-  const filteredExchanges = Object.keys(ExchangeMap).filter(
-    (name) => !cachedExchangeSettings.includes(name)
-  );
-
-  const netFunding =
-    funding?.sell && funding?.buy ? funding?.sell - funding?.buy : 0;
+  const netFunding = useMemo(() => (funding.sell - funding.buy), [funding]);
 
   return (
     <Box
@@ -229,15 +188,10 @@ function Orderbooks({
                 <FormControl variant="standard" sx={{ minWidth: 100 }}>
                   <InputLabel>Sell Exchange</InputLabel>
                   <Select
-                    value={setting.shortExName}
-                    label="Short Exchange"
+                    value={draftSellEx}
+                    label="Sell Exchange"
                     onChange={(event: SelectChangeEvent) => {
-                      setSetting((prev) => {
-                        return {
-                          ...prev,
-                          shortExName: event.target.value as ExchangeName,
-                        };
-                      });
+                      setDraftSellEx(event.target.value as ExchangeName)
                     }}
                   >
                     {filteredExchanges.map((name) => (
@@ -247,21 +201,28 @@ function Orderbooks({
                     ))}
                   </Select>
                 </FormControl>
-                <Box flexGrow={1}>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    textAlign="right"
+                <Box flexGrow={1} display='flex' justifyContent='flex-end'>
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => setDraftSellType(draftSellType === 'perp' ? 'spot' : 'perp')}
+                    color='inherit'
+                    sx={{
+                      minWidth: '50px',
+                      height: '24px',
+                      fontSize: '0.65rem',
+                      px: 1,
+                    }}
                   >
-                    {sellSymbol}
-                  </Typography>
+                    {draftSellType.toUpperCase()}
+                  </Button>
                 </Box>
               </Box>
-              {shortOrderBook ? (
+              {sellOrderBook ? (
                 <OrderBookDisplay
-                  bids={shortOrderBook.bids}
-                  asks={shortOrderBook.asks}
-                  contractSize={contractSize?.buy || 0}
+                  bids={sellOrderBook.bids}
+                  asks={sellOrderBook.asks}
+                  contractSize={contractSize?.sell || 0}
                 />
               ) : (
                 <Box sx={{ width: "90%" }}>
@@ -287,15 +248,10 @@ function Orderbooks({
                 <FormControl variant="standard" sx={{ minWidth: 100 }}>
                   <InputLabel>Buy Exchange</InputLabel>
                   <Select
-                    value={setting.longExName}
+                    value={draftBuyEx}
                     label="Long Exchange"
                     onChange={(event: SelectChangeEvent) => {
-                      setSetting((prev) => {
-                        return {
-                          ...prev,
-                          longExName: event.target.value as ExchangeName,
-                        };
-                      });
+                      setDraftBuyEx(event.target.value as ExchangeName)
                     }}
                   >
                     {filteredExchanges.map((name) => (
@@ -305,20 +261,27 @@ function Orderbooks({
                     ))}
                   </Select>
                 </FormControl>
-                <Box flexGrow={1}>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    textAlign="right"
+                <Box flexGrow={1} display='flex' justifyContent='flex-end'>
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => setDraftBuyType(draftBuyType === 'perp' ? 'spot' : 'perp')}
+                    color='inherit'
+                    sx={{
+                      minWidth: '50px',
+                      height: '24px',
+                      fontSize: '0.65rem',
+                      px: 1,
+                    }}
                   >
-                    {buySymbol}
-                  </Typography>
+                    {draftBuyType.toUpperCase()}
+                  </Button>
                 </Box>
               </Box>
-              {longOrderBook ? (
+              {buyOrderBook ? (
                 <OrderBookDisplay
-                  bids={longOrderBook.bids}
-                  asks={longOrderBook.asks}
+                  bids={buyOrderBook.bids}
+                  asks={buyOrderBook.asks}
                   contractSize={contractSize?.buy || 0}
                 />
               ) : (
@@ -417,15 +380,15 @@ function Orderbooks({
                     </Grid>
                     <Grid size={9}>
                       <SpreadRates
-                        sellOrder={shortOrderBook?.bids[0]}
-                        buyOrder={longOrderBook?.asks[0]}
+                        sellOrder={sellOrderBook?.bids[0]}
+                        buyOrder={buyOrderBook?.asks[0]}
                         sellContractSize={contractSize?.sell}
                         buyContractSize={contractSize?.buy}
                       />
                       <SpreadRates
                         isSecondary
-                        sellOrder={shortOrderBook?.bids[1]}
-                        buyOrder={longOrderBook?.asks[1]}
+                        sellOrder={sellOrderBook?.bids[1]}
+                        buyOrder={buyOrderBook?.asks[1]}
                         sellContractSize={contractSize?.sell}
                         buyContractSize={contractSize?.buy}
                       />
@@ -443,15 +406,15 @@ function Orderbooks({
                     </Grid>
                     <Grid size={9}>
                       <SpreadRates
-                        sellOrder={longOrderBook?.bids[0]}
-                        buyOrder={shortOrderBook?.asks[0]}
+                        sellOrder={buyOrderBook?.bids[0]}
+                        buyOrder={sellOrderBook?.asks[0]}
                         sellContractSize={contractSize?.sell}
                         buyContractSize={contractSize?.buy}
                       />
                       <SpreadRates
                         isSecondary
-                        sellOrder={longOrderBook?.bids[1]}
-                        buyOrder={shortOrderBook?.asks[1]}
+                        sellOrder={buyOrderBook?.bids[1]}
+                        buyOrder={sellOrderBook?.asks[1]}
                         sellContractSize={contractSize?.sell}
                         buyContractSize={contractSize?.buy}
                       />
@@ -464,8 +427,7 @@ function Orderbooks({
                   spacing={1}
                   justifyContent="space-between"
                 >
-                  <Button
-                    color="primary"
+                  <Button 
                     variant="outlined"
                     onClick={goWatch}
                     startIcon={<RotateLeftIcon />}
@@ -481,19 +443,8 @@ function Orderbooks({
           </Grid>
         </CardContent>
       </Card>
-      <Snackbar
-        open={Boolean(error?.length)}
-        autoHideDuration={6000}
-        onClose={handleClose}
-      >
-        <Alert
-          onClose={handleClose}
-          severity="error"
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {error}
-        </Alert>
+      <Snackbar open={!!error} autoHideDuration={3000} onClose={() => setError('')}>
+        <Alert severity="error" variant="filled" sx={{ width: '100%' }}>{error}</Alert>
       </Snackbar>
     </Box>
   );

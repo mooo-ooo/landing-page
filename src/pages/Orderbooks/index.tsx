@@ -64,6 +64,7 @@ function OrderBook() {
     setActiveToken(tokenInput.toUpperCase());
     // Update URL without refreshing the page
     setSearchParams({ token: tokenInput.toUpperCase() });
+    setIds([{ id: firstId }]);
   };
   const [selectedExchanges, setSelectedExchanges] = useState<ExchangeName[]>(
     () =>
@@ -103,9 +104,7 @@ function OrderBook() {
       </Typography>
       <Group>
         <Panel minSize={350}>
-          <Box
-            sx={{ p: 2 }}
-          >
+          <Box sx={{ p: 2 }}>
             <Box
               gap={2}
               display="flex"
@@ -142,18 +141,17 @@ function OrderBook() {
                   Check
                 </Button>
               </Stack>
-              <Box display='flex' flexGrow={1} justifyContent='flex-end'>
+              <Box display="flex" flexGrow={1} justifyContent="flex-end">
                 <ExchangesFilter<ExchangeName>
-                options={ALL_EXCHANGES}
-                value={selectedExchanges}
-                onChange={(exs) => {
-                  localStorage.setItem(SIGNAL_EXCHANGES, JSON.stringify(exs));
-                  setSelectedExchanges(exs as ExchangeName[]);
-                }}
-                getOptionLabel={(o) => o}
-              />
+                  options={ALL_EXCHANGES}
+                  value={selectedExchanges}
+                  onChange={(exs) => {
+                    localStorage.setItem(SIGNAL_EXCHANGES, JSON.stringify(exs));
+                    setSelectedExchanges(exs as ExchangeName[]);
+                  }}
+                  getOptionLabel={(o) => o}
+                />
               </Box>
-              
             </Box>
             <FundingHistory
               baseToken={activeToken}
