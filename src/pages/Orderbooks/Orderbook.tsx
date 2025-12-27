@@ -39,9 +39,12 @@ const cachedExchangeSettings: string[] = JSON.parse(
 
 type MarketType = 'spot' | 'perp';
 
-const toSymbol = (token: string, type: MarketType) => {
+const toSymbol = (token: string, type: MarketType, exchange?: string) => {
   if (!token) return "";
   const base = token.toUpperCase();
+  if (exchange === 'kucoin') {
+    return type === 'perp' ? `${base}/USDT:USDT` : `${base}/USDT`;
+  }
   return type === 'perp' ? `${base}/USDT:USDT` : `${base}/USDT`;
 };
 
@@ -89,19 +92,20 @@ function Orderbooks({
   const refreshMetadata = useCallback(async (bExName: ExchangeName, sExName: ExchangeName) => {
     if (!baseToken) return;
     try {
+      const isSellPerp = draftSellType === 'perp'
+      const isBuyPerp = draftBuyType === 'perp'
       const [fSell, fBuy, sSell, sBuy] = await Promise.all([
-        getExchangeFundingRate(sExName, baseToken),
-        getExchangeFundingRate(bExName, baseToken),
-        fetchContractSize(sExName, baseToken),
-        fetchContractSize(bExName, baseToken),
+        isSellPerp ? getExchangeFundingRate(sExName, baseToken) : Promise.resolve({ rate: 0 }),
+        isBuyPerp ? getExchangeFundingRate(bExName, baseToken): Promise.resolve({ rate: 0 }),
+        isSellPerp ? fetchContractSize(sExName, baseToken) : Promise.resolve(1),
+        isBuyPerp ? fetchContractSize(bExName, baseToken) : Promise.resolve(1),
       ]);
-
       setFunding({ sell: fSell.rate, buy: fBuy.rate });
       setContractSize({ sell: sSell, buy: sBuy });
     } catch (err) {
       setError(err instanceof Error ? err?.message : String(err));
     }
-  }, [baseToken]);
+  }, [baseToken, draftSellType, draftBuyType]);
 
   useEffect(() => {
     refreshMetadata(activeBuyExName, activeSellExName)
@@ -109,14 +113,11 @@ function Orderbooks({
 
   // --- COMMIT ACTION ---
   const goWatch = useCallback(() => {
-    const bEx = ExchangeMap[draftBuyEx];
-    const sEx = ExchangeMap[draftSellEx];
-
     // Commit Draft to Active
     setActiveBuyExName(draftBuyEx);
     setActiveSellExName(draftSellEx);
-    setActiveBuySymbol(toSymbol(baseToken, bEx?.isPerp));
-    setActiveSellSymbol(toSymbol(baseToken, sEx?.isPerp));
+    setActiveBuySymbol(toSymbol(baseToken, draftSellType, draftBuyEx));
+    setActiveSellSymbol(toSymbol(baseToken, draftBuyType, draftSellEx));
     
     // UI Reset
     setBuyOrderBook(undefined);
@@ -133,8 +134,8 @@ function Orderbooks({
   }, [baseToken, buyExchange, sellExchange]);
 
   useEffect(() => {
-    setActiveBuySymbol(toSymbol(baseToken, draftBuyType));
-    setActiveSellSymbol(toSymbol(baseToken, draftSellType));
+    setActiveBuySymbol(toSymbol(baseToken, draftBuyType, draftBuyEx));
+    setActiveSellSymbol(toSymbol(baseToken, draftSellType, draftSellEx));
   }, [draftBuyType, draftSellType, baseToken])
 
   // --- Polling Loop ---
@@ -159,6 +160,7 @@ function Orderbooks({
       if (watchedBuy?.symbol === activeBuySymbol) setBuyOrderBook(sliceOb(watchedBuy));
       if (watchedSell?.symbol === activeSellSymbol) setSellOrderBook(sliceOb(watchedSell));
     } catch (err) {
+      console.error(err)
       setError(err instanceof Error ? err?.message : String(err));
     }
   }, 150);

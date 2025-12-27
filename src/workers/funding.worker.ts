@@ -82,6 +82,7 @@ ctx.addEventListener("message", async (event: MessageEvent<WorkerInput>) => {
         // Filter history by the date range
         const filteredHistory = history.filter(h => dayjs(h.fundingTime).isAfter(cutoffDate));
         
+        if (filteredHistory.length === 0) return null;
         // Sum the funding rates (Accumulated)
         const accumulated = filteredHistory.reduce((sum, point) => sum + point.fundingRate, 0);
 
@@ -125,7 +126,7 @@ ctx.addEventListener("message", async (event: MessageEvent<WorkerInput>) => {
             fundingRateHistory(exchange, token),
             get24hVolume(exchange, token),
           ]);
-
+          
           const history =
             historyRes.status === "fulfilled" ? historyRes.value : [];
           const vol24h = volumeRes.status === "fulfilled" ? volumeRes.value : 0;
@@ -136,7 +137,7 @@ ctx.addEventListener("message", async (event: MessageEvent<WorkerInput>) => {
               volumeRes.reason
             );
           }
-
+          if (history.length === 0) return null;
           return {
             exchange,
             symbol: token,
