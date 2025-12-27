@@ -158,6 +158,8 @@ const FundingHistory: React.FC<{
       }
     });
 
+    categories.reverse()
+    seriesData.reverse()
     return {
       chart: {
         type: "column",

@@ -145,6 +145,17 @@ export const getExchangeFundingRate = async (
         // console.log(results[0])
         return results[0];
       }
+      case "bybit": {
+        const { data: { result: { list: [record]}} } = await axios.get(
+          `https://api.bybit.com/v5/market/tickers?symbol=${symbol}USDT&category=linear`
+        );
+        return {
+          symbol,
+          rate: Number(record.fundingRate),
+          fundingTime: Number(record.nextFundingTime),
+          interval: record.fundingIntervalHour,
+        };
+      }
       default: {
         throw new Error(`Unsupported exchange: ${exchange}`);
       }
