@@ -131,7 +131,7 @@ function Orderbooks({
     setDraftSellEx(sellExchange);
     // Explicitly call watch to initialize active state
     goWatch();
-  }, [baseToken, buyExchange, sellExchange]);
+  }, [baseToken, buyExchange, sellExchange, draftSellEx, draftBuyEx]);
 
   useEffect(() => {
     setActiveBuySymbol(toSymbol(baseToken, draftBuyType, draftBuyEx));
@@ -164,6 +164,14 @@ function Orderbooks({
       setError(err instanceof Error ? err?.message : String(err));
     }
   }, 150);
+
+  // useEffect(() => {
+  //   return () => {
+  //     setIsPollingActive(false); // Stop the interval
+  //     setBuyOrderBook(undefined); // Clear memory
+  //     setSellOrderBook(undefined);
+  //   };
+  // }, []);
 
   const netFunding = useMemo(() => (funding.sell - funding.buy), [funding]);
 

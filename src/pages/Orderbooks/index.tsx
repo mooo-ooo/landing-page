@@ -164,6 +164,7 @@ function OrderBook() {
         <Panel minSize={350}>
           <Box sx={{ p: 2 }} display="flex" flexDirection="column" gap="16px">
             <Statistic data={statistic} />
+            
             {ids.map(({ id, disabled }) =>
               !disabled && statistic[0] ? (
                 <Orderbook
