@@ -59,9 +59,9 @@ const LandingPageHeader = () => {
 
   // Data for the 4-column feature list
   const featureBlocks = [
-    "Stable profit",
-    "We don't hold your funds",
-    "Low risk",
+    "Stable Profits",
+    "Non-Custodial: We Never Hold Your Funds",
+    "Low-Risk Strategy",
   ];
 
   return (
@@ -147,7 +147,7 @@ const LandingPageHeader = () => {
           >
             The Original Crypto
             <br />
-            Farming Funding
+            Funding Farming Platform
           </Typography>
 
           <Typography
@@ -159,14 +159,14 @@ const LandingPageHeader = () => {
               px: { xs: 0, sm: 4, md: 8 },
             }}
           >
-            Professional grade order, position and execution management system.
+            Professional-grade order, position, and execution management system
           </Typography>
           <Typography
             variant="h6"
             sx={{ color: darkTheme.palette.text.secondary, mb: 4 }}
           >
-            Open your position with good spread.
-            <br /> keep your position to earn funding fees.
+            Open positions with tight spreads.
+            <br /> Maintain your positions to earn funding fees.
           </Typography>
 
           {/* Call to Action Button */}
