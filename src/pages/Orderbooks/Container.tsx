@@ -6,7 +6,7 @@ import { useScript } from '@uidotdev/usehooks'
 
 const Orderbook = lazy(() => import('./index'))
 
-const localCcxt = '/ccxt.browser.min.js'
+const localCcxt = '/ccxt.browser.min.sat27.js'
 const OrderBookContainer = () => {
   const status = useScript(localCcxt, {
     removeOnUnmount: false,
