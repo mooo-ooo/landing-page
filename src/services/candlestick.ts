@@ -16,7 +16,7 @@ export const getCandleSticks = async (
     switch (exchange) {
       case "coinex": {
         const { data } = await axios.get(
-          `${PROXY_URL}/https://api.coinex.com/v2/futures/kline?market=${symbol}USDT&period=1hour&limit=${twoWeeks}`
+          `${PROXY_URL}/coinex/v2/futures/kline?market=${symbol}USDT&period=1hour&limit=${twoWeeks}`
         );
         return data.data.map(
           ({ close, created_at }: { close: string; created_at: number }) => {
@@ -53,7 +53,7 @@ export const getCandleSticks = async (
       }
       case "gate": {
         const { data } = await axios.get(
-          `${PROXY_URL}/https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=${symbol}_USDT&interval=1h&limit=${twoWeeks}`
+          `${PROXY_URL}/gate/api/v4/futures/usdt/candlesticks?contract=${symbol}_USDT&interval=1h&limit=${twoWeeks}`
         );
         return data.map(({ t, c }: { t: number; c: string }) => {
           return {
@@ -75,7 +75,7 @@ export const getCandleSticks = async (
       }
       case "huobi": {
         const { data } = await axios.get(
-          `${PROXY_URL}/https://api.hbdm.com/index/market/history/linear_swap_mark_price_kline?contract_code=${symbol}-USDT&period=60min&size=${twoWeeks}`,
+          `${PROXY_URL}/hbdm/index/market/history/linear_swap_mark_price_kline?contract_code=${symbol}-USDT&period=60min&size=${twoWeeks}`,
           {
             headers: {
               "X-Requested-With": "XMLHttpRequest",
@@ -92,7 +92,7 @@ export const getCandleSticks = async (
       }
       case "bybit": {
         const { data } = await axios.get(
-          `https://api.bybit.com/v5/market/kline?category=inverse&symbol=${symbol}USD&interval=60&limit=${twoWeeks}`
+          `https://api.bybit.com/v5/market/kline?category=inverse&symbol=${symbol}USDT&interval=60&limit=${twoWeeks}`
         );
 
         return data.result.list.map((stick: string[][]) => {
@@ -100,7 +100,7 @@ export const getCandleSticks = async (
             price: Number(stick[4]),
             time: Number(stick[0]),
           };
-        });
+        }).toReversed();
       }
       default: {
         throw new Error(`Unsupported exchange: ${exchange}`);

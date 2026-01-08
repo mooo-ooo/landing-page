@@ -68,7 +68,7 @@ export const getExchangeFundingRate = async (
       }
       case "gate": {
         const { data } = await axios.get(
-          `${PROXY_URL}/https://api.gateio.ws/api/v4/futures/usdt/contracts/${symbol}_USDT`
+          `${PROXY_URL}/gate/api/v4/futures/usdt/contracts/${symbol}_USDT`
         );
 
         return {
@@ -98,7 +98,7 @@ export const getExchangeFundingRate = async (
       }
       case "huobi": {
         const { data } = await axios.get<HuobiFundingRateResponse>(
-          `${PROXY_URL}/https://api.hbdm.com/linear-swap-api/v1/swap_funding_rate?contract_code=${symbol}-USDT`,
+          `${PROXY_URL}/hbdm/linear-swap-api/v1/swap_funding_rate?contract_code=${symbol}-USDT`,
           {
             headers: {
               "X-Requested-With": "XMLHttpRequest",
@@ -121,7 +121,7 @@ export const getExchangeFundingRate = async (
         const {
           data: { data },
         } = await axios.get(
-          `${PROXY_URL}/https://api.coinex.com/v2/futures/funding-rate?market=${symbol}USDT`
+          `${PROXY_URL}/coinex/v2/futures/funding-rate?market=${symbol}USDT`
         );
         const results = data.map(
           ({
