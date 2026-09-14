@@ -10,7 +10,7 @@ const Features: FC = () => {
     <Grid container spacing={4}>
       <Grid size={isWeb ? 4 : 12}>
         <Item sx={{ height: "100%", boxSizing: "border-box" }}>
-          <img style={{ width: "100%" }} src="/features/dashboard.png" />
+          <img style={{ width: "100%" }} src="/features/dashboard-v2.png" />
           <Typography mb={2} variant="h6" color="white">
             Manage and monitor your positions
           </Typography>
@@ -20,7 +20,7 @@ const Features: FC = () => {
       <Grid size={isWeb ? 8 : 12}>
         <Stack spacing={2}>
           <Item>
-            <img style={{ width: "100%" }} src="/features/wallets.png" />
+            <img style={{ width: "100%" }} src="/features/wallets-v2.png" />
             <Typography mb={2} variant="h6" color="white">
               Transfer funds between whitelisted exchanges
             </Typography>
