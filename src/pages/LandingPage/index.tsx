@@ -454,6 +454,7 @@ const Footer = () => {
 
 const exchanges: string[] = [
   "coinex",
+  "hyperliquid",
   "whitebit",
   "bitget",
   "gate",
