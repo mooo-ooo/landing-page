@@ -73,7 +73,7 @@ export const fundingRateHistory = async (
           };
         });
       }
-      case "huobi": {
+      case "whitebit": {
         const { data: { data : { data }} } = await axios.get(
           `${PROXY_URL}/hbdm/linear-swap-api/v1/swap_historical_funding_rate?contract_code=${symbol}-USDT&page_size=200`,
         );

@@ -16,37 +16,37 @@ const mockData = [
   {
     baseToken: 'BTC',
     buyExchange: 'okx' as ExchangeName,
-    sellExchange: 'huobi' as ExchangeName,
+    sellExchange: 'whitebit' as ExchangeName,
     weeklyAccumulatedDiff: 0.0123,
   },
   {
     baseToken: 'ETH',
-    buyExchange: 'huobi' as ExchangeName,
+    buyExchange: 'whitebit' as ExchangeName,
     sellExchange: 'okx' as ExchangeName,
     weeklyAccumulatedDiff: -0.0087,
   },
   {
     baseToken: 'BNB',
     buyExchange: 'okx' as ExchangeName,
-    sellExchange: 'huobi' as ExchangeName,
+    sellExchange: 'whitebit' as ExchangeName,
     weeklyAccumulatedDiff: 0.0234,
   },
   {
     baseToken: 'SOL',
     buyExchange: 'okx' as ExchangeName,
-    sellExchange: 'huobi' as ExchangeName,
+    sellExchange: 'whitebit' as ExchangeName,
     weeklyAccumulatedDiff: 0.0234,
   },
   {
     baseToken: 'DOGE',
     buyExchange: 'okx' as ExchangeName,
-    sellExchange: 'huobi' as ExchangeName,
+    sellExchange: 'whitebit' as ExchangeName,
     weeklyAccumulatedDiff: 0.0234,
   },
   {
     baseToken: 'SHIB',
     buyExchange: 'okx' as ExchangeName,
-    sellExchange: 'huobi' as ExchangeName,
+    sellExchange: 'whitebit' as ExchangeName,
     weeklyAccumulatedDiff: 0.0234,
   },
 ];

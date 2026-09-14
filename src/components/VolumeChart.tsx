@@ -19,7 +19,7 @@ const VolumeChart: FC<VolumeChartProps> = ({ width = 250, height = 250 }) => {
       coinex: "rgb(14, 173, 152)",
       bitget: "rgb(3, 170, 199)",
       gate: "rgb(35, 84, 230)",
-      huobi: "rgb(0, 148, 255)",
+      whitebit: "rgb(0, 148, 255)",
       bybit: "rgb(255, 177, 26)",
     };
     return Object.keys(positions).map((key) => {

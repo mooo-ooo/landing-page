@@ -73,7 +73,7 @@ export const getCandleSticks = async (
           };
         });
       }
-      case "huobi": {
+      case "whitebit": {
         const { data } = await axios.get(
           `${PROXY_URL}/hbdm/index/market/history/linear_swap_mark_price_kline?contract_code=${symbol}-USDT&period=60min&size=${twoWeeks}`,
           {

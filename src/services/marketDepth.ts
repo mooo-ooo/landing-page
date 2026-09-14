@@ -95,7 +95,7 @@ export const getMarketDepth = async (
           updated: data.data.ts
         }
       }
-      case "huobi": {
+      case "whitebit": {
         const { data } = await axios.get(
           `${PROXY_URL}/https://api.hbdm.com/linear-swap-ex/market/depth?contract_code=${symbol}-USDT&type=step0`,
           {

@@ -277,10 +277,11 @@ const LandingPageHeader = () => {
           >
             {exchanges.map((exchange) => {
               return (
-                <Box>
+                <Box key={exchange}>
                   <img
                     style={{ height: isMobile? '24px' : "32px" }}
-                    src={`/exchanges/${exchange}.png`}
+                    src={exchange === "whitebit" ? "/whitebit.png" : `/exchanges/${exchange}.png`}
+                    alt={exchange}
                   />
                 </Box>
               );
@@ -453,7 +454,7 @@ const Footer = () => {
 
 const exchanges: string[] = [
   "coinex",
-  "huobi",
+  "whitebit",
   "bitget",
   "gate",
   "bybit",

@@ -35,7 +35,7 @@ export interface SummaryBalanceState {
     spot: ICurrencyBalance[],
     future: IFuture,
   },
-  huobi: {
+  whitebit: {
     total: number,
     spot: ICurrencyBalance[],
     future: IFuture
@@ -81,7 +81,7 @@ const initialState: BalancesStateWithMeta = {
       spot: [],
       future: emptyFutureState,
     },
-    huobi: {
+    whitebit: {
       total: 0,
       spot: [],
       future: emptyFutureState
@@ -105,8 +105,8 @@ export const SummaryBalanceSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
-    setTotalHuobi: (state, action: PayloadAction<number>) => {
-      state.balances.huobi.total = action.payload;
+    setTotalWhitebit: (state, action: PayloadAction<number>) => {
+      state.balances.whitebit.total = action.payload;
     },
     setBalancesLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
@@ -127,7 +127,7 @@ export const SummaryBalanceSlice = createSlice({
 // Action creators are generated for each case reducer function
 export const { 
   setSummaryBalance, 
-  setTotalHuobi, 
+  setTotalWhitebit, 
   setBalancesLoading, 
   setBalancesError, 
   clearBalancesError 

@@ -42,7 +42,7 @@ export const getOpenInterest = async (
 
         return data.openInterestList[0].size
       }
-      case "huobi": {
+      case "whitebit": {
         const { data } = await axios.get(
           `${PROXY_URL}/https://api.hbdm.com/linear-swap-api/v1/swap_his_open_interest?contract_code=${symbol}-USDT&amount_type=cont&period=1day`,
           {
@@ -52,7 +52,7 @@ export const getOpenInterest = async (
           }
         );
         if (data.status !== "ok") {
-          throw new Error("Huobi API returned error status");
+          throw new Error("WhiteBIT API returned error status");
         }
         console.log(JSON.stringify(data.data))
         return parseFloat(data.data.tick[0].value)

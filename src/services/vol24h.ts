@@ -36,7 +36,7 @@ const exchangeConfigs: Record<string, ExchangeConfig> = {
       return volume * price;
     },
   },
-  huobi: {
+  whitebit: {
     url: (symbol) => `https://api.hbdm.com/linear-swap-ex/market/detail/merged?contract_code=${symbol}-USDT`,
     extractor: (data) =>
       safeParseFloat(data?.tick?.trade_turnover),

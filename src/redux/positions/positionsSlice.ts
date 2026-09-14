@@ -20,7 +20,7 @@ export interface IPosition {
 export interface PostitionsState {
   gate: IPosition[],
   bybit: IPosition[],
-  huobi: IPosition[],
+  whitebit: IPosition[],
   okx: IPosition[],
   coinex: IPosition[],
   mexc: IPosition[],
@@ -38,7 +38,7 @@ const initialState: PositionsStateWithMeta = {
   positions: {
     gate: [],
     bybit: [],
-    huobi: [],
+    whitebit: [],
     okx: [],
     coinex: [],
     mexc: [],

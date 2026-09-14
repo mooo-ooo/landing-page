@@ -22,7 +22,7 @@ export interface OkxFundingRateResponse {
   }>;
 }
 
-export interface HuobiFundingRateResponse {
+export interface WhitebitFundingRateResponse {
   status: string;
   data: {
     estimated_rate: string | null;
@@ -96,8 +96,8 @@ export const getExchangeFundingRate = async (
           fundingTime: Number(data.data[0].nextUpdate),
         };
       }
-      case "huobi": {
-        const { data } = await axios.get<HuobiFundingRateResponse>(
+      case "whitebit": {
+        const { data } = await axios.get<WhitebitFundingRateResponse>(
           `${PROXY_URL}/hbdm/linear-swap-api/v1/swap_funding_rate?contract_code=${symbol}-USDT`,
           {
             headers: {
@@ -106,7 +106,7 @@ export const getExchangeFundingRate = async (
           }
         );
         if (data.status !== "ok") {
-          throw new Error("Huobi API returned error status");
+          throw new Error("WhiteBIT API returned error status");
         }
 
         return {

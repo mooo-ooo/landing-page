@@ -26,7 +26,7 @@ export const fetchContractSize = async (
         return data?.quanto_multiplier ? Number(data.quanto_multiplier) : 0;
       }
 
-      case 'huobi': {
+      case 'whitebit': {
         const { data } = await axios.get(
           `${PROXY_URL}/https://api.hbdm.com/linear-swap-api/v1/swap_contract_info?contract_code=${baseToken}-${quoteToken}`
         );
